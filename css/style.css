@@ -708,3 +708,19 @@ a.wtp{display:inline-block;text-decoration:none}
 
 .wtp.t-seiseki,.wtag.t-seiseki{background:#fde4f0;border-color:#f3b4d3;color:#a3256b}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .wtp.t-seiseki,:root:not([data-theme="light"]) .wtag.t-seiseki{background:#40223a;border-color:#6a3560;color:#f3b4d8}}
+/* ページの見出し: 全部大文字・太く・シャープに */
+.pgt{font-family:var(--f-body);font-weight:700;font-size:32px;line-height:1;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);padding-bottom:9px;position:relative}
+.pgt::after{content:"";position:absolute;left:0;bottom:0;width:44px;height:4px;border-radius:2px;background:var(--accent)}
+body.workmode .pgt::after{background:var(--wk)}
+.pgs{margin-top:8px}
+@media (min-width:900px){
+  .modeseg button,.tabbar .tab,.asof{white-space:nowrap}
+  .tools{flex-wrap:nowrap;flex:none}
+  .asof select{max-width:150px}
+  .asof input{width:130px}
+}
+@media (min-width:900px) and (max-width:1199px){
+  .brand{width:236px}.brand h1,.hero h1{font-size:17px;letter-spacing:.1em}
+  .tabbar .tab{padding:3px 10px}
+  .asof{font-size:0}.asof select,.asof input{font-size:12px}
+}
