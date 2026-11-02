@@ -1,155 +1,9 @@
 {
- "cd": {
-  "2026:t29:c0": true,
-  "2026:t29:c1": true,
-  "2026:t29:c2": true,
-  "2026:t29:c3": true
- },
+ "cd": {},
  "d": {
-  "2026:t0": true,
-  "2026:t1": true,
-  "2026:t10": true,
-  "2026:t11": true,
-  "2026:t12": true,
-  "2026:t13": true,
-  "2026:t14": true,
-  "2026:t15": true,
-  "2026:t16:10": true,
-  "2026:t16:4": true,
-  "2026:t16:5": true,
-  "2026:t16:6": true,
-  "2026:t16:7": true,
-  "2026:t16:8": true,
-  "2026:t16:9": true,
-  "2026:t17": true,
-  "2026:t18": true,
-  "2026:t19": true,
-  "2026:t2": true,
-  "2026:t20": true,
-  "2026:t21": true,
-  "2026:t22": true,
-  "2026:t23": true,
-  "2026:t26": true,
-  "2026:t27": true,
-  "2026:t28": true,
-  "2026:t29": true,
-  "2026:t3": true,
-  "2026:t30": true,
-  "2026:t31": true,
-  "2026:t32": true,
-  "2026:t33": true,
-  "2026:t34": true,
-  "2026:t35": true,
-  "2026:t38": true,
-  "2026:t39": true,
-  "2026:t4": true,
-  "2026:t5": true,
-  "2026:t6": true,
-  "2026:t7": true,
-  "2026:t78": true,
-  "2026:t79": true,
-  "2026:t8": true,
-  "2026:t80": true
+  "2026:t0": true
  },
  "docs": [
-  {
-   "b": "",
-   "id": "d1793609800376",
-   "img": [],
-   "t": "",
-   "tag": "",
-   "u": ""
-  },
-  {
-   "b": "",
-   "id": "d1793589898829",
-   "img": [],
-   "t": "入試問題作成",
-   "tag": "komu",
-   "tip": true,
-   "u": "https://docs.google.com/spreadsheets/d/1xraYto7Ko5Zr14DHbkkIHbKoeVp83eFXurvhHWRA390/edit?gid=1333572504#gid=1333572504"
-  },
-  {
-   "b": "",
-   "id": "d1793576218951",
-   "img": [],
-   "t": "ｸﾗｽ名簿(提出物等)",
-   "tag": "class",
-   "tip": true,
-   "u": "https://docs.google.com/spreadsheets/d/1kYnR1ZaBomfJ7rg_qhjw6IFN0Z6_ydjUqKBo1-43ISs/edit?gid=804370955#gid=804370955"
-  },
-  {
-   "b": "",
-   "id": "d1793574347531",
-   "img": [],
-   "t": "AIプロンプト集",
-   "tag": "",
-   "tip": true,
-   "u": "https://docs.google.com/document/d/1WnaKwGZBtXo6bmo58zCQCe4MSZpWb49b1PLKnDJBVGg/edit?tab=t.rqiew7itke25#heading=h.39elg9oakz1u"
-  },
-  {
-   "b": "教員用月間予定",
-   "id": "d1793571721951",
-   "img": [],
-   "t": "月間予定",
-   "tag": "komu",
-   "tip": true,
-   "u": "https://docs.google.com/document/d/12FyU6R6GhbUdoTN6yMDRRzdlk6cZ1O0nxrZNys6Sol4/edit?pli=1&tab=t.bom38s1vvli6#heading=h.rhb31rleh181"
-  },
-  {
-   "b": "",
-   "id": "d1793537645038",
-   "img": [],
-   "t": "見込点計算ﾂｰﾙ",
-   "tag": "seiseki",
-   "tip": true,
-   "u": "https://hkimura-web.github.io/expected-score/"
-  },
-  {
-   "b": "",
-   "id": "d1793537545485",
-   "img": [],
-   "t": "欠課時数ﾁｪｯｸｼｰﾄ",
-   "tag": "komu",
-   "tip": true,
-   "u": "https://hkimura-web.github.io/-absentee_rate/"
-  },
-  {
-   "b": "",
-   "id": "d1793537506487",
-   "img": [],
-   "t": "経費精算システム",
-   "tag": "bukatsu",
-   "tip": true,
-   "u": "https://hkimura-web.github.io/expenses-app/"
-  },
-  {
-   "b": "",
-   "id": "d1793537430081",
-   "img": [],
-   "t": "漢字テスト 自動作成",
-   "tag": "jugyo",
-   "tip": true,
-   "u": "https://hkimura-web.github.io/TOP2000-test/"
-  },
-  {
-   "b": "",
-   "id": "d1793537401821",
-   "img": [],
-   "t": "留学生 成績処理ナビ",
-   "tag": "seiseki",
-   "tip": true,
-   "u": "https://hkimura-web.github.io/study-abroad-gpa/"
-  },
-  {
-   "b": "テスト・成績関係の仕事まとめ",
-   "id": "d1793536565892",
-   "img": [],
-   "t": "Test成績総合ﾎﾞｰﾄﾞ",
-   "tag": "seiseki",
-   "tip": true,
-   "u": "https://hkimura-web.github.io/test-portal/#home"
-  },
   {
    "b": "❶主体性評価確定(定期試験前)\n❷テスト返却→素点一覧→BLEND入力\n❸評定確定→成績報告書→不振者報告書→教科連絡一覧\n❹BLEND入力は教科会前日に全クラス一括\n・素点: 成績管理＞担当グループ＞授業選択＞CSV一括登録\n・欠席は得点欄右横のチェック0→1。欠席も留学も「欠」、別室受験は点数。1年留学でも全部チェック\n・BLEND出欠入力を授業時数計画と照合→欠課時数超過者を確認\n・評定は「学期評定」と「通知表評定」の両方に入力(高3は学期末評定も)\n・教科主任: 評定分布表・教科会レジュメ・不振者報告書",
    "id": "d1",
@@ -319,90 +173,36 @@
     "i8"
    ],
    "t": "欠課時数の確認(年間・学期)",
-   "tag": "jugyo",
-   "tip": true,
-   "u": ""
-  },
-  {
-   "b": "",
-   "id": "d1793532014412",
-   "img": [],
-   "t": "BLEND",
-   "tag": "komu",
-   "tip": true,
-   "u": "https://blend.school/admin/dashboard"
-  },
-  {
-   "b": "",
-   "id": "d1793532030555",
-   "img": [],
-   "t": "KGM通信",
-   "tag": "komu",
-   "tip": true,
-   "u": "https://wdsd.net/kgm-h/user/message/list?folder=receive"
-  },
-  {
-   "b": "",
-   "id": "d1793532360454",
-   "img": [],
-   "t": "勤怠管理",
-   "tag": "komu",
-   "tip": true,
-   "u": "https://hkimura-web.github.io/kintai/"
-  },
-  {
-   "b": "",
-   "id": "d1793533376922",
-   "img": [],
-   "t": "採点ナビ",
-   "tag": "komu",
-   "tip": true,
-   "u": "https://saiten-navi.cloud/Home"
-  },
-  {
-   "b": "【ﾄｲﾚ退出】S1-( ) 退出時刻: / 戻り時刻:\n【試験開始遅れ】開始時刻: / 終了予定時刻:\n【体調不良】S1-( )：保健室等への搬出をお願いします。\n【CR受験】物理実験室 / 教科( )：出題者の巡回をお願いします。\n【再問い合わせ】S-  / 教科( )：出題者の対応をお願いします。\n【緊急問い合わせ】S- / 教科( )：至急の対応をお願いします。",
-   "id": "d1793535194015",
-   "img": [],
-   "t": "定期試験ﾁｬｯﾄ雛形",
    "tag": "seiseki",
    "tip": true,
-   "u": "https://docs.google.com/document/d/1nVccjeWJfE_6hFBmR7AckM8g7J9XnLgum6ll4JMpZLY/edit?pli=1&tab=t.odfzxfkspi2a#heading=h.v7ictokpwkdz"
+   "u": ""
   }
  ],
- "fav": [
-  "https://docs.google.com/document/d/1nVccjeWJfE_6hFBmR7AckM8g7J9XnLgum6ll4JMpZLY/edit?pli=1&tab=t.7z0m7qpqo3qk",
-  "https://docs.google.com/document/d/1CgQX2LPBuGy0UOyDtvBF4hT1tCmHTfqG73sh2M47vm4/edit",
-  "https://docs.google.com/spreadsheets/d/1xraYto7Ko5Zr14DHbkkIHbKoeVp83eFXurvhHWRA390/edit?gid=1512247108"
- ],
- "g": "1",
+ "fav": [],
+ "g": "3",
  "mine": [],
  "morning": {
-  "done": {
-   "2026-11-02:m1": true,
-   "2026-11-02:m2": true,
-   "2026-11-02:m3": true,
-   "2026-11-02:m4": true
-  },
+  "done": {},
   "items": [
    {
     "id": "m1",
     "t": "KGM通信",
-    "u": "https://wdsd.net/kgm-h/user/message/list?folder=receive"
+    "u": ""
    },
    {
     "id": "m2",
     "t": "BLEND",
-    "u": "https://blend.school/admin/dashboard"
+    "u": ""
    },
    {
     "id": "m3",
-    "t": "朝の打合せ",
-    "u": "https://docs.google.com/document/d/177lLe-4pQgoQGwtdDyyoGSjrhukHgjRorD2-a6r5bd8/edit?tab=t.0#heading=h.m14edq9d1idj"
+    "t": "学年のドキュメント",
+    "u": ""
    },
    {
     "id": "m4",
-    "t": "学年打合せ",
-    "u": "https://docs.google.com/spreadsheets/d/1YB0F4Fjgtzjx_625AkLduB1tihdr1OW_eG2HRbkhePU/edit?gid=1563605580#gid=1563605580"
+    "t": "学年のスプレッドシート",
+    "u": ""
    }
   ],
   "weekend": false
@@ -467,7 +267,7 @@
    "m": 4,
    "n": "",
    "p": "",
-   "r": "教",
+   "r": "担",
    "rep": false,
    "t": "MY時間割作成",
    "tg": "",
@@ -516,7 +316,7 @@
    "rep": false,
    "t": "始業式: 名列・座席表・礼拝堂席の掲示/上履き記名確認/所信表明",
    "tg": "",
-   "u": "https://docs.google.com/document/d/1nVccjeWJfE_6hFBmR7AckM8g7J9XnLgum6ll4JMpZLY/edit?pli=1&tab=t.4vtm5wlcg4o4#heading=h.tyd5ylagjpt4"
+   "u": ""
   },
   {
    "c": [],
@@ -1644,28 +1444,7 @@
    "u": ""
   }
  ],
- "tipOrder": [
-  "d1793574347531",
-  "d1793532014412",
-  "d1793532030555",
-  "d1793532360454",
-  "d1793533376922",
-  "d1793571721951",
-  "d1793537545485",
-  "d1793537506487",
-  "d1793536565892",
-  "d1793535194015",
-  "d1793537645038",
-  "d1793537401821",
-  "d1793576218951",
-  "d3",
-  "d16",
-  "d4",
-  "d5",
-  "d15",
-  "d1793537430081",
-  "d17"
- ],
+ "tipOrder": [],
  "v": 3,
  "y": 2026
 }
