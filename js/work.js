@@ -14,7 +14,7 @@
   const DAYS = { "前年度の出金伝票": 11, "中間試験問題作成": 28, "面談調査用紙": 20, "スポーツ安全保険": 31 };
   const PAT = { "懇談会(S1)": "d11", "懇談会(S3)": "d12", "夏期面談の実施": "d13", "通知表プレビュー": "d7", "指導要録ほぼ完成": "d8", "指導要録の最終確認": "d8" };
   const PV = ["備考欄の「出停」「忌引」の数字が表と一致", "成績に抜けがない", "委員・係・検定の入力", "欠課時数の合算(遅刻3回=欠課1)"];
-  const W = { S: null, links: null, sha: null, dirty: false, saving: false, timer: null, token: false, conflict: false, canSave: true, st: "読み込み中…", ready: false, ed: null };
+  const W = { S: null, links: null, sha: null, dirty: false, saving: false, timer: null, token: false, conflict: false, ask: false, needCreate: false, draftP: null, canSave: true, st: "読み込み中…", ready: false, ed: null };
   const ui = { tab: "home", q: "", grp: "", fav: false, tipSort: false, dq: "", docOpen: {} };
   A.work = {}; A.ui.work = ui;
   const nl = s => esc(s).replace(/\n/g, "<br>");
@@ -74,26 +74,31 @@
     let text = null;
     if (W.token) {
       try { const r = await S.remoteGet(s, "data/work.json"); text = r.text; W.sha = r.sha; W.st = "GitHubと同期中"; }
-      catch (e) { if (e.status !== 404) { W.canSave = false; W.st = "⚠ " + S.explain(e) + "（GitHubへの保存は止めています）"; } else W.st = "GitHubに新規作成します"; }
+      catch (e) { if (e.status !== 404) { W.canSave = false; W.st = "⚠ " + S.explain(e) + "（GitHubへの保存は止めています）"; } else { W.needCreate = true; W.st = "GitHubに work.json が見つかりません"; } }
     } else {
       try { const r = await fetch("data/work.json?t=" + Date.now(), { cache: "no-store" }); if (r.ok) text = await r.text(); } catch (e) { text = null; }
       W.st = "この端末のみ保存（右上の「設定」でGitHubを接続できます）";
     }
     let p = null; try { p = text ? JSON.parse(text) : null; } catch (e) { p = null; }
     let dr = null; try { const raw = LS.get("jd.draft.work"); dr = raw ? JSON.parse(raw) : null; } catch (e) { dr = null; }
-    if (dr && dr.dirty && dr.p && dr.p.tasks) { p = dr.p; W.dirty = true; }
+    /* この端末に未保存の下書きがあるとき: GitHubが別の端末で更新されていたら、勝手に上書きせず、どちらを使うか聞く */
+    if (dr && dr.dirty && dr.p && dr.p.tasks) {
+      if (W.token && W.sha && dr.base !== W.sha) { W.ask = true; W.draftP = dr.p; }
+      else if (W.token && W.needCreate) { W.draftP = dr.p; W.ask = true; }
+      else { p = dr.p; W.dirty = true; }
+    }
     W.S = mig(p && p.tasks ? p : fresh());
-    if (!(p && p.tasks)) W.dirty = true; /* 初回: ひな形をGitHubに作る */
+    if (!(p && p.tasks) && !W.token) W.dirty = true; /* GitHub未接続: この端末にひな形を保存 */
     W.ready = true;
-    if (W.dirty && W.token && W.canSave) flush(); else if (W.dirty) LS.set("jd.draft.work", JSON.stringify({ p: W.S, dirty: true }));
+    if (W.dirty && W.token && W.canSave && !W.ask && !W.needCreate) flush(); else if (W.dirty) LS.set("jd.draft.work", JSON.stringify({ p: W.S, dirty: true, base: W.sha }));
     A.render && A.render(); A.remCheck && A.remCheck();
   }
   function save() {
-    W.dirty = true; LS.set("jd.draft.work", JSON.stringify({ p: W.S, dirty: true }));
+    W.dirty = true; LS.set("jd.draft.work", JSON.stringify({ p: W.S, dirty: true, base: W.sha }));
     clearTimeout(W.timer); W.timer = setTimeout(flush, 900); setStatus();
   }
   async function flush() {
-    if (!W.dirty || !W.token || !W.canSave || W.conflict) { setStatus(); return; }
+    if (!W.dirty || !W.token || !W.canSave || W.conflict || W.ask || W.needCreate) { setStatus(); return; }
     if (W.saving) { clearTimeout(W.timer); W.timer = setTimeout(flush, 600); return; }
     W.saving = true; W.st = "GitHubに保存中…"; setStatus();
     const snap = JSON.stringify(W.S), body = J.toJSON(W.S);
@@ -112,10 +117,19 @@
     try { const r = await S.remoteGet(S.getSettings(), "data/work.json"); W.sha = r.sha; W.S = mig(JSON.parse(r.text)); W.conflict = false; W.canSave = true; W.dirty = false; LS.del("jd.draft.work"); W.st = "GitHubと同期中"; A.render(); }
     catch (e) { root.alert(S.explain(e)); }
   }
-  document.addEventListener("visibilitychange", async () => {
-    if (document.hidden || !W.ready || !W.token || W.saving || W.dirty || W.conflict || !W.canSave || $("wdlg").open) return;
-    try { const r = await S.remoteGet(S.getSettings(), "data/work.json"); if (r.sha !== W.sha) { W.sha = r.sha; W.S = mig(JSON.parse(r.text)); A.render(); } } catch (e) { /* 次の機会に */ }
-  });
+  /* 開いたままの画面でも、ときどきGitHubの最新を確かめて取り込む（古い内容で上書きしないため） */
+  async function refreshWork() {
+    if (document.hidden || !W.ready || !W.token || W.saving || W.dirty || W.conflict || W.ask || W.needCreate || !W.canSave || $("wdlg").open) return;
+    try { const r = await S.remoteGet(S.getSettings(), "data/work.json"); if (r.sha !== W.sha && !W.dirty && !W.saving) { W.sha = r.sha; W.S = mig(JSON.parse(r.text)); A.render(); } } catch (e) { /* 次の機会に */ }
+  }
+  document.addEventListener("visibilitychange", refreshWork);
+  window.addEventListener("focus", refreshWork);
+  setInterval(refreshWork, 120000);
+  function askH() {
+    if (W.needCreate) return '<div class="banner err"><div>GitHubに work.json が見つかりません。ブランチ名やリポジトリ名が違っていないか、設定を確かめてください。新しく作ってよい場合だけ、下のボタンを押してください（今のデータがあるリポジトリでは押さないでください）。</div><div class="btns"><button class="btn" data-wact="create">ひな形から新しく作る</button></div></div>';
+    if (W.ask) return '<div class="banner err"><div>この端末に、GitHubにまだ保存していない変更があります。GitHubは別の端末で更新されているかもしれません。どちらを使いますか？</div><div class="btns"><button class="btn" data-wact="draft-drop">GitHubの最新を使う（この端末の変更は破棄）</button><button class="btn" data-wact="draft-use">この端末の変更で上書き保存</button></div></div>';
+    return "";
+  }
 
   /* ---------- 計算 ---------- */
   const vis = t => W.S.roles.includes(t.r) && (!t.tg || t.tg.includes(W.S.g));
@@ -194,6 +208,7 @@
     let late = ""; for (let i = 0; i < cur; i++) { const m = ORDER[i]; inM(m).filter(t => !isD(t, m)).forEach(t => { late += item(t, m, '<span class="late">' + m + "月</span>"); }); }
     const m = ORDER[Math.max(0, Math.min(11, cur))], nx = cur < 11 ? ORDER[cur + 1] : null;
     let h = A.work.morning();
+    h += askH();
     if (W.conflict) h += '<div class="banner err"><div>別の端末で先に更新されています。</div><div class="btns"><button class="btn" data-wact="reload">最新を読み込み直す</button></div></div>';
     if (due.length) h += panel("p-work", "期限が近い校務", due.length + "件", due.map(x => item(x.t, x.m, dueTag(x))).join(""));
     h += tipsH();
@@ -441,6 +456,9 @@
       }
       case "bk-out": exportBackup(); break;
       case "reload": reloadRemote(); break;
+      case "create": W.needCreate = false; W.dirty = true; save(); A.render(); break;
+      case "draft-drop": LS.del("jd.draft.work"); W.ask = false; W.draftP = null; W.dirty = false; W.st = "GitHubと同期中"; A.render(); break;
+      case "draft-use": W.S = mig(W.draftP); W.draftP = null; W.ask = false; W.needCreate = false; W.dirty = true; save(); A.render(); break;
       case "go-home": { const rd = $("remdlg"); if (rd && rd.open) rd.close(); A.ui.mode = "work"; LS.set("jd.mode", "work"); ui.tab = "home"; A.render(); root.scrollTo(0, 0); break; }
     }
   });

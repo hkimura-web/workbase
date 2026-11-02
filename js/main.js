@@ -359,7 +359,7 @@
 
   /* 別のパソコンで直した内容を、画面に戻ったときに取り込む */
   async function refreshLatest() {
-    if (mode !== "github" || dirty || saving || !term) return;
+    if (mode !== "github" || dirty || saving || !term || document.hidden || A.ui.mode !== "class" || document.querySelector("dialog[open]")) return;
     try {
       const r = await S.remoteGet(S.getSettings(), "data/" + term.file);
       if (dirty || saving || r.sha === sha) return;
@@ -602,6 +602,8 @@
     if (document.visibilityState === "hidden" && dirty) { clearTimeout(timer); flush(); }
     else if (document.visibilityState === "visible") refreshLatest();
   });
+  window.addEventListener("focus", refreshLatest);
+  setInterval(refreshLatest, 120000);
 
   A.remCheck = remCheck; A.renderStatus = renderStatus; A.newUnit = newUnit; A.render = render; A.toast = toast; A.commit = commit;
 
