@@ -131,6 +131,42 @@
     return "";
   }
 
+
+  /* ---------- 重要Tipsの並べ替え: つかんで動かす（パソコンもスマホも） ---------- */
+  let dg = null;
+  document.addEventListener("pointerdown", e => {
+    if (!ui.tipSort || (e.pointerType === "mouse" && e.button !== 0)) return;
+    const w = e.target.closest && e.target.closest(".p-tips .wtpw"); if (!w) return;
+    dg = { w, id: w.dataset.id, x: e.clientX, y: e.clientY, on: false, pid: e.pointerId };
+  });
+  document.addEventListener("pointermove", e => {
+    if (!dg || e.pointerId !== dg.pid) return;
+    if (!dg.on) {
+      if (Math.hypot(e.clientX - dg.x, e.clientY - dg.y) < 6) return;
+      dg.on = true; dg.w.classList.add("dragging");
+      const r = dg.w.getBoundingClientRect(); dg.dx = e.clientX - r.left; dg.dy = e.clientY - r.top;
+      dg.g = dg.w.cloneNode(true); dg.g.className = "wtpw wghost"; dg.g.style.width = r.width + "px"; document.body.appendChild(dg.g);
+      try { dg.w.setPointerCapture(e.pointerId); } catch (x) { /* なくても動く */ }
+    }
+    e.preventDefault();
+    dg.g.style.left = e.clientX - dg.dx + "px"; dg.g.style.top = e.clientY - dg.dy + "px";
+    const el = document.elementFromPoint(e.clientX, e.clientY), t = el && el.closest && el.closest(".p-tips .wtpw");
+    if (t && t !== dg.w && !t.classList.contains("wghost")) {
+      const r = t.getBoundingClientRect(), after = e.clientX > r.left + r.width / 2;
+      t.parentNode.insertBefore(dg.w, after ? t.nextSibling : t);
+    }
+  }, { passive: false });
+  function endDrag(e) {
+    if (!dg || (e && e.pointerId !== dg.pid)) return;
+    const d = dg; dg = null;
+    if (!d.on) return;
+    d.g.remove(); d.w.classList.remove("dragging");
+    const ids = [...document.querySelectorAll(".p-tips .wtpw")].map(x => x.dataset.id);
+    W.S.tipOrder = ids; save(); A.render();
+  }
+  document.addEventListener("pointerup", endDrag);
+  document.addEventListener("pointercancel", endDrag);
+
   /* ---------- 計算 ---------- */
   const vis = t => W.S.roles.includes(t.r) && (!t.tg || t.tg.includes(W.S.g));
   const key = (t, m) => W.S.y + ":" + t.id + (t.rep ? ":" + m : "");
@@ -180,7 +216,7 @@
     return '<div class="wit' + (dn ? " dn" : "") + '"><input type="checkbox" aria-label="完了" ' + (dn ? "checked" : "") + ' data-wchg="tg" data-id="' + t.id + '" data-m="' + m + '"><div class="wbody" data-wact="op" data-id="' + t.id + '" data-m="' + m + '"><b>' + esc(t.t) + '</b> <span class="wc">' + RL[t.r] + (t.tg ? " " + tgl(t.tg) : "") + (t.dd && !t.rep ? " " + m + "/" + t.dd : "") + "</span>" + (tag || "") +
       (t.n ? '<div class="ww">⚠ ' + esc(t.n.split("\n")[0]) + "</div>" : "") + (t.k ? '<div class="wk">📝 ' + esc(t.k.split("\n")[0]) + "</div>" : "") + "</div></div>";
   }
-  const TAGS = [["komu", "校務全般"], ["class", "クラス"], ["jugyo", "授業"], ["seiseki", "テスト成績"], ["bukatsu", "部活動"]]; /* この順番で、重要Tipsも並ぶ */
+  const TAGS = [["komu", "校務全般"], ["class", "クラス"], ["jugyo", "授業"], ["kokugo", "国語科"], ["seiseki", "テスト成績"], ["bukatsu", "部活動"]]; /* この順番で、重要Tipsも並ぶ */
   const TAGDEF = { d1: "seiseki", d17: "seiseki", d2: "class", d3: "class", d4: "class", d5: "class", d6: "class", d7: "class", d8: "class", d9: "class", d10: "class", d11: "class", d12: "class", d13: "class", d14: "class", d15: "class", d16: "class" };
   const tagName = k => (TAGS.find(x => x[0] === k) || ["", ""])[1];
   const TO = ["d5", "d3", "d15", "d4", "d16", "d17"];
@@ -195,9 +231,9 @@
   function tipsH() {
     const l = tipList(), used = TAGS.filter(t => l.some(d => d.tag === t[0])), sorting = ui.tipSort;
     const btn = d => (goLink(d) && !sorting) ? '<a class="wtp t-' + esc(d.tag || "none") + '" href="' + esc(d.u) + '" target="_blank" rel="noopener noreferrer" title="押すと資料がすぐ開きます">' + esc(d.t) + ' <span class="wgo">↗</span></a>' : '<button class="wtp t-' + esc(d.tag || "none") + '" data-wact="tip" data-id="' + d.id + '">' + esc(d.t) + "</button>";
-    const body = l.map((d, k) => sorting ? '<span class="wtpw"><button class="wmv" data-wact="tip-mv" data-id="' + d.id + '" data-d="-1"' + (k === 0 ? " disabled" : "") + ' aria-label="前へ">◀</button>' + btn(d) + '<button class="wmv" data-wact="tip-mv" data-id="' + d.id + '" data-d="1"' + (k === l.length - 1 ? " disabled" : "") + ' aria-label="後ろへ">▶</button></span>' : btn(d)).join("");
+    const body = l.map((d, k) => sorting ? '<span class="wtpw" data-id="' + d.id + '"><span class="wgrip" aria-hidden="true">⠿</span>' + btn(d) + "</span>" : btn(d)).join("");
     return '<section class="panel p-work p-tips"><header class="panel-h"><h2>重要Tips</h2><span class="panel-n"><button class="btn sm" data-wact="tip-sort">' + (sorting ? "完了" : "並べ替え") + '</button></span></header><div class="panel-b">' +
-      (sorting ? '<p class="note" style="margin:0 0 8px">◀ ▶ で前後に動かせます。よく使うものを前にしてください。 <button class="btn sm" data-wact="tip-auto">自動の並び（公務→クラス→授業→部活動）に戻す</button></p>' : (used.length ? '<div class="wleg">' + used.map(t => '<span class="wtag t-' + t[0] + '">' + t[1] + "</span>").join("") + "</div>" : "")) +
+      (sorting ? '<p class="note" style="margin:0 0 8px">ボタンをつかんで、動かしたい場所にドラッグして離してください。よく使うものを前にしてください。 <button class="btn sm" data-wact="tip-auto">自動の並び（校務→クラス→授業→国語科→テスト成績→部活動）に戻す</button></p>' : (used.length ? '<div class="wleg">' + used.map(t => '<span class="wtag t-' + t[0] + '">' + t[1] + "</span>").join("") + "</div>" : "")) +
       body + "</div></section>";
   }
   const panel = (cls, title, count, body) => '<section class="panel ' + cls + '"><header class="panel-h"><h2>' + title + "</h2>" + (count ? '<span class="panel-n">' + count + "</span>" : "") + '</header><div class="panel-b">' + body + "</div></section>";
@@ -417,7 +453,7 @@
       case "task-del": if (root.confirm("削除しますか？")) { W.S.tasks = W.S.tasks.filter(x => x.id !== id); save(); cl(); redraw(); } break;
       case "lk-add": { readEd(); const u = $("we_lk").value; if (u && W.ed.lk.indexOf(u) < 0) W.ed.lk.push(u); renderEdit(); break; }
       case "lk-del": readEd(); W.ed.lk.splice(i, 1); renderEdit(); break;
-      case "tip": { const d = W.S.docs.find(x => x.id === id); modal('<h2 style="margin:0">' + esc(d.t) + '</h2><div style="margin-top:8px">' + nl(d.b) + "</div>" + (d.u ? '<p><a href="' + esc(d.u) + '" target="_blank" rel="noopener">資料を開く ↗</a></p>' : "") + imgs(d) + '<div class="dlg-btns"><button class="btn" data-wact="cl">閉じる</button></div>'); break; }
+      case "tip": { if (ui.tipSort) break; const d = W.S.docs.find(x => x.id === id); modal('<h2 style="margin:0">' + esc(d.t) + '</h2><div style="margin-top:8px">' + nl(d.b) + "</div>" + (d.u ? '<p><a href="' + esc(d.u) + '" target="_blank" rel="noopener">資料を開く ↗</a></p>' : "") + imgs(d) + '<div class="dlg-btns"><button class="btn" data-wact="cl">閉じる</button></div>'); break; }
       case "tip-add": W.S.docs.push({ id: "d" + Date.now(), t: "新しいTips", b: "", tip: true, img: [], u: "", tag: "" }); save(); ui.tab = "docs"; A.render(); root.scrollTo(0, document.body.scrollHeight); break;
       case "doc-add": {
         const d = { id: "d" + Date.now(), t: "", b: "", img: [], u: "", tag: "" };

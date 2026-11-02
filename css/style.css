@@ -698,3 +698,10 @@ a.wtp{display:inline-block;text-decoration:none}
   .topbar{background:linear-gradient(100deg,#101d32 0%,#1b3258 50%,#2f5a96 100%)}
   h1,.hero h1{letter-spacing:.14em;font-size:19px}
 }
+
+.wtp.t-kokugo,.wtag.t-kokugo{background:#ffe9d6;border-color:#f5c79c;color:#9a4b0c}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .wtp.t-kokugo,:root:not([data-theme="light"]) .wtag.t-kokugo{background:#3d2a18;border-color:#5f4224;color:#f2c48e}}
+.p-tips .wtpw{touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;display:inline-flex;align-items:center}
+.wgrip{color:var(--muted);font-size:13px;padding:0 2px;line-height:1}
+.wtpw.dragging{opacity:.35}
+.wtpw.wghost{position:fixed;z-index:50;margin:0;pointer-events:none;opacity:.95;box-shadow:0 6px 18px rgba(0,0,0,.25);width:auto!important;cursor:grabbing}
