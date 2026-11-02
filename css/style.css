@@ -705,3 +705,6 @@ a.wtp{display:inline-block;text-decoration:none}
 .wgrip{color:var(--muted);font-size:13px;padding:0 2px;line-height:1}
 .wtpw.dragging{opacity:.35}
 .wtpw.wghost{position:fixed;z-index:50;margin:0;pointer-events:none;opacity:.95;box-shadow:0 6px 18px rgba(0,0,0,.25);width:auto!important;cursor:grabbing}
+
+.wtp.t-seiseki,.wtag.t-seiseki{background:#fde4f0;border-color:#f3b4d3;color:#a3256b}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .wtp.t-seiseki,:root:not([data-theme="light"]) .wtag.t-seiseki{background:#40223a;border-color:#6a3560;color:#f3b4d8}}
