@@ -738,3 +738,11 @@ body.workmode .pgt::after{background:var(--wk)}
 @keyframes lvp{0%,100%{box-shadow:0 0 0 0 rgba(232,113,10,.5)}50%{box-shadow:0 0 0 6px rgba(232,113,10,0)}}
 .p-live .list{margin:0}
 .lv-done{margin:0 0 14px;color:var(--muted)}
+
+.needrec{font-size:11.5px;font-weight:700;color:var(--today-ink);background:var(--today-soft);border-radius:999px;padding:1px 10px;white-space:nowrap}
+.slot.needrec-s{border-left:4px solid var(--today)}
+.lv-rec{margin:10px 0 0;padding-top:10px;border-top:1px dashed var(--line);font-size:13px;display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center}
+[data-lv="done"] .lv-rec{border-top:0;margin:0 0 14px;padding:0}
+.wm-b{margin-left:auto;font-size:12px;font-weight:700;color:var(--wk-ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.wm-b:empty{display:none}
+.bellrow{display:flex;align-items:center;gap:8px;margin:6px 0}.bellrow>span{width:88px;font-size:13px}.bellrow input{width:auto;margin:0}

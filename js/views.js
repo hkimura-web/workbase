@@ -13,9 +13,13 @@
   const clip = (s, n) => { s = plain(s); return s.length > n ? s.slice(0, n) + "…" : s; };
   const cur = () => A.st.classes.find(c => c.id === A.ui.cls) || A.st.classes[0];
   /* 授業時間表（50分授業・8分休み）。分は「0時からの分」 */
-  const BELL = { 1: [532, 582], 2: [590, 640], 3: [648, 698], 4: [706, 756], 5: [794, 844], 6: [852, 902], 7: [910, 960] };
+  const BELL0 = { 1: [532, 582], 2: [590, 640], 3: [648, 698], 4: [706, 756], 5: [794, 844], 6: [852, 902], 7: [910, 960] };
+  const bellP = () => (A.work && A.work.bell ? A.work.bell().p : BELL0);
   const hm = m => Math.floor(m / 60) + ":" + String(m % 60).padStart(2, "0");
-  function span(r) { const ps = (r.periods || []).filter(p => BELL[p]); if (!ps.length) return null; return [BELL[Math.min.apply(null, ps)][0], BELL[Math.max.apply(null, ps)][1]]; }
+  function span(r) { const B = bellP(), ps = (r.periods || []).filter(p => B[p]); if (!ps.length) return null; return [B[Math.min.apply(null, ps)][0], B[Math.max.apply(null, ps)][1]]; }
+  const nowMin = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60; };
+  /* 今日の授業で、終わったのにまだ記録がないコマ */
+  const needRec = r => r.date === J.ds(new Date()) && (r.kind === "plan" || r.kind === "empty") && span(r) && nowMin() >= span(r)[1];
   const timeTxt = r => { const t = span(r); return t ? hm(t[0]) + "〜" + hm(t[1]) : ""; };
   const durTxt = m => m >= 60 ? Math.floor(m / 60) + "時間" + (m % 60 ? m % 60 + "分" : "") : m + "分";
   const perTxt = r => { const ps = (r.periods || []).filter(Boolean); return ps.length ? ps.join("・") + "時間目" : ""; };
@@ -121,8 +125,8 @@
     const open = A.ui.open === r.key;
     const cn = withClass ? parts(cname(r.key.split("|")[0])) : null;
     const head = '<div class="sd"><b>' + md(r.date) + "</b><span class=\"dow\">" + dw(r.date) + "</span>" + (perTxt(r) ? '<span class="per">' + perTxt(r) + "</span>" : "") + (timeTxt(r) ? '<span class="tm">' + timeTxt(r) + "</span>" : "") + (cn ? '<small class="k-' + subj(cn[1]) + '">' + esc(cn[0]) + " " + esc(cn[1].replace("の国語", "")) + "</small>" : "") + "</div>" +
-      '<div class="st">' + chips + "<b>" + esc(rowTitle(r)) + "</b>" + meta + ev + '</div><div class="stt">' + pillFor(r) + (remTxt ? '<span class="rem">' + remTxt + "</span>" : "") + "</div>";
-    return '<div class="slot' + (k === "off" ? " off" : "") + (past ? " past" : "") + (today ? " today" : "") + (k === "cancel" ? " cancelled" : "") + '">' +
+      '<div class="st">' + chips + "<b>" + esc(rowTitle(r)) + "</b>" + meta + ev + '</div><div class="stt">' + (needRec(r) ? '<span class="needrec">記録を付ける</span>' : "") + pillFor(r) + (remTxt ? '<span class="rem">' + remTxt + "</span>" : "") + "</div>";
+    return '<div class="slot' + (k === "off" ? " off" : "") + (past ? " past" : "") + (today ? " today" : "") + (k === "cancel" ? " cancelled" : "") + (needRec(r) ? " needrec-s" : "") + '">' +
       '<button class="srow" data-act="open" data-key="' + esc(r.key) + '" aria-expanded="' + open + '">' + head + "</button>" + (k === "off" ? "" : slotMats(r, units)) + (open ? editor(r) : "") + "</div>";
   }
 
@@ -161,15 +165,18 @@
   }
   const liveRight = L => L.mode === "now" ? "あと" + durTxt(L.left) + "（〜" + hm(L.end) + "）" : L.mode === "next" ? "あと" + durTxt(L.left) + "（" + hm(L.start) + "〜）" : "";
   function liveHtml(rows) {
-    const L = liveOf(rows); A.liveKey = L ? L.k : "";
+    const L = liveOf(rows); A.liveKey = (L ? L.k : "") + "|" + rows.filter(needRec).map(r => r.key).join(",");
     if (!L) return "";
-    if (L.mode === "done") return '<p class="note lv-done" data-lv="done">今日の授業はおわりました。おつかれさまでした。</p>';
+    const pend = rows.filter(needRec).sort((a, b) => span(a)[0] - span(b)[0]);
+    const recH = pend.length ? '<div class="lv-rec"><span>記録がまだのコマ：</span>' + pend.map(r => '<button class="btn sm" data-act="open" data-key="' + esc(r.key) + '">' + esc(perTxt(r)) + "の記録を付ける</button>").join(" ") + "</div>" : "";
+    if (L.mode === "done") return '<div data-lv="done"><p class="note lv-done">今日の授業はおわりました。おつかれさまでした。</p>' + recH + "</div>";
     const label = L.mode === "now" ? "いま授業中" : (L.brk ? "休み時間・次の授業" : "次の授業");
-    return '<section class="panel p-live ' + L.mode + '" data-lv="' + esc(L.k) + '"><header class="panel-h"><h2><i class="lv-dot"></i>' + label + '</h2><span class="panel-n lv-c">' + liveRight(L) + '</span></header><div class="panel-b"><div class="list">' + slotCard(L.r, true) + "</div></div></section>";
+    return '<section class="panel p-live ' + L.mode + '" data-lv="' + esc(L.k) + '"><header class="panel-h"><h2><i class="lv-dot"></i>' + label + '</h2><span class="panel-n lv-c">' + liveRight(L) + '</span></header><div class="panel-b"><div class="list">' + slotCard(L.r, true) + "</div>" + recH + "</div></section>";
   }
   function liveTick() {
+    const yo = document.querySelector(".lv-yo"); if (yo && A.work && A.work.bellText) yo.textContent = A.work.bellText();
     if (A.ui.mode === "work" || A.ui.tab !== "today" || !A.liveRows || A.ui.asof !== J.ds(new Date())) return;
-    const L = liveOf(A.liveRows), k = L ? L.k : "";
+    const L = liveOf(A.liveRows), k = (L ? L.k : "") + "|" + A.liveRows.filter(needRec).map(r => r.key).join(",");
     if (k !== A.liveKey) {
       const ae = document.activeElement;
       if (document.querySelector("dialog[open]") || (ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName))) return;
@@ -612,5 +619,6 @@
     return h + '<div class="dlg-btns"><button class="btn on" data-act="close-cell">閉じる</button></div>';
   }
 
+  A.timeSpan = span; A.hm = hm; A.rowTitle = rowTitle; A.liveTick = liveTick;
   A.views = { rem: viewRem, pendingList, carry: viewCarry, carryDefaults, urls: viewUrls, flow: viewFlow, flowItems, today: viewToday, plan: viewPlan, grid: viewGrid, unit: viewUnit, sum: viewSummary, cell: viewCell };
 })(window);
