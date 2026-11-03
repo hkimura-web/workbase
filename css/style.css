@@ -750,3 +750,7 @@ body.workmode .pgt::after{background:var(--wk)}
 .m-done{background:#2f5a96}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .m-done{background:#6f93dc}}
 :root[data-theme="dark"] .m-done{background:#6f93dc}
+/* 休講は、赤ではなく落ち着いた灰色 */
+.m-cancel{background:#8d95a5}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .m-cancel{background:#7d8799}}
+:root[data-theme="dark"] .m-cancel{background:#7d8799}
