@@ -746,3 +746,7 @@ body.workmode .pgt::after{background:var(--wk)}
 .wm-b{margin-left:auto;font-size:12px;font-weight:700;color:var(--wk-ink);font-variant-numeric:tabular-nums;white-space:nowrap}
 .wm-b:empty{display:none}
 .bellrow{display:flex;align-items:center;gap:8px;margin:6px 0}.bellrow>span{width:88px;font-size:13px}.bellrow input{width:auto;margin:0}
+/* 授業進度バー: 実施済みは、左カラムと同じ濃い紺 */
+.m-done{background:#101d32}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .m-done{background:#6f93dc}}
+:root[data-theme="dark"] .m-done{background:#6f93dc}
