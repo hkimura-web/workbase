@@ -65,9 +65,9 @@
       s.docs.forEach(d => { if (["d3", "d4", "d5", "d15", "d16", "d17"].includes(d.id)) d.tip = true; });
       s.v = 3;
     }
-    s.docs = s.docs.filter(d => !(d.t === "新しいTips" && !String(d.b || "").trim() && !d.u)); /* 追加ボタンで作ってしまった空のTipsは消す */
+    s.docs = s.docs.filter(d => !(d.t === "新しいTips" && !String(d.b || "").trim() && !d.u && !(d.ls || []).length)); /* 追加ボタンで作ってしまった空のTipsは消す */
     s.docs.forEach(d => { if (d.tag === undefined) d.tag = TAGDEF[d.id] || ""; });
-    s.docs.forEach(d => { d.img = (DOCS.find(x => x.id === d.id) || {}).img || d.img || []; d.b = san(d.b); d.t = san(d.t); d.u = d.u || ""; });
+    s.docs.forEach(d => { d.img = (DOCS.find(x => x.id === d.id) || {}).img || d.img || []; d.b = san(d.b); d.t = san(d.t); d.u = d.u || ""; d.ut = typeof d.ut === "string" ? d.ut : ""; d.ls = (Array.isArray(d.ls) ? d.ls : []).filter(x => x && typeof x === "object").slice(0, 4).map(x => ({ t: String(x.t || ""), u: String(x.u || "") })); });
     s.tasks.forEach(t => {
       if (t.dd == null) t.dd = 0;
       for (const k in DAYS) if (!t.dd && t.t.startsWith(k)) t.dd = DAYS[k];
@@ -248,10 +248,14 @@
     return W.S.docs.filter(d => d.tip).sort((a, b) => ord.length ? (pos(a) - pos(b) || f(a) - f(b)) : f(a) - f(b));
   }
   /* 重要Tipsのボタンを押したとき: 自動＝説明が空でURLがあればすぐ開く／説明があれば説明を出す。手で「すぐ開く」「説明を出す」に固定もできる */
-  function goLink(d) { if (!d.u) return false; if (d.go === "link") return true; if (d.go === "detail") return false; return !String(d.b || "").trim(); }
+  /* 資料リンク: 1つ目（d.u と名前 d.ut）と、2つ目以降（d.ls）。URLが空のものは数えない */
+  function dlinks(d) { const o = []; if (d.u) o.push({ t: d.ut || "リンク1", u: d.u }); (d.ls || []).forEach((x, k) => { if (x.u) o.push({ t: x.t || "リンク" + (k + 2), u: x.u }); }); return o; }
+  const lnkH = d => dlinks(d).map(x => '<a class="btn wlnk" href="' + esc(x.u) + '" target="_blank" rel="noopener noreferrer">' + esc(x.t) + " ↗</a>").join("");
+  /* ボタンを押したとき: 自動＝リンクが1つで説明が空ならすぐ開く（複数ならリンクの選択、説明があれば説明）。手で固定もできる */
+  function goLink(d) { const n = dlinks(d).length; if (!n) return false; if (d.go === "link") return true; if (d.go === "detail") return false; return n === 1 && !String(d.b || "").trim(); }
   function tipsH() {
     const l = tipList(), used = TAGS.filter(t => l.some(d => d.tag === t[0])), sorting = ui.tipSort;
-    const btn = d => (goLink(d) && !sorting) ? '<a class="wtp t-' + esc(d.tag || "none") + '" href="' + esc(d.u) + '" target="_blank" rel="noopener noreferrer" title="押すと資料がすぐ開きます">' + esc(d.t) + ' <span class="wgo">↗</span></a>' : '<button class="wtp t-' + esc(d.tag || "none") + '" data-wact="tip" data-id="' + d.id + '">' + esc(d.t) + "</button>";
+    const btn = d => (goLink(d) && !sorting) ? '<a class="wtp t-' + esc(d.tag || "none") + '" href="' + esc(dlinks(d)[0].u) + '" target="_blank" rel="noopener noreferrer" title="押すと資料がすぐ開きます">' + esc(d.t) + ' <span class="wgo">↗</span></a>' : '<button class="wtp t-' + esc(d.tag || "none") + '" data-wact="tip" data-id="' + d.id + '"' + (dlinks(d).length > 1 ? ' title="押すとリンクを選べます"' : "") + ">" + esc(d.t) + (dlinks(d).length > 1 ? ' <span class="wgo">▾' + dlinks(d).length + "</span>" : "") + "</button>";
     const body = l.map((d, k) => sorting ? '<span class="wtpw" data-id="' + d.id + '"><span class="wgrip" aria-hidden="true">⠿</span>' + btn(d) + "</span>" : btn(d)).join("");
     return '<section class="panel p-work p-tips"><header class="panel-h"><h2>重要Tips</h2><span class="panel-n"><button class="btn sm" data-wact="tip-sort">' + (sorting ? "完了" : "並べ替え") + '</button></span></header><div class="panel-b">' +
       (sorting ? '<p class="note" style="margin:0 0 8px">ボタンをつかんで、動かしたい場所にドラッグして離してください。よく使うものを前にしてください。 <button class="btn sm" data-wact="tip-auto">自動の並び（校務→クラス→授業→国語科→テスト成績→部活動）に戻す</button></p>' : (used.length ? '<div class="wleg">' + used.map(t => '<span class="wtag t-' + t[0] + '">' + t[1] + "</span>").join("") + "</div>" : "")) +
@@ -313,10 +317,14 @@
     return h + '<p class="note">リンク一覧の作成日：' + esc((W.links && W.links.built) || "—") + "（" + esc((W.links && W.links.year) || "") + "年度のシートから）。パスワード・IDはここには入れません。</p>";
   }
   /* 手順・メモ: 上に「＋ 新しいメモ」と検索。メモは見出しだけに畳んであり、押すと開く */
+  function linkRows(d, i) {
+    const row = (t, u, fn, fu, j, ph) => '<div class="wlrow"><input type="text" value="' + esc(t) + '" placeholder="' + ph + '" data-wf="' + fn + '" data-i="' + i + '" data-j="' + j + '" aria-label="リンクの名前"><input type="url" value="' + esc(u) + '" placeholder="https://…" data-wf="' + fu + '" data-i="' + i + '" data-j="' + j + '" autocomplete="off" aria-label="リンクのURL">' + (j >= 0 ? '<button class="btn sm" data-wact="doc-ldel" data-i="' + i + '" data-j="' + j + '" aria-label="このリンクを消す">消す</button>' : "") + "</div>";
+    return row(d.ut || "", d.u || "", "doc-ut", "doc-u", -1, "名前（例：ブレンド）") + (d.ls || []).map((x, j) => row(x.t, x.u, "doc-lt", "doc-lu", j, "名前（例：参考サイト）")).join("");
+  }
   function docCard(d, i) {
     const open = ui.docOpen[d.id] ? " open" : "";
     return '<details class="wdet wdoc" data-id="' + d.id + '"' + open + '><summary><span class="wtag t-' + esc(d.tag || "none") + '">' + esc(tagName(d.tag) || "タグなし") + '</span> <b class="wdt">' + esc(d.t || "（無題）") + "</b>" + (d.tip ? ' <span class="wst">★</span>' : "") + "</summary>" +
-      '<div class="wcard" style="border:0;padding:4px 0 8px"><input type="text" value="' + esc(d.t) + '" data-wf="doc-t" data-i="' + i + '" aria-label="見出し"><button class="wstar" data-wact="doc-star" data-i="' + i + '" aria-pressed="' + !!d.tip + '" title="★を付けると、ホームの重要Tipsに出ます">' + (d.tip ? "★" : "☆") + '</button><label class="wck">タグ（ボタンの色）： <select data-wchg="doc-tag" data-i="' + i + '" style="width:auto"><option value="">なし</option>' + TAGS.map(t => '<option value="' + t[0] + '"' + (d.tag === t[0] ? " selected" : "") + ">" + t[1] + "</option>").join("") + '</select></label><label class="wck">重要Tipsのボタンを押したら： <select data-wchg="doc-go" data-i="' + i + '" style="width:auto"><option value="">自動（説明が空なら資料をすぐ開く／説明があれば説明を出す）</option><option value="link"' + (d.go === "link" ? " selected" : "") + '>いつも資料をすぐ開く</option><option value="detail"' + (d.go === "detail" ? " selected" : "") + '>いつも説明を出す</option></select></label><input type="text" placeholder="資料URL(任意)" value="' + esc(d.u || "") + '" data-wf="doc-u" data-i="' + i + '"><textarea style="min-height:110px" data-wf="doc-b" data-i="' + i + '">' + esc(d.b) + "</textarea>" + imgs(d) + '<button class="btn" data-wact="doc-del" data-i="' + i + '">削除</button></div></details>';
+      '<div class="wcard" style="border:0;padding:4px 0 8px"><input type="text" value="' + esc(d.t) + '" data-wf="doc-t" data-i="' + i + '" aria-label="見出し"><button class="wstar" data-wact="doc-star" data-i="' + i + '" aria-pressed="' + !!d.tip + '" title="★を付けると、ホームの重要Tipsに出ます">' + (d.tip ? "★" : "☆") + '</button><label class="wck">タグ（ボタンの色）： <select data-wchg="doc-tag" data-i="' + i + '" style="width:auto"><option value="">なし</option>' + TAGS.map(t => '<option value="' + t[0] + '"' + (d.tag === t[0] ? " selected" : "") + ">" + t[1] + "</option>").join("") + '</select></label><label class="wck">重要Tipsのボタンを押したら： <select data-wchg="doc-go" data-i="' + i + '" style="width:auto"><option value="">自動（説明が空なら資料をすぐ開く／説明があれば説明を出す）</option><option value="link"' + (d.go === "link" ? " selected" : "") + '>いつも資料をすぐ開く</option><option value="detail"' + (d.go === "detail" ? " selected" : "") + '>いつも説明を出す</option></select></label><div class="wlset"><b class="small">資料リンク（最大5つ。名前は、押すボタンに出ます）</b>' + linkRows(d, i) + (1 + (d.ls || []).length < 5 ? '<button class="btn sm" data-wact="doc-ladd" data-i="' + i + '">＋ リンクを足す</button>' : "") + '</div><textarea style="min-height:110px" data-wf="doc-b" data-i="' + i + '">' + esc(d.b) + "</textarea>" + imgs(d) + '<button class="btn" data-wact="doc-del" data-i="' + i + '">削除</button></div></details>';
   }
   function docList() {
     const q = nfkc(ui.dq).split(/\s+/).filter(Boolean);
@@ -429,7 +437,7 @@
     const t = W.S.tasks.find(x => x.id === id), p = W.S.docs.find(d => d.id === t.p), dn = isD(t, m);
     modal('<h2 style="margin:0">' + esc(t.t) + '</h2><div class="note">' + (t.rep ? "毎月" : t.m + "月") + " ・ " + RL[t.r] + " ・ " + (t.tg ? tgl(t.tg) : "全学年") + "</div>" +
       (t.n ? '<div class="ww2">⚠ ' + nl(t.n) + "</div>" : "") +
-      (p ? '<details class="wdet" open><summary>' + esc(p.t) + "</summary><div>" + nl(p.b) + "</div>" + (p.u ? '<p><a href="' + esc(p.u) + '" target="_blank" rel="noopener">資料を開く ↗</a></p>' : "") + imgs(p) + "</details>" : "") +
+      (p ? '<details class="wdet" open><summary>' + esc(p.t) + "</summary><div>" + nl(p.b) + "</div>" + (dlinks(p).length ? '<div class="wlnks">' + lnkH(p) + "</div>" : "") + imgs(p) + "</details>" : "") +
       (t.c.length ? "<b>完了前チェック</b>" : "") + t.c.map((c, i) => '<label class="wck"><input type="checkbox" ' + (W.S.cd[ck(t, i)] ? "checked" : "") + ' data-wchg="cc" data-id="' + t.id + '" data-i="' + i + '"> ' + esc(c) + "</label>").join("") +
       (t.u ? '<p><a href="' + esc(t.u) + '" target="_blank" rel="noopener">資料を開く ↗</a></p>' : "") + (t.lk.length ? "<p>" + t.lk.map(linkOf).join(" ") + "</p>" : "") +
       '<div class="note">📝 来年へのメモ(次の年度の注意として残ります)</div><textarea data-wchg="mk" data-id="' + t.id + '">' + esc(t.k) + "</textarea>" +
@@ -500,7 +508,7 @@
       case "task-del": if (root.confirm("削除しますか？")) { W.S.tasks = W.S.tasks.filter(x => x.id !== id); save(); cl(); redraw(); } break;
       case "lk-add": { readEd(); const u = $("we_lk").value; if (u && W.ed.lk.indexOf(u) < 0) W.ed.lk.push(u); renderEdit(); break; }
       case "lk-del": readEd(); W.ed.lk.splice(i, 1); renderEdit(); break;
-      case "tip": { if (ui.tipSort) break; const d = W.S.docs.find(x => x.id === id); modal('<h2 style="margin:0">' + esc(d.t) + '</h2><div style="margin-top:8px">' + nl(d.b) + "</div>" + (d.u ? '<p><a href="' + esc(d.u) + '" target="_blank" rel="noopener">資料を開く ↗</a></p>' : "") + imgs(d) + '<div class="dlg-btns"><button class="btn" data-wact="cl">閉じる</button></div>'); break; }
+      case "tip": { if (ui.tipSort) break; const d = W.S.docs.find(x => x.id === id); modal('<h2 style="margin:0">' + esc(d.t) + '</h2><div style="margin-top:8px">' + nl(d.b) + "</div>" + (dlinks(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") + imgs(d) + '<div class="dlg-btns"><button class="btn" data-wact="cl">閉じる</button></div>'); break; }
       case "tip-add": W.S.docs.push({ id: "d" + Date.now(), t: "新しいTips", b: "", tip: true, img: [], u: "", tag: "" }); save(); ui.tab = "docs"; A.render(); root.scrollTo(0, document.body.scrollHeight); break;
       case "doc-add": {
         const d = { id: "d" + Date.now(), t: "", b: "", img: [], u: "", tag: "" };
@@ -510,6 +518,8 @@
       }
       case "doc-del": if (root.confirm("削除しますか？")) { W.S.docs.splice(i, 1); save(); A.render(); } break;
       case "fav": { const u = t.dataset.u, k = W.S.fav.indexOf(u); if (k >= 0) W.S.fav.splice(k, 1); else W.S.fav.push(u); save(); A.render(); break; }
+      case "doc-ladd": { const d = W.S.docs[i]; d.ls = d.ls || []; if (1 + d.ls.length < 5) d.ls.push({ t: "", u: "" }); ui.docOpen[d.id] = true; save(); A.render(); break; }
+      case "doc-ldel": { const d = W.S.docs[i]; d.ls.splice(+t.dataset.j, 1); ui.docOpen[d.id] = true; save(); A.render(); break; }
       case "doc-star": W.S.docs[i].tip = !W.S.docs[i].tip; save(); A.render(); break;
       case "tip-sort": ui.tipSort = !ui.tipSort; A.render(); break;
       case "tip-auto": W.S.tipOrder = []; save(); A.render(); break;
@@ -581,7 +591,7 @@
     if (f === "m-t" || f === "m-u") { W.S.morning.items[i][f === "m-t" ? "t" : "u"] = t.value.trim(); save(); return; }
     if (f === "dq") { ui.dq = t.value; const r = $("wdocs"); if (r) r.innerHTML = docList(); return; }
     if (f === "lq") { ui.q = t.value; const r = $("wres"); if (r) r.innerHTML = linkResults(); return; }
-    if (f === "doc-t") { W.S.docs[i].t = t.value; const sm = t.closest(".wdoc"); if (sm) sm.querySelector(".wdt").textContent = t.value || "（無題）"; } else if (f === "doc-b") W.S.docs[i].b = t.value; else if (f === "doc-u") W.S.docs[i].u = t.value;
+    if (f === "doc-t") { W.S.docs[i].t = t.value; const sm = t.closest(".wdoc"); if (sm) sm.querySelector(".wdt").textContent = t.value || "（無題）"; } else if (f === "doc-b") W.S.docs[i].b = t.value; else if (f === "doc-u") W.S.docs[i].u = t.value; else if (f === "doc-ut") W.S.docs[i].ut = t.value; else if (f === "doc-lt") W.S.docs[i].ls[+t.dataset.j].t = t.value; else if (f === "doc-lu") W.S.docs[i].ls[+t.dataset.j].u = t.value;
     save();
   });
 

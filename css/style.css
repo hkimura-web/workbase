@@ -754,3 +754,9 @@ body.workmode .pgt::after{background:var(--wk)}
 .m-cancel{background:#8d95a5}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .m-cancel{background:#7d8799}}
 :root[data-theme="dark"] .m-cancel{background:#7d8799}
+
+.wlset{margin:8px 0}.wlrow{display:grid;grid-template-columns:minmax(90px,1fr) 2fr auto;gap:6px;margin:5px 0}.wlrow input{margin:0;min-width:0}
+.wlset .btn.sm{margin-top:4px}
+.wlnks{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.wlnks .wlnk{text-decoration:none;font-weight:700;padding:8px 14px}
+@media (max-width:640px){.wlrow{grid-template-columns:1fr}}
