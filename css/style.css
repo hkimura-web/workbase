@@ -727,3 +727,14 @@ body.workmode .pgt::after{background:var(--wk)}
 /* サイト名: TODAYと同じゴシック体・字間広め */
 @media (min-width:900px){h1,.hero h1{font-family:var(--f-body);font-weight:700;font-size:21px;letter-spacing:.2em}}
 @media (min-width:900px) and (max-width:1199px){h1,.hero h1{font-size:16px;letter-spacing:.15em}}
+
+/* 授業の時刻・いま／次の授業 */
+.tm{font-size:12px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;margin-left:4px}
+.p-live{border-color:var(--line);border-top:3px solid var(--today);margin-bottom:16px}
+.p-live .panel-h{background:var(--surface);color:var(--ink);border-bottom:1px solid var(--line)}
+.p-live .panel-n{font-weight:700;color:var(--today-ink);background:var(--today-soft);border-radius:999px;padding:1px 12px;font-variant-numeric:tabular-nums}
+.lv-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--today);margin-right:8px;vertical-align:1px}
+.p-live.now .lv-dot{animation:lvp 1.6s ease-in-out infinite}
+@keyframes lvp{0%,100%{box-shadow:0 0 0 0 rgba(232,113,10,.5)}50%{box-shadow:0 0 0 6px rgba(232,113,10,0)}}
+.p-live .list{margin:0}
+.lv-done{margin:0 0 14px;color:var(--muted)}
