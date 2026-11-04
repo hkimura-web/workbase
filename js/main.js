@@ -32,6 +32,10 @@
       else { dot = "ok"; txt = "GitHubに保存済み"; }
     } else if (dirty) { dot = "warn"; txt = "この端末に下書き保存中（GitHubには保存されていません）"; }
     else { dot = ""; txt = "閲覧モード：右上の「設定」でGitHubを接続すると、記録を保存できます"; }
+    if (A.ui.mode === "test") {
+      $("status").innerHTML = '<span><span class="dot ' + (/⚠/.test(A.seiseki.statusText()) ? "warn" : /保存済み|同期/.test(A.seiseki.statusText()) ? "ok" : "") + '"></span>' + J.esc(A.seiseki.statusText()) + "</span>";
+      return;
+    }
     if (A.ui.mode === "work") {
       $("status").innerHTML = '<span><span class="dot ' + (/⚠/.test(A.work.statusText()) ? "warn" : /保存済み|同期/.test(A.work.statusText()) ? "ok" : "") + '"></span>' + J.esc(A.work.statusText()) + "</span>";
       return;
@@ -147,23 +151,29 @@
     links: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
     docs: '<path d="M6 3.5h9l4 4V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1z"/><path d="M14.5 3.5V8H19M8.5 12h7M8.5 15.5h7"/>',
     cal: '<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M9 15l2 2 4-4"/>',
+    t_home: '<path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L7 5M3.5 12l1.2 1.2L7 11M3.5 18l1.2 1.2L7 17"/>',
+    t_tasks: '<rect x="4.5" y="3.5" width="15" height="17" rx="2"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/>',
+    t_print: '<path d="M7 9V4h10v5"/><rect x="4" y="9" width="16" height="8" rx="2"/><path d="M7 14h10v6H7z"/>',
+    t_set: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
     set: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
     gear: '<circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8"/>'
   };
   const SIDE = [
     ["授業", "class", [["today", "今日"], ["plan", "計画表"], ["grid", "一覧"], ["unit", "単元別"], ["sum", "サマリー"], ["lib", "資料"]]],
-    ["校務", "work", [["home", "ホーム"], ["year", "年間"], ["links", "リンク集"], ["docs", "手順・メモ"], ["cal", "カレンダー"], ["set", "校務の設定"]]]
+    ["校務", "work", [["home", "ホーム"], ["year", "年間"], ["links", "リンク集"], ["docs", "手順・メモ"], ["cal", "カレンダー"], ["set", "校務の設定"]]],
+    ["テスト成績", "test", [["home", "ホーム"], ["tasks", "作業一覧"], ["print", "印刷枚数"], ["set", "学期の設定"]]]
   ];
   function renderSide() {
-    const wm = A.ui.mode === "work", cur = wm ? A.ui.work.tab : A.ui.tab;
+    const md0 = A.ui.mode, cur = md0 === "work" ? A.ui.work.tab : md0 === "test" ? A.ui.test.tab : A.ui.tab;
     const svg = k => '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">' + IC[k] + "</svg>";
     let h = "";
     SIDE.forEach(([gn, m, items]) => {
       h += '<div class="sg">' + gn + "</div>";
       items.forEach(([k, n]) => {
-        const on = (m === "work") === wm && cur === k;
-        const bd = m === "work" && k === "home" && A.work && A.work.dueCount() ? '<span class="sbd">' + A.work.dueCount() + "</span>" : "";
-        h += '<button class="si ' + m + (on ? " on" : "") + '" data-side="' + m + ":" + k + '"' + (on ? ' aria-current="page"' : "") + ">" + svg(k) + "<span>" + n + "</span>" + bd + "</button>";
+        const on = m === md0 && cur === k;
+        const bd = m === "work" && k === "home" && A.work && A.work.dueCount() ? '<span class="sbd">' + A.work.dueCount() + "</span>" :
+          m === "test" && k === "home" && A.seiseki && A.seiseki.dueCount() ? '<span class="sbd">' + A.seiseki.dueCount() + "</span>" : "";
+        h += '<button class="si ' + m + (on ? " on" : "") + '" data-side="' + m + ":" + k + '"' + (on ? ' aria-current="page"' : "") + ">" + svg(m === "test" ? "t_" + k : k) + "<span>" + n + "</span>" + bd + "</button>";
       });
     });
     h += '<div class="sgap"></div><button class="si" data-act="settings">' + svg("gear") + "<span>設定・保存</span></button>";
@@ -171,10 +181,18 @@
   }
   function render() {
     if (!A.st) return;
-    const wm = A.ui.mode === "work";
-    document.body.classList.toggle("workmode", wm);
-    $("classtabs").hidden = wm; $("worktabs").hidden = !wm;
-    $("mode-class").setAttribute("aria-pressed", !wm); $("mode-work").setAttribute("aria-pressed", wm);
+    const wm = A.ui.mode === "work", tm = A.ui.mode === "test";
+    document.body.classList.toggle("workmode", wm); document.body.classList.toggle("testmode", tm);
+    $("classtabs").hidden = wm || tm; $("worktabs").hidden = !wm; $("testtabs").hidden = !tm;
+    $("mode-class").setAttribute("aria-pressed", !wm && !tm); $("mode-work").setAttribute("aria-pressed", wm); $("mode-test").setAttribute("aria-pressed", tm);
+    if (tm) {
+      $("sub").textContent = A.seiseki.sub();
+      document.querySelectorAll("[data-ttab]").forEach(b => b.setAttribute("aria-selected", b.dataset.ttab === A.ui.test.tab));
+      document.querySelector(".wrap").classList.remove("wide");
+      $("app").innerHTML = A.seiseki.view();
+      renderStatus(); renderBanner(); renderSide();
+      return;
+    }
     if (wm) {
       $("sub").textContent = A.work.sub();
       document.querySelectorAll("[data-wtab]").forEach(b => b.setAttribute("aria-selected", b.dataset.wtab === A.ui.work.tab));
@@ -393,9 +411,11 @@
     if (sd) {
       const [m, k] = sd.dataset.side.split(":");
       A.ui.mode = m; LS.set("jd.mode", m);
-      if (m === "work") A.ui.work.tab = k; else A.ui.tab = k;
+      if (m === "work") A.ui.work.tab = k; else if (m === "test") A.ui.test.tab = k; else A.ui.tab = k;
       A.ui.open = null; render(); window.scrollTo(0, 0); return;
     }
+    const tt = e.target.closest("[data-ttab]");
+    if (tt) { A.ui.test.tab = tt.dataset.ttab; A.ui.test.form = null; render(); window.scrollTo(0, 0); return; }
     const t = e.target.closest("[data-tab],[data-act]"); if (!t) return;
     if (t.dataset.tab) { A.ui.tab = t.dataset.tab; A.ui.open = null; render(); return; }
     const a = t.dataset.act, k = t.dataset.key, id = t.dataset.id;
@@ -618,7 +638,7 @@
     $("term").innerHTML = terms.map(t => '<option value="' + J.esc(t.id) + '">' + J.esc(t.name) + "</option>").join("");
     $("termwrap").hidden = terms.length < 2;
     A.ui.gridEdit = LS.get("jd.gridEdit") !== "0";
-    A.ui.mode = LS.get("jd.mode") === "work" ? "work" : "class";
+    { const m0 = LS.get("jd.mode"); A.ui.mode = m0 === "work" || m0 === "test" ? m0 : "class"; }
     const saved = LS.get("jd.term");
     await loadTerm(terms.some(t => t.id === saved) ? saved : terms[terms.length - 1].id);
   })();

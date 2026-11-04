@@ -9,7 +9,7 @@
 <link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="css/style.css?v=28">
+<link rel="stylesheet" href="css/style.css?v=31">
 </head>
 <body>
 <div class="wrap">
@@ -27,8 +27,8 @@
       <button class="btn ghost" data-act="settings" id="btn-settings">設定</button>
     </div>
   </header>
-  <div class="modebar" role="group" aria-label="授業と校務の切り替え">
-    <div class="seg modeseg"><button data-act="mode" data-v="class" id="mode-class" aria-pressed="true">授業</button><button data-act="mode" data-v="work" id="mode-work" aria-pressed="false">校務</button></div>
+  <div class="modebar" role="group" aria-label="授業・校務・テスト成績の切り替え">
+    <div class="seg modeseg"><button data-act="mode" data-v="class" id="mode-class" aria-pressed="true">授業</button><button data-act="mode" data-v="work" id="mode-work" aria-pressed="false">校務</button><button data-act="mode" data-v="test" id="mode-test" aria-pressed="false">テスト成績</button></div>
   </div>
   <div class="tabbar" id="classtabs">
     <div class="tabs" role="tablist">
@@ -48,6 +48,14 @@
       <button class="tab" role="tab" data-wtab="docs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h9l4 4V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1z"/><path d="M14.5 3.5V8H19M8.5 12h7M8.5 15.5h7"/></svg><span>手順・メモ</span></button>
       <button class="tab" role="tab" data-wtab="cal"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M9 15l2 2 4-4"/></svg><span>カレンダー</span></button>
       <button class="tab" role="tab" data-wtab="set"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>設定</span></button>
+    </div>
+  </div>
+  <div class="tabbar" id="testtabs" hidden>
+    <div class="tabs ttabs" role="tablist">
+      <button class="tab" role="tab" data-ttab="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L7 5M3.5 12l1.2 1.2L7 11M3.5 18l1.2 1.2L7 17"/></svg><span>ホーム</span></button>
+      <button class="tab" role="tab" data-ttab="tasks"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="3.5" width="15" height="17" rx="2"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg><span>作業一覧</span></button>
+      <button class="tab" role="tab" data-ttab="print"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V4h10v5"/><rect x="4" y="9" width="16" height="8" rx="2"/><path d="M7 14h10v6H7z"/></svg><span>印刷枚数</span></button>
+      <button class="tab" role="tab" data-ttab="set"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>学期の設定</span></button>
     </div>
   </div>
   </div>
@@ -99,10 +107,11 @@
 
 <script src="js/logic.js?v=2"></script>
 <script src="js/storage.js?v=2"></script>
-<script src="js/views.js?v=6"></script>
+<script src="js/views.js?v=7"></script>
 <script src="js/library.js?v=2"></script>
 <script src="js/workseed.js?v=3"></script>
 <script src="js/work.js?v=20"></script>
-<script src="js/main.js?v=5"></script>
+<script src="js/seiseki.js?v=2"></script>
+<script src="js/main.js?v=6"></script>
 </body>
 </html>

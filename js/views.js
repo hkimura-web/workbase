@@ -214,6 +214,7 @@
     if (isToday) h += liveHtml(today);
     const wkP = A.work ? A.work.todayPanel() : "";
     h += '<div class="tworow' + (wkP ? "" : " one") + '">' + nowP + wkP + "</div>";
+    h += A.seiseki ? A.seiseki.todayPanel() : "";
     h += panel("p-rem", "担当クラスの授業進度", "残りの授業時間（" + md(asof) + "から）", tiles);
     const lim = addDays(asof, 7);
     const soon = rows.filter(r => r.date > asof && r.date <= lim && r.kind !== "off");
