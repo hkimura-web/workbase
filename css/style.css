@@ -884,3 +884,19 @@ body.kinmode .tab[aria-selected="true"]{color:var(--kn-ink)}
 .matdet{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:6px 12px;background:var(--surface)}
 .matdet>summary{cursor:pointer;font-weight:700;padding:4px 0}
 .matdet>summary .note{font-weight:400}
+
+/* ---- カテゴリーごとの、ごく薄い背景色（授業=青み／校務=緑／テスト成績=ピンク／勤怠=ベージュ） ---- */
+body.workmode{--bg:#e9f3ee;--bg2:#dfeee6}
+body.testmode{--bg:#f9edf2;--bg2:#f3e1ea}
+body.kinmode{--bg:#f8f1e2;--bg2:#f0e6d0}
+body.workmode .pgt{color:var(--wk-ink)}
+body.testmode .pgt{color:var(--ts-ink)}
+body.kinmode .pgt{color:var(--kn-ink)}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) body.workmode{--bg:#0f1a16;--bg2:#1b2b25}
+  :root:not([data-theme="light"]) body.testmode{--bg:#1a1217;--bg2:#2b1d25}
+  :root:not([data-theme="light"]) body.kinmode{--bg:#19150c;--bg2:#2b2415}
+}
+:root[data-theme="dark"] body.workmode{--bg:#0f1a16;--bg2:#1b2b25}
+:root[data-theme="dark"] body.testmode{--bg:#1a1217;--bg2:#2b1d25}
+:root[data-theme="dark"] body.kinmode{--bg:#19150c;--bg2:#2b2415}
