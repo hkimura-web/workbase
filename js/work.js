@@ -411,10 +411,9 @@
   A.work.todayPanel = function () {
     if (!W.ready) return "";
     const due = dueList(), mc = monthCounts();
-    if (!due.length && !mc.cur && !mc.carry) return "";
     let b = due.length ? due.map(x => item(x.t, x.m, dueTag(x))).join("") : '<p class="note" style="margin:0 0 6px">今日が期限の校務はありません。</p>';
     if (mc.cur || mc.carry) b += '<p class="note" style="margin:8px 0 0">' + (mc.cur ? mc.m0 + "月の校務（日付なし）：未完了 " + mc.cur + "件" : "") + (mc.cur && mc.carry ? " ／ " : "") + (mc.carry ? "繰越 " + mc.carry + "件" : "") + ' <button class="btn sm wbtn" data-wact="go-home">校務タブを開く</button></p>';
-    return panel("p-work", "今日の校務", due.length ? due.length + "件" : "", b);
+    return panel("p-work" + (!due.length && !mc.cur && !mc.carry ? " p-slim" : ""), "今日の校務", due.length ? due.length + "件" : "", b);
   };
   /* 「記録待ち」と同じお知らせ画面に出す、期限が近い校務 */
   A.work.remHtml = function () {
