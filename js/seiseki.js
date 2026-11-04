@@ -18,7 +18,7 @@
     [3, "学年確認表を記入", "G", -1, 0], [3, "教科確認表をチェック", "G", 0, 0], [3, "成績会議", "M", 0, 0]];
   const DEFPR = [["1", 41, 1], ["2", 40, 2], ["3", 40, 1], ["4", 41, 2], ["5", 41, 2], ["6GLE", 41, 5]];
   const Q = { S: null, sha: null, dirty: false, saving: false, timer: null, token: false, conflict: false, ask: false, needCreate: false, draftP: null, canSave: true, st: "読み込み中…", ready: false };
-  const ui = { tab: "home", form: null, msg: "", det: {}, LQ: "", LE: false, OM: "", ME: false };
+  const ui = { tab: "home", form: null, msg: "", det: {}, LQ: "", LE: false, LA: false, OM: "", ME: false };
   const SD = root.SEISEKI_SEED || { LK: [], DM: [] };
   const KN = { d: "ドキュメント", s: "シート", f: "フォルダ", p: "PDF", c: "Classroom", u: "Web" };
   const U0 = { d: "https://docs.google.com/document/d/", s: "https://docs.google.com/spreadsheets/d/", f: "https://drive.google.com/drive/folders/", p: "https://drive.google.com/file/d/", c: "https://classroom.google.com/c/" };
@@ -47,7 +47,7 @@
     s.pr = s.pr && typeof s.pr === "object" ? s.pr : {};
     if (!s.terms.some(t => t.id === s.cur)) s.cur = s.terms.length ? s.terms[s.terms.length - 1].id : null;
     if (!Array.isArray(s.links)) s.links = JSON.parse(JSON.stringify(SD.LK));
-    s.links = s.links.filter(g => Array.isArray(g) && Array.isArray(g[1])).map(g => [String(g[0] || ""), g[1].filter(x => Array.isArray(x) && x.length >= 3).map(x => [String(x[0]), String(x[1]), String(x[2])])]);
+    s.links = s.links.filter(g => Array.isArray(g) && Array.isArray(g[1])).map(g => [String(g[0] || ""), g[1].filter(x => Array.isArray(x) && x.length >= 3).map(x => x[3] ? [String(x[0]), String(x[1]), String(x[2]), 1] : [String(x[0]), String(x[1]), String(x[2])])]);
     if (!Array.isArray(s.man)) s.man = JSON.parse(JSON.stringify(SD.DM));
     s.man = s.man.filter(m => m && m.id).map(m => ({ id: String(m.id), t: String(m.t || "無題"), m: String(m.m || "") }));
     s.upd = s.upd || 0;
@@ -154,12 +154,13 @@
     let h = askH();
     const T = cur();
     if (!T) {
-      return h + '<div class="pghd"><div><h2 class="pgt">TEST</h2><p class="pgs">試験の準備から、成績会議まで。</p></div></div>' + (ui.form === "new" ? termForm() : panel("p-ts", "はじめに", "", '<p style="margin-top:0">試験の初日・成績の提出期限・成績会議の日を入れると、作業が自動で並びます。</p><div class="btns"><button class="btn on" data-sact="t-new">＋ 学期を作る</button></div><p class="note">今の「テスト・成績 総合ボード」の内容を引き継ぐときは、「学期の設定」から読み込めます。</p>'));
+      return h + '<div class="pghd"><div><h2 class="pgt">TEST</h2><p class="pgs">試験の準備から、成績会議まで。</p></div></div>' + impPanel() + (ui.form === "new" ? termForm() : panel("p-ts", "はじめに", "", '<p style="margin-top:0">試験の初日・成績の提出期限・成績会議の日を入れると、作業が自動で並びます。</p><div class="btns"><button class="btn on" data-sact="t-new">＋ 学期を作る</button></div><p class="note">今の「テスト・成績 総合ボード」の内容を引き継ぐときは、「学期の設定」から読み込めます。</p>'));
     }
     const all = mine(), op = open(), over = op.filter(t => diff(t.due) < 0), w1 = op.filter(t => diff(t.due) >= 0 && diff(t.due) <= 7), m1 = op.filter(t => diff(t.due) > 7 && diff(t.due) <= 30);
     const pct = all.length ? Math.round(100 * (all.length - op.length) / all.length) : 0;
     const dd = (lbl, d) => { const n = diff(d); return '<div class="tsd"><span>' + lbl + '</span><b class="num">' + md(d) + '</b><small>' + (n > 0 ? "あと" + n + "日" : n === 0 ? "今日" : "終了") + "</small></div>"; };
     h += '<div class="pghd"><div><h2 class="pgt">TEST</h2><p class="pgs">' + esc(T.name) + "</p></div>" + '<div class="pgd num">' + md(today()) + " <small>" + "日月火水木金土"[new Date().getDay()] + "曜日</small></div></div>";
+    h += impPanel();
     if (Q.S.terms.length > 1) h += '<select id="ts_sel" data-schg="sel" style="width:auto;margin:0 0 12px">' + Q.S.terms.map(t => '<option value="' + t.id + '"' + (t.id === Q.S.cur ? " selected" : "") + ">" + esc(t.name) + "</option>").join("") + "</select>";
     h += '<div class="tsdates">' + dd("試験の初日", T.E) + dd("成績の提出", T.G) + dd("成績会議", T.M) + "</div>";
     h += '<div class="tskpi"><div class="k"><b>' + pct + '%</b><span>進み（' + (all.length - op.length) + "/" + all.length + '件）</span></div><div class="k' + (over.length ? " bad" : "") + '"><b>' + over.length + '</b><span>期限超過</span></div><div class="k' + (w1.length ? " warn" : "") + '"><b>' + w1.length + '</b><span>7日以内</span></div><div class="k"><b>' + m1.length + "</b><span>8〜30日先</span></div></div>";
@@ -210,18 +211,26 @@
     return h;
   }
   const KNN = k => KN[k] || "Web";
+  const star = (gi, ii, on) => '<button class="tsstar' + (on ? " on" : "") + '" data-sact="lstar" data-g="' + gi + '" data-i="' + ii + '" aria-pressed="' + !!on + '" title="' + (on ? "重要から外す" : "重要にする（テストのホームに出ます）") + '">' + (on ? "★" : "☆") + "</button>";
   function linksHtml() {
     const q = ui.LQ.trim().toLowerCase();
     return Q.S.links.map(([n, a], gi) => {
-      if (ui.LE) return '<div class="wcard"><div class="tsge"><input type="text" value="' + esc(n) + '" data-schg="gn" data-k="' + gi + '" aria-label="グループ名"><button class="btn sm danger" data-sact="gdel" data-g="' + gi + '">グループを削除</button></div>' + (a.map((x, ii) => '<div class="tsle"><input type="text" value="' + esc(x[0]) + '" data-schg="lt" data-k="' + gi + "." + ii + '" aria-label="表示名"><input type="text" value="' + esc(hrefOf(x[1], x[2])) + '" data-schg="lu" data-k="' + gi + "." + ii + '" aria-label="URL"><button class="btn sm danger" data-sact="ldel" data-g="' + gi + '" data-i="' + ii + '" aria-label="削除">✕</button></div>').join("") || empty("リンクがありません")) + "</div>";
-      const f = a.filter(x => !q || x[0].toLowerCase().includes(q));
-      return f.length ? '<h3 class="tsgh">' + esc(n) + '</h3><div class="tslg">' + f.map(x => '<a class="tslc" href="' + esc(hrefOf(x[1], x[2])) + '" target="_blank" rel="noopener noreferrer"><span>' + esc(x[0]) + "</span><small>" + KNN(x[1]) + "</small></a>").join("") + "</div>" : "";
+      if (ui.LE) return '<div class="wcard"><div class="tsge"><input type="text" value="' + esc(n) + '" data-schg="gn" data-k="' + gi + '" aria-label="グループ名"><button class="btn sm danger" data-sact="gdel" data-g="' + gi + '">グループを削除</button></div>' + (a.map((x, ii) => '<div class="tsle"><input type="text" value="' + esc(x[0]) + '" data-schg="lt" data-k="' + gi + "." + ii + '" aria-label="表示名"><input type="text" value="' + esc(hrefOf(x[1], x[2])) + '" data-schg="lu" data-k="' + gi + "." + ii + '" aria-label="URL"><span class="tsbtns">' + star(gi, ii, x[3]) + '<button class="btn sm danger" data-sact="ldel" data-g="' + gi + '" data-i="' + ii + '" aria-label="削除">✕</button></span></div>').join("") || empty("リンクがありません")) + "</div>";
+      const f = a.map((x, ii) => [x, ii]).filter(([x]) => !q || x[0].toLowerCase().includes(q));
+      return f.length ? '<h3 class="tsgh">' + esc(n) + '</h3><div class="tslg">' + f.map(([x, ii]) => '<div class="tslw"><a class="tslc" href="' + esc(hrefOf(x[1], x[2])) + '" target="_blank" rel="noopener noreferrer"><span>' + esc(x[0]) + "</span><small>" + KNN(x[1]) + "</small></a>" + star(gi, ii, x[3]) + "</div>").join("") + "</div>" : "";
     }).join("") || empty("該当するリンクがありません。");
+  }
+  /* ホームの一番上に出す「重要リンク」（リンク集で★を付けたもの） */
+  function impPanel() {
+    const l = []; Q.S.links.forEach(([n, a]) => a.forEach(x => { if (x[3]) l.push(x); }));
+    return '<section class="panel p-ts p-imp"><header class="panel-h"><h2>重要リンク</h2><span class="panel-n"><button class="btn sm" data-sact="go-links">リンク集を開く</button></span></header><div class="panel-b">' +
+      (l.length ? l.map(x => '<a class="wtp t-seiseki" href="' + esc(hrefOf(x[1], x[2])) + '" target="_blank" rel="noopener noreferrer">' + esc(x[0]) + ' <span class="wgo">↗</span></a>').join("") : '<p class="note" style="margin:0">よく使うリンクは、「リンク集」で ☆ を押すと、ここに並びます。</p>') + "</div></section>";
   }
   function viewLinks() {
     let h = askH();
-    h += '<div class="tsbar"><input type="search" id="ts_lq" placeholder="リンクを検索（例：採点、報告書）" value="' + esc(ui.LQ) + '" autocomplete="off"><button class="btn' + (ui.LE ? " on" : "") + '" data-sact="ledit" style="white-space:nowrap">' + (ui.LE ? "編集を終える" : "編集") + '</button></div><div id="ts_ll">' + linksHtml() + "</div>";
-    if (ui.LE) h += '<div class="wcard"><b>リンクを足す</b><label>表示名</label><input type="text" id="nt"><label>URL</label><input type="text" id="nu" placeholder="https://..."><label>グループ</label><select id="ng">' + Q.S.links.map(([n], i) => '<option value="' + i + '">' + esc(n) + "</option>").join("") + '<option value="new">＋新しいグループ</option></select><label>新しいグループ名（上で「新しいグループ」を選んだとき）</label><input type="text" id="nn"><button class="btn on" data-sact="ladd">足す</button></div>';
+    h += '<div class="tsbar"><input type="search" id="ts_lq" placeholder="リンクを検索（例：採点、報告書）" value="' + esc(ui.LQ) + '" autocomplete="off"><button class="btn' + (ui.LA ? " on" : "") + '" data-sact="ladd-open" style="white-space:nowrap">＋ リンクを足す</button><button class="btn' + (ui.LE ? " on" : "") + '" data-sact="ledit" style="white-space:nowrap">' + (ui.LE ? "編集を終える" : "編集") + "</button></div>";
+    if (ui.LA) h += '<div class="wcard"><b>リンクを足す</b><label>表示名（例：試験範囲 2学期期末）</label><input type="text" id="nt"><label>URL</label><input type="text" id="nu" placeholder="https://..."><label>グループ</label><select id="ng">' + Q.S.links.map(([n], i) => '<option value="' + i + '">' + esc(n) + "</option>").join("") + '<option value="new">＋新しいグループ</option></select><label>新しいグループ名（上で「新しいグループ」を選んだとき）</label><input type="text" id="nn"><label class="tsimp"><input type="checkbox" id="nimp"> 重要（テストのホームの一番上に出す）</label><div class="btns"><button class="btn on" data-sact="ladd">足す</button><button class="btn" data-sact="ladd-open">閉じる</button></div></div>';
+    h += '<div id="ts_ll">' + linksHtml() + "</div>";
     return h;
   }
   const inl = x => esc(x).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
@@ -280,13 +289,17 @@
       case "draft-drop": LS.del("jd.draft.seiseki"); Q.ask = false; Q.draftP = null; Q.dirty = false; Q.st = "GitHubと同期中"; A.render(); return;
       case "draft-use": Q.S = mig(Q.draftP); Q.draftP = null; Q.ask = false; Q.needCreate = false; Q.dirty = true; save(); A.render(); return;
       case "ledit": ui.LE = !ui.LE; A.render(); return;
+      case "ladd-open": ui.LA = !ui.LA; A.render(); return;
+      case "lstar": { const x = S0.links[+t.dataset.g][1][+t.dataset.i]; if (x) { if (x[3]) x.length = 3; else x[3] = 1; save(); A.render(); } return; }
+      case "go-links": ui.tab = "links"; A.render(); root.scrollTo(0, 0); return;
       case "ldel": S0.links[+t.dataset.g][1].splice(+t.dataset.i, 1); save(); A.render(); return;
       case "gdel": if (root.confirm("このグループとリンクをすべて削除します。よろしいですか？")) { S0.links.splice(+t.dataset.g, 1); save(); A.render(); } return;
       case "ladd": {
         const n = V("nt").trim(), u = V("nu").trim();
         if (!n || !/^https?:/.test(u)) { root.alert("表示名と、https:// で始まるURLを入れてください。"); return; }
         let g = V("ng"); if (g === "new") { const gn = V("nn").trim(); if (!gn) { root.alert("新しいグループ名を入れてください。"); return; } S0.links.push([gn, []]); g = S0.links.length - 1; }
-        S0.links[+g][1].push([n, kind(u), u]); save(); A.render(); return;
+        const row = [n, kind(u), u]; if ($("nimp") && $("nimp").checked) row.push(1);
+        S0.links[+g][1].push(row); save(); A.render(); return;
       }
       case "mn": ui.OM = id; ui.ME = false; A.render(); return;
       case "mnew": { const nid = "m" + (uid++); S0.man.push({ id: nid, t: "新しいマニュアル", m: "" }); ui.OM = nid; ui.ME = true; save(); A.render(); return; }

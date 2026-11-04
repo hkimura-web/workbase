@@ -900,3 +900,10 @@ body.kinmode .pgt{color:var(--kn-ink)}
 :root[data-theme="dark"] body.workmode{--bg:#0f1a16;--bg2:#1b2b25}
 :root[data-theme="dark"] body.testmode{--bg:#1a1217;--bg2:#2b1d25}
 :root[data-theme="dark"] body.kinmode{--bg:#19150c;--bg2:#2b2415}
+.tslw{display:flex;align-items:stretch;gap:4px}.tslw .tslc{flex:1;min-width:0}
+.tsstar{flex:none;width:36px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--muted);font-size:17px;line-height:1;cursor:pointer}
+.tsstar.on{color:#d6458a;border-color:var(--ts-line);background:var(--ts-soft)}.tsstar:hover{border-color:var(--ts)}
+.tsbtns{display:flex;gap:4px;align-items:center}.tsbtns .tsstar{width:30px;height:28px;font-size:15px}
+.tsimp{flex-direction:row!important;align-items:center;gap:6px!important;margin:8px 0}
+.p-imp .wtp{margin:2px 6px 4px 0}
+.tsle{grid-template-columns:1fr 1fr auto}
