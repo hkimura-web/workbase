@@ -32,6 +32,10 @@
       else { dot = "ok"; txt = "GitHubに保存済み"; }
     } else if (dirty) { dot = "warn"; txt = "この端末に下書き保存中（GitHubには保存されていません）"; }
     else { dot = ""; txt = "閲覧モード：右上の「設定」でGitHubを接続すると、記録を保存できます"; }
+    if (A.ui.mode === "kin") {
+      $("status").innerHTML = '<span><span class="dot ' + (/⚠/.test(A.kintai.statusText()) ? "warn" : /保存済み|同期/.test(A.kintai.statusText()) ? "ok" : "") + '"></span>' + J.esc(A.kintai.statusText()) + "</span>";
+      return;
+    }
     if (A.ui.mode === "test") {
       $("status").innerHTML = '<span><span class="dot ' + (/⚠/.test(A.seiseki.statusText()) ? "warn" : /保存済み|同期/.test(A.seiseki.statusText()) ? "ok" : "") + '"></span>' + J.esc(A.seiseki.statusText()) + "</span>";
       return;
@@ -156,6 +160,13 @@
     t_print: '<path d="M7 9V4h10v5"/><rect x="4" y="9" width="16" height="8" rx="2"/><path d="M7 14h10v6H7z"/>',
     t_links: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
     t_man: '<path d="M5 4.5h10.5a2.5 2.5 0 0 1 2.5 2.5v13H7.5A2.5 2.5 0 0 1 5 17.5z"/><path d="M5 17.5A2.5 2.5 0 0 1 7.5 15H18M9 8.5h5"/>',
+    k_home: '<rect x="3.5" y="4.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="4.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/>',
+    k_cal: '<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14h2M14 14h2M8 17h2"/>',
+    k_yk: '<circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/>',
+    k_ot: '<path d="M4 18V6M4 18h16"/><path d="M8 14l3-4 3 3 5-6"/>',
+    k_fh: '<path d="M5 8h12l-3-3M19 16H7l3 3"/>',
+    k_ev: '<path d="M5 20V4M5 5h11l-2 3.5L16 12H5"/>',
+    k_set: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
     t_set: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
     set: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
     gear: '<circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8"/>'
@@ -163,10 +174,11 @@
   const SIDE = [
     ["授業", "class", [["today", "今日"], ["plan", "計画表"], ["grid", "一覧"], ["unit", "単元別"], ["sum", "サマリー"], ["lib", "資料"]]],
     ["校務", "work", [["home", "ホーム"], ["year", "年間"], ["links", "リンク集"], ["docs", "手順・メモ"], ["cal", "カレンダー"], ["set", "校務の設定"]]],
-    ["テスト成績", "test", [["home", "ホーム"], ["tasks", "作業一覧"], ["print", "印刷枚数"], ["links", "リンク集"], ["man", "マニュアル"], ["set", "学期の設定"]]]
+    ["テスト成績", "test", [["home", "ホーム"], ["tasks", "作業一覧"], ["print", "印刷枚数"], ["links", "リンク集"], ["man", "マニュアル"], ["set", "学期の設定"]]],
+    ["勤怠", "kin", [["home", "ダッシュボード"], ["cal", "カレンダー"], ["yk", "有給"], ["ot", "超過勤務"], ["fh", "振替休日"], ["ev", "行事予定"], ["set", "勤怠の設定"]]]
   ];
   function renderSide() {
-    const md0 = A.ui.mode, cur = md0 === "work" ? A.ui.work.tab : md0 === "test" ? A.ui.test.tab : A.ui.tab;
+    const md0 = A.ui.mode, cur = md0 === "work" ? A.ui.work.tab : md0 === "test" ? A.ui.test.tab : md0 === "kin" ? A.ui.kin.tab : A.ui.tab;
     const svg = k => '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">' + IC[k] + "</svg>";
     let h = "";
     SIDE.forEach(([gn, m, items]) => {
@@ -174,8 +186,9 @@
       items.forEach(([k, n]) => {
         const on = m === md0 && cur === k;
         const bd = m === "work" && k === "home" && A.work && A.work.dueCount() ? '<span class="sbd">' + A.work.dueCount() + "</span>" :
-          m === "test" && k === "home" && A.seiseki && A.seiseki.dueCount() ? '<span class="sbd">' + A.seiseki.dueCount() + "</span>" : "";
-        h += '<button class="si ' + m + (on ? " on" : "") + '" data-side="' + m + ":" + k + '"' + (on ? ' aria-current="page"' : "") + ">" + svg(m === "test" ? "t_" + k : k) + "<span>" + n + "</span>" + bd + "</button>";
+          m === "test" && k === "home" && A.seiseki && A.seiseki.dueCount() ? '<span class="sbd">' + A.seiseki.dueCount() + "</span>" :
+          m === "kin" && k === "home" && A.kintai && A.kintai.dueCount() ? '<span class="sbd">' + A.kintai.dueCount() + "</span>" : "";
+        h += '<button class="si ' + m + (on ? " on" : "") + '" data-side="' + m + ":" + k + '"' + (on ? ' aria-current="page"' : "") + ">" + svg(m === "test" ? "t_" + k : m === "kin" ? "k_" + k : k) + "<span>" + n + "</span>" + bd + "</button>";
       });
     });
     h += '<div class="sgap"></div><button class="si" data-act="settings">' + svg("gear") + "<span>設定・保存</span></button>";
@@ -183,10 +196,18 @@
   }
   function render() {
     if (!A.st) return;
-    const wm = A.ui.mode === "work", tm = A.ui.mode === "test";
-    document.body.classList.toggle("workmode", wm); document.body.classList.toggle("testmode", tm);
-    $("classtabs").hidden = wm || tm; $("worktabs").hidden = !wm; $("testtabs").hidden = !tm;
-    $("mode-class").setAttribute("aria-pressed", !wm && !tm); $("mode-work").setAttribute("aria-pressed", wm); $("mode-test").setAttribute("aria-pressed", tm);
+    const wm = A.ui.mode === "work", tm = A.ui.mode === "test", km = A.ui.mode === "kin";
+    document.body.classList.toggle("workmode", wm); document.body.classList.toggle("testmode", tm); document.body.classList.toggle("kinmode", km);
+    $("classtabs").hidden = wm || tm || km; $("worktabs").hidden = !wm; $("testtabs").hidden = !tm; $("kintabs").hidden = !km;
+    $("mode-class").setAttribute("aria-pressed", !wm && !tm && !km); $("mode-work").setAttribute("aria-pressed", wm); $("mode-test").setAttribute("aria-pressed", tm); $("mode-kin").setAttribute("aria-pressed", km);
+    if (km) {
+      $("sub").textContent = A.kintai.sub();
+      document.querySelectorAll("[data-ktab]").forEach(b => { if (b.classList.contains("tab")) b.setAttribute("aria-selected", b.dataset.ktab === A.ui.kin.tab); });
+      document.querySelector(".wrap").classList.remove("wide");
+      $("app").innerHTML = A.kintai.view();
+      renderStatus(); renderBanner(); renderSide();
+      return;
+    }
     if (tm) {
       $("sub").textContent = A.seiseki.sub();
       document.querySelectorAll("[data-ttab]").forEach(b => b.setAttribute("aria-selected", b.dataset.ttab === A.ui.test.tab));
@@ -413,9 +434,11 @@
     if (sd) {
       const [m, k] = sd.dataset.side.split(":");
       A.ui.mode = m; LS.set("jd.mode", m);
-      if (m === "work") A.ui.work.tab = k; else if (m === "test") A.ui.test.tab = k; else A.ui.tab = k;
+      if (m === "work") A.ui.work.tab = k; else if (m === "test") A.ui.test.tab = k; else if (m === "kin") A.ui.kin.tab = k; else A.ui.tab = k;
       A.ui.open = null; render(); window.scrollTo(0, 0); return;
     }
+    const kt = e.target.closest("[data-ktab]");
+    if (kt) { A.ui.mode = "kin"; LS.set("jd.mode", "kin"); A.ui.kin.tab = kt.dataset.ktab; A.ui.kin.ed = null; render(); window.scrollTo(0, 0); return; }
     const tt = e.target.closest("[data-ttab]");
     if (tt) { A.ui.test.tab = tt.dataset.ttab; A.ui.test.form = null; render(); window.scrollTo(0, 0); return; }
     const t = e.target.closest("[data-tab],[data-act]"); if (!t) return;
@@ -457,7 +480,7 @@
       case "gsub": A.ui.gridSubj = t.dataset.v; render(); break;
       case "gridtoday": { const g = document.querySelector(".gridwrap"); if (g) scrollGridToToday(g); break; }
       case "st": A.ui.cellRefresh = true; { const cur = (A.st.rec[k] || {}).s || "plan", v = t.dataset.v; setRec(k, { s: cur === v && v !== "plan" ? "plan" : v }); break; }
-      case "offset": A.ui.cellRefresh = true; A.st.off[k] = A.st.events[k.split("|")[1]] || "授業なし"; delete A.st.rec[k]; A.ui.open = null; commit(); break;
+      case "offset": A.ui.cellRefresh = true; A.st.off[k] = (A.evOf ? A.evOf(k.split("|")[1]) : A.st.events[k.split("|")[1]]) || "授業なし"; delete A.st.rec[k]; A.ui.open = null; commit(); break;
       case "offclear": A.ui.cellRefresh = true; delete A.st.off[k]; commit(); break;
       case "bup": shiftBlock(id, -1); break;
       case "bdn": shiftBlock(id, 1); break;
@@ -640,7 +663,7 @@
     $("term").innerHTML = terms.map(t => '<option value="' + J.esc(t.id) + '">' + J.esc(t.name) + "</option>").join("");
     $("termwrap").hidden = terms.length < 2;
     A.ui.gridEdit = LS.get("jd.gridEdit") !== "0";
-    { const m0 = LS.get("jd.mode"); A.ui.mode = m0 === "work" || m0 === "test" ? m0 : "class"; }
+    { const m0 = LS.get("jd.mode"); A.ui.mode = m0 === "work" || m0 === "test" || m0 === "kin" ? m0 : "class"; }
     const saved = LS.get("jd.term");
     await loadTerm(terms.some(t => t.id === saved) ? saved : terms[terms.length - 1].id);
   })();

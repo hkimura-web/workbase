@@ -9,7 +9,7 @@
 <link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="css/style.css?v=35">
+<link rel="stylesheet" href="css/style.css?v=36">
 </head>
 <body>
 <div class="wrap">
@@ -27,8 +27,8 @@
       <button class="btn ghost" data-act="settings" id="btn-settings">設定</button>
     </div>
   </header>
-  <div class="modebar" role="group" aria-label="授業・校務・テスト成績の切り替え">
-    <div class="seg modeseg"><button data-act="mode" data-v="class" id="mode-class" aria-pressed="true">授業</button><button data-act="mode" data-v="work" id="mode-work" aria-pressed="false">校務</button><button data-act="mode" data-v="test" id="mode-test" aria-pressed="false">テスト成績</button></div>
+  <div class="modebar" role="group" aria-label="授業・校務・テスト成績・勤怠の切り替え">
+    <div class="seg modeseg"><button data-act="mode" data-v="class" id="mode-class" aria-pressed="true">授業</button><button data-act="mode" data-v="work" id="mode-work" aria-pressed="false">校務</button><button data-act="mode" data-v="test" id="mode-test" aria-pressed="false">テスト成績</button><button data-act="mode" data-v="kin" id="mode-kin" aria-pressed="false">勤怠</button></div>
   </div>
   <div class="tabbar" id="classtabs">
     <div class="tabs" role="tablist">
@@ -58,6 +58,17 @@
             <button class="tab" role="tab" data-ttab="links"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg><span>リンク集</span></button>
       <button class="tab" role="tab" data-ttab="man"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h10.5a2.5 2.5 0 0 1 2.5 2.5v13H7.5A2.5 2.5 0 0 1 5 17.5z"/><path d="M5 17.5A2.5 2.5 0 0 1 7.5 15H18M9 8.5h5"/></svg><span>マニュアル</span></button>
       <button class="tab" role="tab" data-ttab="set"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>学期の設定</span></button>
+    </div>
+  </div>
+  <div class="tabbar" id="kintabs" hidden>
+    <div class="tabs ktabs" role="tablist">
+      <button class="tab" role="tab" data-ktab="home"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="4.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg><span>ダッシュ</span></button>
+      <button class="tab" role="tab" data-ktab="cal"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14h2M14 14h2M8 17h2"/></svg><span>カレンダー</span></button>
+      <button class="tab" role="tab" data-ktab="yk"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/></svg><span>有給</span></button>
+      <button class="tab" role="tab" data-ktab="ot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18V6M4 18h16"/><path d="M8 14l3-4 3 3 5-6"/></svg><span>超過勤務</span></button>
+      <button class="tab" role="tab" data-ktab="fh"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h12l-3-3M19 16H7l3 3"/></svg><span>振替休日</span></button>
+      <button class="tab" role="tab" data-ktab="ev"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V4M5 5h11l-2 3.5L16 12H5"/></svg><span>行事</span></button>
+      <button class="tab" role="tab" data-ktab="set"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg><span>設定</span></button>
     </div>
   </div>
   </div>
@@ -107,14 +118,15 @@
   </div>
 </dialog>
 
-<script src="js/logic.js?v=2"></script>
+<script src="js/logic.js?v=3"></script>
 <script src="js/storage.js?v=2"></script>
-<script src="js/views.js?v=8"></script>
+<script src="js/views.js?v=9"></script>
 <script src="js/library.js?v=2"></script>
 <script src="js/workseed.js?v=3"></script>
-<script src="js/work.js?v=23"></script>
+<script src="js/work.js?v=24"></script>
 <script src="js/seisekiseed.js?v=1"></script>
 <script src="js/seiseki.js?v=4"></script>
-<script src="js/main.js?v=6"></script>
+<script src="js/kintai.js?v=1"></script>
+<script src="js/main.js?v=7"></script>
 </body>
 </html>

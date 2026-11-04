@@ -202,13 +202,13 @@
     const rows = [];
     all.forEach(({ s }) => s.pj.rows.forEach(r => rows.push(r)));
     rows.sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : ((a.periods || [0])[0] - (b.periods || [0])[0]) || (a.key < b.key ? -1 : 1));
-    const evT = st.events[asof];
+    const evT = A.evOf ? A.evOf(asof) : st.events[asof];
     const today = rows.filter(r => r.date === asof);
     const isToday = asof === J.ds(new Date());
     const WD = ["日", "月", "火", "水", "木", "金", "土"], wdn = WD[new Date(asof + "T00:00:00").getDay()];
     let h = (A.work ? A.work.morning() : "") +
       '<div class="pghd"><div><h2 class="pgt">Today</h2><p class="pgs">授業の予定と校務を、ここから。</p></div><div class="pgd num">' + md(asof) + " <small>" + wdn + "曜日" + (isToday ? "" : "（基準日）") + "</small></div></div>";
-    const nowP = panel("p-now", isToday ? "今日の授業" : md(asof) + "（" + dw(asof) + "）の授業", today.length ? today.length + "コマ" : "", (evT ? '<p class="note" style="margin:0 0 8px">行事：' + esc(evT) + "</p>" : "") +
+    const nowP = panel("p-now", isToday ? "今日の授業" : md(asof) + "（" + dw(asof) + "）の授業", today.length ? today.length + "コマ" : "", (evT ? '<p class="note" style="margin:0 0 8px">行事：' + esc(evT) + "</p>" : "") + (A.kintai && A.kintai.dayNote(asof) ? '<p class="note kdn">' + esc(A.kintai.dayNote(asof)) + "</p>" : "") +
       (today.length ? '<div class="list">' + today.map(r => slotCard(r, true)).join("") + "</div>" : '<p class="note" style="margin:0">この日に担当授業はありません。</p>'));
     A.liveRows = today;
     if (isToday) h += liveHtml(today);
@@ -219,8 +219,8 @@
     const lim = addDays(asof, 7);
     const soon = rows.filter(r => r.date > asof && r.date <= lim && r.kind !== "off");
     h += panel("p-soon", "これから1週間", soon.length ? soon.length + "コマ" : "", soon.length ? '<div class="list">' + soon.map(r => slotCard(r, true)).join("") + "</div>" : '<p class="note" style="margin:0">授業の予定はありません。</p>');
-    const evs = Object.keys(st.events).filter(d => d > asof && d <= addDays(asof, 14)).sort();
-    if (evs.length) h += panel("p-ev", "これからの行事（2週間）", evs.length + "件", evs.map(d => '<div class="blk"><span><b class="num">' + md(d) + "（" + dw(d) + "）</b>　" + esc(clip(st.events[d], 80)) + "</span></div>").join(""));
+    const evs = A.evList ? A.evList(addDays(asof, 1), addDays(asof, 14)) : Object.keys(st.events).filter(d => d > asof && d <= addDays(asof, 14)).sort();
+    if (evs.length) h += panel("p-ev", "これからの行事（2週間）", evs.length + "件", evs.map(d => '<div class="blk"><span><b class="num">' + md(d) + "（" + dw(d) + "）</b>　" + esc(clip(A.evOf ? A.evOf(d) : st.events[d], 80)) + "</span></div>").join(""));
     const wait = rows.filter(r => r.date < asof && r.kind === "plan").length;
     if (wait) h += '<p class="note">記録がまだ入っていない過去のコマが ' + wait + " 件あります（計画表で「記録待ち」）。</p>";
     return h;
@@ -537,7 +537,7 @@
       cls.map(c => '<th class="gh2 hs-' + subj(c.name) + '">残り <b class="num">' + stats[c.id].remain + "</b> 時間</th>").join("") + "</tr></thead><tbody>";
     const lastUnit = {};
     for (let d = st.term.start; d <= st.term.end; d = addDays(d, 1)) {
-      const w = J.pd(d).getDay(), ev = st.events[d] || "";
+      const w = J.pd(d).getDay(), ev = (A.evOf ? A.evOf(d) : st.events[d]) || "";
       let active = 0, cells = "";
       cls.forEach(c => {
         const r = rmap[c.id][d];

@@ -36,7 +36,7 @@
       const pers = cls.tt.filter(t => t[0] === w).map(t => t[1]).sort((a, b) => a - b), hrs = pers.length;
       if (!hrs) continue;
       const key = cls.id + "|" + d;
-      out.push({ key, date: d, hrs, periods: pers, off: (st.off && st.off[key]) || null, ev: (st.events && st.events[d]) || "" });
+      out.push({ key, date: d, hrs, periods: pers, off: (st.off && st.off[key]) || null, ev: (st.events && st.events[d]) || (api.evExtra ? api.evExtra(d) : "") || "" });
     }
     return out;
   }
