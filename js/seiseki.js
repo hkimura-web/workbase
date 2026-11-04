@@ -18,7 +18,9 @@
     [3, "学年確認表を記入", "G", -1, 0], [3, "教科確認表をチェック", "G", 0, 0], [3, "成績会議", "M", 0, 0]];
   const DEFPR = [["1", 41, 1], ["2", 40, 2], ["3", 40, 1], ["4", 41, 2], ["5", 41, 2], ["6GLE", 41, 5]];
   const Q = { S: null, sha: null, dirty: false, saving: false, timer: null, token: false, conflict: false, ask: false, needCreate: false, draftP: null, canSave: true, st: "読み込み中…", ready: false };
-  const ui = { tab: "home", form: null, msg: "", det: {}, LQ: "", LE: false, LA: false, OM: "", ME: false };
+  const ui = { tab: "home", form: null, msg: "", det: {}, LQ: "", LE: false, LA: false, OM: "", ME: false, dq: "", dtag: "", dedit: null };
+  const TGN = ["ピンク", "ブルー", "グリーン", "オレンジ", "パープル", "ティール", "レッド", "グレー"];
+  const DEFTAGS = () => [{ id: "jyunbi", n: "試験準備", c: 1 }, { id: "seiseki", n: "成績処理", c: 0 }, { id: "hokoku", n: "報告・会議", c: 2 }, { id: "ryu", n: "留学・欠席", c: 3 }];
   const SD = root.SEISEKI_SEED || { LK: [], DM: [] };
   const KN = { d: "ドキュメント", s: "シート", f: "フォルダ", p: "PDF", c: "Classroom", u: "Web" };
   const U0 = { d: "https://docs.google.com/document/d/", s: "https://docs.google.com/spreadsheets/d/", f: "https://drive.google.com/drive/folders/", p: "https://drive.google.com/file/d/", c: "https://classroom.google.com/c/" };
@@ -50,6 +52,15 @@
     s.links = s.links.filter(g => Array.isArray(g) && Array.isArray(g[1])).map(g => [String(g[0] || ""), g[1].filter(x => Array.isArray(x) && x.length >= 3).map(x => x[3] ? [String(x[0]), String(x[1]), String(x[2]), 1] : [String(x[0]), String(x[1]), String(x[2])])]);
     if (!Array.isArray(s.man)) s.man = JSON.parse(JSON.stringify(SD.DM));
     s.man = s.man.filter(m => m && m.id).map(m => ({ id: String(m.id), t: String(m.t || "無題"), m: String(m.m || "") }));
+    if (!Array.isArray(s.tags) || !s.tags.length) s.tags = DEFTAGS();
+    s.tags = s.tags.filter(t => t && t.id).map(t => ({ id: String(t.id), n: String(t.n || "タグ"), c: Math.max(0, Math.min(7, +t.c || 0)) }));
+    s.docs = Array.isArray(s.docs) ? s.docs : [];
+    if (!s.docsInit) { /* はじめの1回だけ: 今までのマニュアルと、★を付けたリンクを、手順・メモに移す */
+      (Array.isArray(s.man) ? s.man : SD.DM).forEach(m => { if (m && m.id && !s.docs.some(d => d.id === "m_" + m.id)) s.docs.push({ id: "m_" + m.id, t: String(m.t || "無題"), b: String(m.m || ""), u: "", ut: "", ls: [], tip: false, tag: "seiseki", go: "" }); });
+      s.links.forEach(g => g[1].forEach(x => { if (x[3]) { s.docs.push({ id: "l_" + (uid++), t: x[0], b: "", u: hrefOf(x[1], x[2]), ut: "", ls: [], tip: true, tag: "", go: "" }); x.length = 3; } }));
+      delete s.man; s.docsInit = 1;
+    }
+    s.docs = s.docs.filter(d => d && d.id).map(d => ({ id: String(d.id), t: String(d.t || "無題"), b: String(d.b || ""), u: String(d.u || ""), ut: String(d.ut || ""), ls: (Array.isArray(d.ls) ? d.ls : []).filter(x => x && typeof x === "object").slice(0, 4).map(x => ({ t: String(x.t || ""), u: String(x.u || "") })), tip: !!d.tip, tag: String(d.tag || ""), go: d.go === "link" || d.go === "detail" ? d.go : "" }));
     s.upd = s.upd || 0;
     return s;
   }
@@ -211,7 +222,8 @@
     return h;
   }
   const KNN = k => KN[k] || "Web";
-  const star = (gi, ii, on) => '<button class="tsstar' + (on ? " on" : "") + '" data-sact="lstar" data-g="' + gi + '" data-i="' + ii + '" aria-pressed="' + !!on + '" title="' + (on ? "重要から外す" : "重要にする（テストのホームに出ます）") + '">' + (on ? "★" : "☆") + "</button>";
+  const star = (gi, ii, on) => "";
+  const starOld = (gi, ii, on) => '<button class="tsstar' + (on ? " on" : "") + '" data-sact="lstar" data-g="' + gi + '" data-i="' + ii + '" aria-pressed="' + !!on + '" title="' + (on ? "重要から外す" : "重要にする（テストのホームに出ます）") + '">' + (on ? "★" : "☆") + "</button>";
   function linksHtml() {
     const q = ui.LQ.trim().toLowerCase();
     return Q.S.links.map(([n, a], gi) => {
@@ -220,16 +232,29 @@
       return f.length ? '<h3 class="tsgh">' + esc(n) + '</h3><div class="tslg">' + f.map(([x, ii]) => '<div class="tslw"><a class="tslc" href="' + esc(hrefOf(x[1], x[2])) + '" target="_blank" rel="noopener noreferrer"><span>' + esc(x[0]) + "</span><small>" + KNN(x[1]) + "</small></a>" + star(gi, ii, x[3]) + "</div>").join("") + "</div>" : "";
     }).join("") || empty("該当するリンクがありません。");
   }
-  /* ホームの一番上に出す「重要リンク」（リンク集で★を付けたもの） */
+  /* ---------- 手順・メモ（校務の「手順・メモ」と同じ形）と、ホームの重要Tips ---------- */
+  const tagOf = id => Q.S.tags.find(t => t.id === id);
+  const tgc = d => { const t = tagOf(d.tag); return " tgx tg-" + (t ? t.c : "n"); };
+  const dl = d => { const o = []; if (d.u) o.push({ t: d.ut || "リンク1", u: d.u }); d.ls.forEach((x, k) => { if (x.u) o.push({ t: x.t || "リンク" + (k + 2), u: x.u }); }); return o; };
+  const goLink = d => { const n = dl(d).length; if (!n) return false; if (d.go === "link") return true; if (d.go === "detail") return false; return n === 1 && !d.b.trim(); };
+  const lnkH = d => dl(d).map(x => '<a class="btn wlnk" href="' + esc(x.u) + '" target="_blank" rel="noopener noreferrer">' + esc(x.t) + " ↗</a>").join("");
+  function tipList() {
+    const ord = d => { const i = Q.S.tags.findIndex(x => x.id === d.tag); return i < 0 ? 99 : i; };
+    return Q.S.docs.map((d, k) => [d, k]).filter(x => x[0].tip).sort((a, b) => ord(a[0]) - ord(b[0]) || a[1] - b[1]).map(x => x[0]);
+  }
   function impPanel() {
-    const l = []; Q.S.links.forEach(([n, a]) => a.forEach(x => { if (x[3]) l.push(x); }));
-    return '<section class="panel p-ts p-imp"><header class="panel-h"><h2>重要リンク</h2><span class="panel-n"><button class="btn sm" data-sact="go-links">リンク集を開く</button></span></header><div class="panel-b">' +
-      (l.length ? l.map(x => '<a class="wtp t-seiseki" href="' + esc(hrefOf(x[1], x[2])) + '" target="_blank" rel="noopener noreferrer">' + esc(x[0]) + ' <span class="wgo">↗</span></a>').join("") : '<p class="note" style="margin:0">よく使うリンクは、「リンク集」で ☆ を押すと、ここに並びます。</p>') + "</div></section>";
+    const l = tipList(), used = Q.S.tags.filter(t => l.some(d => d.tag === t.id));
+    const btn = d => goLink(d)
+      ? '<a class="wtp' + tgc(d) + '" href="' + esc(dl(d)[0].u) + '" target="_blank" rel="noopener noreferrer" title="押すと資料がすぐ開きます">' + esc(d.t) + ' <span class="wgo">↗</span></a>'
+      : '<button class="wtp' + tgc(d) + '" data-sact="tip" data-id="' + d.id + '">' + esc(d.t) + (dl(d).length > 1 ? ' <span class="wgo">▾' + dl(d).length + "</span>" : "") + "</button>";
+    return '<section class="panel p-ts p-imp"><header class="panel-h"><h2>重要Tips</h2><span class="panel-n"><button class="btn sm" data-sact="go-man">手順・メモを開く</button></span></header><div class="panel-b">' +
+      (used.length ? '<div class="wleg">' + used.map(t => '<span class="tgchip tgx tg-' + t.c + '">' + esc(t.n) + "</span>").join("") + "</div>" : "") +
+      (l.length ? l.map(btn).join("") : '<p class="note" style="margin:0">よく使う手順やリンクは、「手順・メモ」で ☆ を押すと、ここに並びます。</p>') + "</div></section>";
   }
   function viewLinks() {
     let h = askH();
     h += '<div class="tsbar"><input type="search" id="ts_lq" placeholder="リンクを検索（例：採点、報告書）" value="' + esc(ui.LQ) + '" autocomplete="off"><button class="btn' + (ui.LA ? " on" : "") + '" data-sact="ladd-open" style="white-space:nowrap">＋ リンクを足す</button><button class="btn' + (ui.LE ? " on" : "") + '" data-sact="ledit" style="white-space:nowrap">' + (ui.LE ? "編集を終える" : "編集") + "</button></div>";
-    if (ui.LA) h += '<div class="wcard"><b>リンクを足す</b><label>表示名（例：試験範囲 2学期期末）</label><input type="text" id="nt"><label>URL</label><input type="text" id="nu" placeholder="https://..."><label>グループ</label><select id="ng">' + Q.S.links.map(([n], i) => '<option value="' + i + '">' + esc(n) + "</option>").join("") + '<option value="new">＋新しいグループ</option></select><label>新しいグループ名（上で「新しいグループ」を選んだとき）</label><input type="text" id="nn"><label class="tsimp"><input type="checkbox" id="nimp"> 重要（テストのホームの一番上に出す）</label><div class="btns"><button class="btn on" data-sact="ladd">足す</button><button class="btn" data-sact="ladd-open">閉じる</button></div></div>';
+    if (ui.LA) h += '<div class="wcard"><b>リンクを足す</b><label>表示名（例：試験範囲 2学期期末）</label><input type="text" id="nt"><label>URL</label><input type="text" id="nu" placeholder="https://..."><label>グループ</label><select id="ng">' + Q.S.links.map(([n], i) => '<option value="' + i + '">' + esc(n) + "</option>").join("") + '<option value="new">＋新しいグループ</option></select><label>新しいグループ名（上で「新しいグループ」を選んだとき）</label><input type="text" id="nn"><div class="btns"><button class="btn on" data-sact="ladd">足す</button><button class="btn" data-sact="ladd-open">閉じる</button></div></div>';
     h += '<div id="ts_ll">' + linksHtml() + "</div>";
     return h;
   }
@@ -248,13 +273,34 @@
     }
     return o || '<p class="note">（本文がありません）</p>';
   }
+  const docMatch = d => { const q = ui.dq.trim().toLowerCase(); return (!ui.dtag || d.tag === ui.dtag) && (!q || (d.t + " " + d.b).toLowerCase().includes(q)); };
+  function docCard(d, i) {
+    const t = tagOf(d.tag), ed = ui.dedit === d.id, k = "d" + d.id;
+    const sum = '<summary><span class="wdt">' + esc(d.t || "（無題）") + "</span>" + (t ? '<span class="tgchip tgx tg-' + t.c + '">' + esc(t.n) + "</span>" : "") + (d.tip ? '<span class="tsstar on tsmini">★</span>' : "") + "</summary>";
+    let b;
+    if (!ed) b = '<div class="tsmv">' + md2h(d.b) + "</div>" + (dl(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") + '<div class="btns" style="margin-top:8px"><button class="btn" data-sact="doc-edit" data-id="' + d.id + '">編集する</button><button class="btn" data-sact="doc-star" data-i="' + i + '">' + (d.tip ? "★ 重要から外す" : "☆ 重要にする（ホームに出す）") + "</button></div>";
+    else {
+      const row = (tt, u, fn, fu, j, ph) => '<div class="wlrow"><input type="text" value="' + esc(tt) + '" placeholder="' + ph + '" data-sf="' + fn + '" data-i="' + i + '" data-j="' + j + '" aria-label="リンクの名前"><input type="url" value="' + esc(u) + '" placeholder="https://…" data-sf="' + fu + '" data-i="' + i + '" data-j="' + j + '" autocomplete="off" aria-label="リンクのURL">' + (j >= 0 ? '<button class="btn sm" data-sact="doc-ldel" data-i="' + i + '" data-j="' + j + '">消す</button>' : "<span></span>") + "</div>";
+      b = '<div class="wcard" style="border:0;padding:4px 0 8px"><label>見出し</label><input type="text" value="' + esc(d.t) + '" data-sf="doc-t" data-i="' + i + '">' +
+        '<label class="tsimp">タグ： <select data-schg="doc-tag" data-i="' + i + '" style="width:auto"><option value="">なし</option>' + Q.S.tags.map(x => '<option value="' + x.id + '"' + (d.tag === x.id ? " selected" : "") + ">" + esc(x.n) + "</option>").join("") + "</select></label>" +
+        '<label class="tsimp"><input type="checkbox" data-schg="doc-tip" data-i="' + i + '"' + (d.tip ? " checked" : "") + "> 重要（ホームの重要Tipsに出す）</label>" +
+        '<label class="tsimp">重要Tipsのボタンを押したら： <select data-schg="doc-go" data-i="' + i + '" style="width:auto"><option value="">自動（説明が空なら資料をすぐ開く／説明があれば説明を出す）</option><option value="link"' + (d.go === "link" ? " selected" : "") + '>いつも資料をすぐ開く</option><option value="detail"' + (d.go === "detail" ? " selected" : "") + ">いつも説明を出す</option></select></label>" +
+        '<div class="wlset"><b class="small">資料リンク（最大5つ。名前は、押すボタンに出ます）</b>' + row(d.ut, d.u, "doc-ut", "doc-u", -1, "リンク1の名前") + d.ls.map((x, j) => row(x.t, x.u, "doc-lt", "doc-lu", j, "リンク" + (j + 2) + "の名前")).join("") + (1 + d.ls.length < 5 ? '<button class="btn sm" data-sact="doc-ladd" data-i="' + i + '">＋ リンクを足す</button>' : "") + "</div>" +
+        '<label>本文（「# 」見出し・「- 」箇条書き・「1. 」番号・「|表|」・**太字**・[名前](URL) が使えます）</label><textarea rows="12" data-sf="doc-b" data-i="' + i + '">' + esc(d.b) + "</textarea>" +
+        '<div class="btns"><button class="btn on" data-sact="doc-done">編集を終える</button><button class="btn danger" data-sact="doc-del" data-i="' + i + '">このメモを削除</button></div></div>';
+    }
+    return '<details class="wdet wdoc" data-ph="' + k + '"' + (ui.det[k] || ed ? " open" : "") + ">" + sum + b + "</details>";
+  }
+  const docListHtml = () => Q.S.docs.map((d, i) => docMatch(d) ? docCard(d, i) : "").join("") || empty("該当するメモがありません。");
   function viewMan() {
     let h = askH();
-    const M = Q.S.man, m = M.find(x => x.id === ui.OM) || M[0]; if (m) ui.OM = m.id;
-    h += '<div class="tsseg">' + M.map(x => '<button class="btn' + (ui.OM === x.id ? " on" : "") + '" data-sact="mn" data-id="' + x.id + '">' + esc(x.t) + "</button>").join("") + '<button class="btn" data-sact="mnew">＋ 追加</button></div>';
-    if (!m) return h + empty("マニュアルがありません。「＋ 追加」で作れます。");
-    if (ui.ME) return h + '<div class="wcard"><label>タイトル</label><input type="text" id="mt" value="' + esc(m.t) + '"><label>本文</label><textarea id="mb" rows="16">' + esc(m.m) + '</textarea><details class="wdet" data-ph="mhelp"><summary>書き方</summary><p class="note">行頭に「# 」で見出し、「- 」で箇条書き、「1. 」で番号つきの手順、「> 」で注釈。「|項目|内容|」で表。<br>文中は **太字** と [表示名](https://...) のリンクが使えます。空行で段落が分かれます。</p></details><div class="btns"><button class="btn on" data-sact="msave">保存</button><button class="btn" data-sact="mcancel">やめる</button><button class="btn danger" data-sact="mdel">このマニュアルを削除</button></div></div>';
-    return h + '<div class="tsmv">' + md2h(m.m) + '</div><div style="margin-top:10px"><button class="btn" data-sact="medit">このマニュアルを編集</button></div>';
+    h += '<div class="tsbar"><input type="search" id="ts_dq" placeholder="手順・メモをさがす" value="' + esc(ui.dq) + '" autocomplete="off"><button class="btn on" data-sact="doc-add" style="white-space:nowrap">＋ 新しいメモ</button></div>';
+    h += '<div class="tsseg"><button class="btn' + (ui.dtag ? "" : " on") + '" data-sact="dtag" data-v="">すべて</button>' + Q.S.tags.map(t => '<button class="btn' + (ui.dtag === t.id ? " on" : "") + '" data-sact="dtag" data-v="' + t.id + '">' + esc(t.n) + "</button>").join("") + "</div>";
+    h += '<div id="ts_dl">' + docListHtml() + "</div>";
+    h += '<details class="wdet" data-ph="tagmgr"' + (ui.det.tagmgr ? " open" : "") + "><summary><b>タグを管理する（増やす・名前や色を変える）</b></summary><div class=\"tsadd\">" +
+      Q.S.tags.map((t, i) => '<div class="tstg"><span class="tgchip tgx tg-' + t.c + '">' + esc(t.n) + '</span><input type="text" value="' + esc(t.n) + '" data-sf="tag-n" data-i="' + i + '" aria-label="タグの名前"><select data-schg="tag-c" data-i="' + i + '" aria-label="色">' + TGN.map((n, c) => '<option value="' + c + '"' + (t.c === c ? " selected" : "") + ">" + n + "</option>").join("") + '</select><button class="btn sm danger" data-sact="tag-del" data-i="' + i + '">消す</button></div>').join("") +
+      '<div class="tstg"><input type="text" id="tg_new" placeholder="新しいタグの名前"><select id="tg_col">' + TGN.map((n, c) => '<option value="' + c + '">' + n + "</option>").join("") + '</select><button class="btn on" data-sact="tag-add">タグを足す</button></div></div></details>';
+    return h;
   }
   function viewSet() {
     let h = askH();
@@ -288,6 +334,23 @@
       case "reload": reloadRemote(); return;
       case "draft-drop": LS.del("jd.draft.seiseki"); Q.ask = false; Q.draftP = null; Q.dirty = false; Q.st = "GitHubと同期中"; A.render(); return;
       case "draft-use": Q.S = mig(Q.draftP); Q.draftP = null; Q.ask = false; Q.needCreate = false; Q.dirty = true; save(); A.render(); return;
+      case "go-man": ui.tab = "man"; A.render(); root.scrollTo(0, 0); return;
+      case "cl": { const d = $("wdlg"); if (d && d.open) d.close(); return; }
+      case "tip": {
+        const d = S0.docs.find(x => x.id === id); if (!d) return;
+        $("wbody").innerHTML = '<h2 style="margin:0">' + esc(d.t) + '</h2><div class="tsmv-in" style="margin-top:8px">' + (d.b.trim() ? md2h(d.b) : "") + "</div>" + (dl(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") + '<div class="dlg-btns"><button class="btn" data-sact="cl">閉じる</button></div>';
+        if (!$("wdlg").open) $("wdlg").showModal(); return;
+      }
+      case "dtag": ui.dtag = t.dataset.v; A.render(); return;
+      case "doc-add": { const nid = "d" + (uid++); S0.docs.unshift({ id: nid, t: "新しいメモ", b: "", u: "", ut: "", ls: [], tip: false, tag: ui.dtag || "", go: "" }); ui.det["d" + nid] = true; ui.dedit = nid; save(); A.render(); return; }
+      case "doc-edit": ui.dedit = id; ui.det["d" + id] = true; A.render(); return;
+      case "doc-done": ui.dedit = null; A.render(); return;
+      case "doc-star": { const d = S0.docs[+t.dataset.i]; if (d) { d.tip = !d.tip; save(); A.render(); } return; }
+      case "doc-del": if (root.confirm("このメモを削除しますか？")) { S0.docs.splice(+t.dataset.i, 1); ui.dedit = null; save(); A.render(); } return;
+      case "doc-ladd": { const d = S0.docs[+t.dataset.i]; if (d && 1 + d.ls.length < 5) { d.ls.push({ t: "", u: "" }); save(); A.render(); } return; }
+      case "doc-ldel": { const d = S0.docs[+t.dataset.i]; if (d) { d.ls.splice(+t.dataset.j, 1); save(); A.render(); } return; }
+      case "tag-add": { const n = V("tg_new").trim(); if (!n) { root.alert("タグの名前を入れてください。"); return; } S0.tags.push({ id: "g" + (uid++), n, c: +V("tg_col") || 0 }); ui.det.tagmgr = true; save(); A.render(); return; }
+      case "tag-del": { const tg = S0.tags[+t.dataset.i]; if (tg && root.confirm("タグ「" + tg.n + "」を消します。このタグが付いたメモは、タグなしになります。よろしいですか？")) { S0.docs.forEach(d => { if (d.tag === tg.id) d.tag = ""; }); S0.tags.splice(+t.dataset.i, 1); if (ui.dtag === tg.id) ui.dtag = ""; ui.det.tagmgr = true; save(); A.render(); } return; }
       case "ledit": ui.LE = !ui.LE; A.render(); return;
       case "ladd-open": ui.LA = !ui.LA; A.render(); return;
       case "lstar": { const x = S0.links[+t.dataset.g][1][+t.dataset.i]; if (x) { if (x[3]) x.length = 3; else x[3] = 1; save(); A.render(); } return; }
@@ -350,12 +413,28 @@
       case "url": if (tk) { tk.url = t.value.trim(); save(); } break;
       case "pc": { const [i, k] = t.dataset.k.split("."), c = prd().cl[+i]; if (c) { c[k] = k === "n" ? t.value : Math.max(0, parseInt(t.value) || 0); save(); } break; }
       case "pk": prd().ck[t.dataset.k] = t.checked; save(); break;
+      case "doc-tag": { const d = S0.docs[+t.dataset.i]; if (d) { d.tag = t.value; save(); } break; }
+      case "doc-go": { const d = S0.docs[+t.dataset.i]; if (d) { d.go = t.value; save(); } return; }
+      case "doc-tip": { const d = S0.docs[+t.dataset.i]; if (d) { d.tip = t.checked; save(); } return; }
+      case "tag-c": { const tg = S0.tags[+t.dataset.i]; if (tg) { tg.c = +t.value || 0; ui.det.tagmgr = true; save(); } break; }
       case "gn": S0.links[+t.dataset.k][0] = t.value; save(); return;
       case "lt": { const [g, i] = t.dataset.k.split("."); S0.links[+g][1][+i][0] = t.value; save(); return; }
       case "lu": { const [g, i] = t.dataset.k.split("."), u = t.value.trim(), x = S0.links[+g][1][+i]; x[2] = u; x[1] = kind(u); save(); return; }
     }
     if (f === "due" || f === "url") return; /* 日付やURLを続けて直せるよう、画面は作り直さない */
     A.render();
+  });
+  document.addEventListener("input", e => {
+    const t = e.target, f = t.dataset && t.dataset.sf;
+    if (t.id === "ts_dq") { ui.dq = t.value; const r = $("ts_dl"); if (r) r.innerHTML = docListHtml(); return; }
+    if (!f || !Q.S) return;
+    const i = +t.dataset.i;
+    if (f === "tag-n") { const tg = Q.S.tags[i]; if (tg) { tg.n = t.value; save(); } return; }
+    const d = Q.S.docs[i]; if (!d) return;
+    if (f === "doc-t") { d.t = t.value; const sm = t.closest(".wdoc"); if (sm) sm.querySelector(".wdt").textContent = t.value || "（無題）"; }
+    else if (f === "doc-b") d.b = t.value; else if (f === "doc-u") d.u = t.value.trim(); else if (f === "doc-ut") d.ut = t.value;
+    else if (f === "doc-lt") d.ls[+t.dataset.j].t = t.value; else if (f === "doc-lu") d.ls[+t.dataset.j].u = t.value.trim();
+    save();
   });
   document.addEventListener("input", e => { if (e.target.id === "ts_lq") { ui.LQ = e.target.value; const r = $("ts_ll"); if (r) r.innerHTML = linksHtml(); } });
   /* 開いた・閉じたは、自分で押したときだけ変わる（直したあとに勝手に閉じない） */

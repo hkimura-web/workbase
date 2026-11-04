@@ -907,3 +907,17 @@ body.kinmode .pgt{color:var(--kn-ink)}
 .tsimp{flex-direction:row!important;align-items:center;gap:6px!important;margin:8px 0}
 .p-imp .wtp{margin:2px 6px 4px 0}
 .tsle{grid-template-columns:1fr 1fr auto}
+/* テスト成績: 手順・メモのタグ（自分で増やせる。色は8種類） */
+.tg-0{--tgc:#d6458a}.tg-1{--tgc:#3b78c4}.tg-2{--tgc:#2f9a5a}.tg-3{--tgc:#d98a1f}.tg-4{--tgc:#7a52c9}.tg-5{--tgc:#1b9a90}.tg-6{--tgc:#cf4a3a}.tg-7{--tgc:#6b7686}.tg-n{--tgc:#6b7686}
+.tgx{background:color-mix(in srgb,var(--tgc) 13%,var(--surface));border:1px solid color-mix(in srgb,var(--tgc) 38%,var(--surface));color:color-mix(in srgb,var(--tgc) 78%,var(--ink))}
+.wtp.tgx{border-radius:18px;padding:6px 12px;margin:4px 6px 0 0;cursor:pointer;text-decoration:none;display:inline-block;font:inherit}
+.tgchip{display:inline-block;font-size:11px;border-radius:999px;padding:0 9px;margin:0 6px 0 0;white-space:nowrap;line-height:1.7}
+.wdet.wdoc>summary{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.wdet.wdoc>summary .wdt{font-weight:700}
+.tsmini{width:auto;height:auto;border:0;background:none;font-size:14px;cursor:default}
+.tstg{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center;padding:4px 0}
+.tstg input,.tstg select{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:5px 8px;font:inherit;min-width:0}
+.tsmv-in table{border-collapse:collapse;font-size:13px;display:block;overflow-x:auto}.tsmv-in td{border:1px solid var(--line);padding:5px 9px;vertical-align:top}
+.wdoc .wcard input[type=text],.wdoc .wcard input[type=url],.wdoc .wcard textarea{width:100%;box-sizing:border-box;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 8px;margin:2px 0 8px;font:inherit}
+.wdoc .wlrow{display:grid;grid-template-columns:minmax(90px,1fr) 2fr auto;gap:6px;margin:5px 0}.wdoc .wlrow input{margin:0}
+.wleg{margin:0 0 6px}
+@media (max-width:640px){.wdoc .wlrow{grid-template-columns:1fr}.tstg{grid-template-columns:1fr 1fr}}
