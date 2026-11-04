@@ -18,7 +18,12 @@
     [3, "学年確認表を記入", "G", -1, 0], [3, "教科確認表をチェック", "G", 0, 0], [3, "成績会議", "M", 0, 0]];
   const DEFPR = [["1", 41, 1], ["2", 40, 2], ["3", 40, 1], ["4", 41, 2], ["5", 41, 2], ["6GLE", 41, 5]];
   const Q = { S: null, sha: null, dirty: false, saving: false, timer: null, token: false, conflict: false, ask: false, needCreate: false, draftP: null, canSave: true, st: "読み込み中…", ready: false };
-  const ui = { tab: "home", form: null, msg: "" };
+  const ui = { tab: "home", form: null, msg: "", det: {}, LQ: "", LE: false, OM: "", ME: false };
+  const SD = root.SEISEKI_SEED || { LK: [], DM: [] };
+  const KN = { d: "ドキュメント", s: "シート", f: "フォルダ", p: "PDF", c: "Classroom", u: "Web" };
+  const U0 = { d: "https://docs.google.com/document/d/", s: "https://docs.google.com/spreadsheets/d/", f: "https://drive.google.com/drive/folders/", p: "https://drive.google.com/file/d/", c: "https://classroom.google.com/c/" };
+  const kind = u => /\/document\//.test(u) ? "d" : /\/spreadsheets\//.test(u) ? "s" : /\/folders\//.test(u) ? "f" : /drive\.google\.com\/file/.test(u) ? "p" : /classroom\.google/.test(u) ? "c" : "u";
+  const hrefOf = (k, i) => /^https?:/.test(i) ? i : (U0[k] || "") + i + (k === "p" ? "/view" : "");
   A.seiseki = {}; A.ui.test = ui;
   let uid = Date.now();
   const today = () => J.ds(new Date());
@@ -41,6 +46,10 @@
     s.tasks = (Array.isArray(s.tasks) ? s.tasks : []).filter(t => t && t.id && okd(t.due)).map(t => ({ id: String(t.id), term: t.term, ph: Math.max(0, Math.min(3, +t.ph || 0)), title: String(t.title || ""), sub: String(t.sub || ""), due: t.due, done: !!t.done, url: String(t.url || "") }));
     s.pr = s.pr && typeof s.pr === "object" ? s.pr : {};
     if (!s.terms.some(t => t.id === s.cur)) s.cur = s.terms.length ? s.terms[s.terms.length - 1].id : null;
+    if (!Array.isArray(s.links)) s.links = JSON.parse(JSON.stringify(SD.LK));
+    s.links = s.links.filter(g => Array.isArray(g) && Array.isArray(g[1])).map(g => [String(g[0] || ""), g[1].filter(x => Array.isArray(x) && x.length >= 3).map(x => [String(x[0]), String(x[1]), String(x[2])])]);
+    if (!Array.isArray(s.man)) s.man = JSON.parse(JSON.stringify(SD.DM));
+    s.man = s.man.filter(m => m && m.id).map(m => ({ id: String(m.id), t: String(m.t || "無題"), m: String(m.m || "") }));
     s.upd = s.upd || 0;
     return s;
   }
@@ -174,9 +183,9 @@
     if (!T) return h + panel("p-ts", "作業一覧", "", empty("先に、ホームか「学期の設定」で学期を作ってください。"));
     const all = mine();
     h += '<p class="note" style="margin-top:0">期限の変更や、資料のURLの登録ができます。URLを入れると、ホームの作業から「資料を開く」で飛べます。</p>';
-    h += PH.map((n, i) => '<details class="wdet"' + (i === 0 ? " open" : "") + "><summary><b>" + n + '</b> <span class="note">' + all.filter(t => t.ph === i && t.done).length + "/" + all.filter(t => t.ph === i).length + '</span></summary><div class="tsl">' + all.filter(t => t.ph === i).sort(byDue).map(t =>
+    h += PH.map((n, i) => '<details class="wdet" data-ph="' + i + '"' + ((ui.det[i] !== undefined ? ui.det[i] : i === 0) ? " open" : "") + "><summary><b>" + n + '</b> <span class="note">' + all.filter(t => t.ph === i && t.done).length + "/" + all.filter(t => t.ph === i).length + '</span></summary><div class="tsl">' + all.filter(t => t.ph === i).sort(byDue).map(t =>
       '<div class="tser"><input type="checkbox" aria-label="完了" data-schg="tg" data-id="' + t.id + '"' + (t.done ? " checked" : "") + '><span class="tstt' + (t.done ? " dn" : "") + '">' + esc(t.title) + (t.sub ? ' <span class="wc">' + esc(t.sub) + "</span>" : "") + '</span><input type="date" value="' + t.due + '" data-schg="due" data-id="' + t.id + '"><input type="text" placeholder="資料・シートのURL" value="' + esc(t.url) + '" data-schg="url" data-id="' + t.id + '"><button class="btn sm danger" data-sact="task-del" data-id="' + t.id + '" aria-label="この作業を消す">✕</button></div>').join("") + "</div></details>").join("");
-    h += '<details class="wdet"><summary><b>＋ 作業を1件足す</b></summary><div class="tsadd"><label>作業名</label><input type="text" id="ta_n"><div class="tsg2"><div><label>期限</label><input type="date" id="ta_d" value="' + today() + '"></div><div><label>工程</label><select id="ta_p">' + PH.map((n, i) => '<option value="' + i + '">' + n + "</option>").join("") + '</select></div></div><button class="btn on" data-sact="task-add">足す</button></div></details>';
+    h += '<details class="wdet" data-ph="add"' + (ui.det.add ? " open" : "") + '><summary><b>＋ 作業を1件足す</b></summary><div class="tsadd"><label>作業名</label><input type="text" id="ta_n"><div class="tsg2"><div><label>期限</label><input type="date" id="ta_d" value="' + today() + '"></div><div><label>工程</label><select id="ta_p">' + PH.map((n, i) => '<option value="' + i + '">' + n + "</option>").join("") + '</select></div></div><button class="btn on" data-sact="task-add">足す</button></div></details>';
     return h;
   }
   const prd = () => {
@@ -200,6 +209,44 @@
     });
     return h;
   }
+  const KNN = k => KN[k] || "Web";
+  function linksHtml() {
+    const q = ui.LQ.trim().toLowerCase();
+    return Q.S.links.map(([n, a], gi) => {
+      if (ui.LE) return '<div class="wcard"><div class="tsge"><input type="text" value="' + esc(n) + '" data-schg="gn" data-k="' + gi + '" aria-label="グループ名"><button class="btn sm danger" data-sact="gdel" data-g="' + gi + '">グループを削除</button></div>' + (a.map((x, ii) => '<div class="tsle"><input type="text" value="' + esc(x[0]) + '" data-schg="lt" data-k="' + gi + "." + ii + '" aria-label="表示名"><input type="text" value="' + esc(hrefOf(x[1], x[2])) + '" data-schg="lu" data-k="' + gi + "." + ii + '" aria-label="URL"><button class="btn sm danger" data-sact="ldel" data-g="' + gi + '" data-i="' + ii + '" aria-label="削除">✕</button></div>').join("") || empty("リンクがありません")) + "</div>";
+      const f = a.filter(x => !q || x[0].toLowerCase().includes(q));
+      return f.length ? '<h3 class="tsgh">' + esc(n) + '</h3><div class="tslg">' + f.map(x => '<a class="tslc" href="' + esc(hrefOf(x[1], x[2])) + '" target="_blank" rel="noopener noreferrer"><span>' + esc(x[0]) + "</span><small>" + KNN(x[1]) + "</small></a>").join("") + "</div>" : "";
+    }).join("") || empty("該当するリンクがありません。");
+  }
+  function viewLinks() {
+    let h = askH();
+    h += '<div class="tsbar"><input type="search" id="ts_lq" placeholder="リンクを検索（例：採点、報告書）" value="' + esc(ui.LQ) + '" autocomplete="off"><button class="btn' + (ui.LE ? " on" : "") + '" data-sact="ledit" style="white-space:nowrap">' + (ui.LE ? "編集を終える" : "編集") + '</button></div><div id="ts_ll">' + linksHtml() + "</div>";
+    if (ui.LE) h += '<div class="wcard"><b>リンクを足す</b><label>表示名</label><input type="text" id="nt"><label>URL</label><input type="text" id="nu" placeholder="https://..."><label>グループ</label><select id="ng">' + Q.S.links.map(([n], i) => '<option value="' + i + '">' + esc(n) + "</option>").join("") + '<option value="new">＋新しいグループ</option></select><label>新しいグループ名（上で「新しいグループ」を選んだとき）</label><input type="text" id="nn"><button class="btn on" data-sact="ladd">足す</button></div>';
+    return h;
+  }
+  const inl = x => esc(x).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  function md2h(x) {
+    const L = x.split("\n"); let o = "", i = 0;
+    while (i < L.length) {
+      const l = L[i];
+      if (/^#\s/.test(l)) { o += "<h3>" + inl(l.slice(2)) + "</h3>"; i++; }
+      else if (/^-\s/.test(l)) { o += "<ul>"; while (i < L.length && /^-\s/.test(L[i])) o += "<li>" + inl(L[i++].slice(2)) + "</li>"; o += "</ul>"; }
+      else if (/^\d+\.\s/.test(l)) { o += "<ol>"; while (i < L.length && /^\d+\.\s/.test(L[i])) o += "<li>" + inl(L[i++].replace(/^\d+\.\s/, "")) + "</li>"; o += "</ol>"; }
+      else if (/^\|/.test(l)) { o += "<table>"; while (i < L.length && /^\|/.test(L[i])) o += "<tr>" + L[i++].replace(/^\||\|$/g, "").split("|").map(c => "<td>" + inl(c.trim()) + "</td>").join("") + "</tr>"; o += "</table>"; }
+      else if (/^>\s/.test(l)) { o += '<p class="note">' + inl(l.slice(2)) + "</p>"; i++; }
+      else if (l.trim() === "") i++;
+      else { o += "<p>" + inl(l) + "</p>"; i++; }
+    }
+    return o || '<p class="note">（本文がありません）</p>';
+  }
+  function viewMan() {
+    let h = askH();
+    const M = Q.S.man, m = M.find(x => x.id === ui.OM) || M[0]; if (m) ui.OM = m.id;
+    h += '<div class="tsseg">' + M.map(x => '<button class="btn' + (ui.OM === x.id ? " on" : "") + '" data-sact="mn" data-id="' + x.id + '">' + esc(x.t) + "</button>").join("") + '<button class="btn" data-sact="mnew">＋ 追加</button></div>';
+    if (!m) return h + empty("マニュアルがありません。「＋ 追加」で作れます。");
+    if (ui.ME) return h + '<div class="wcard"><label>タイトル</label><input type="text" id="mt" value="' + esc(m.t) + '"><label>本文</label><textarea id="mb" rows="16">' + esc(m.m) + '</textarea><details class="wdet" data-ph="mhelp"><summary>書き方</summary><p class="note">行頭に「# 」で見出し、「- 」で箇条書き、「1. 」で番号つきの手順、「> 」で注釈。「|項目|内容|」で表。<br>文中は **太字** と [表示名](https://...) のリンクが使えます。空行で段落が分かれます。</p></details><div class="btns"><button class="btn on" data-sact="msave">保存</button><button class="btn" data-sact="mcancel">やめる</button><button class="btn danger" data-sact="mdel">このマニュアルを削除</button></div></div>';
+    return h + '<div class="tsmv">' + md2h(m.m) + '</div><div style="margin-top:10px"><button class="btn" data-sact="medit">このマニュアルを編集</button></div>';
+  }
   function viewSet() {
     let h = askH();
     h += panel("p-ts", "学期", "", (Q.S.terms.map(t => '<div class="tstr"><span><b>' + esc(t.name) + "</b>" + (t.id === Q.S.cur ? ' <span class="note">（表示中）</span>' : "") + '<br><span class="note">試験 ' + md(t.E) + "／成績提出 " + md(t.G) + "／成績会議 " + md(t.M) + '</span></span><span class="btns"><button class="btn sm" data-sact="t-sel" data-id="' + t.id + '">表示</button><button class="btn sm" data-sact="t-edit" data-id="' + t.id + '">日程変更</button><button class="btn sm danger" data-sact="t-del" data-id="' + t.id + '">削除</button></span></div>').join("") || empty("学期がありません。")) + '<div style="margin-top:10px"><button class="btn on" data-sact="t-new">＋ 新しい学期</button></div>' + (ui.form ? termForm() : ""));
@@ -209,7 +256,7 @@
   }
   A.seiseki.view = function () {
     if (!Q.ready) return '<p class="note">読み込んでいます…</p>';
-    return { home: viewHome, tasks: viewTasks, print: viewPrint, set: viewSet }[ui.tab]();
+    return { home: viewHome, tasks: viewTasks, print: viewPrint, links: viewLinks, man: viewMan, set: viewSet }[ui.tab]();
   };
 
   /* 授業の「今日」タブの下に出す、テスト成績の期限が近い作業（なければ何も出さない） */
@@ -231,6 +278,21 @@
       case "reload": reloadRemote(); return;
       case "draft-drop": LS.del("jd.draft.seiseki"); Q.ask = false; Q.draftP = null; Q.dirty = false; Q.st = "GitHubと同期中"; A.render(); return;
       case "draft-use": Q.S = mig(Q.draftP); Q.draftP = null; Q.ask = false; Q.needCreate = false; Q.dirty = true; save(); A.render(); return;
+      case "ledit": ui.LE = !ui.LE; A.render(); return;
+      case "ldel": S0.links[+t.dataset.g][1].splice(+t.dataset.i, 1); save(); A.render(); return;
+      case "gdel": if (root.confirm("このグループとリンクをすべて削除します。よろしいですか？")) { S0.links.splice(+t.dataset.g, 1); save(); A.render(); } return;
+      case "ladd": {
+        const n = V("nt").trim(), u = V("nu").trim();
+        if (!n || !/^https?:/.test(u)) { root.alert("表示名と、https:// で始まるURLを入れてください。"); return; }
+        let g = V("ng"); if (g === "new") { const gn = V("nn").trim(); if (!gn) { root.alert("新しいグループ名を入れてください。"); return; } S0.links.push([gn, []]); g = S0.links.length - 1; }
+        S0.links[+g][1].push([n, kind(u), u]); save(); A.render(); return;
+      }
+      case "mn": ui.OM = id; ui.ME = false; A.render(); return;
+      case "mnew": { const nid = "m" + (uid++); S0.man.push({ id: nid, t: "新しいマニュアル", m: "" }); ui.OM = nid; ui.ME = true; save(); A.render(); return; }
+      case "medit": ui.ME = true; A.render(); return;
+      case "mcancel": ui.ME = false; A.render(); return;
+      case "msave": { const m = S0.man.find(x => x.id === ui.OM); if (m) { m.t = V("mt").trim() || "無題"; m.m = V("mb"); } ui.ME = false; save(); A.render(); return; }
+      case "mdel": if (root.confirm("このマニュアルを削除します。よろしいですか？")) { S0.man = S0.man.filter(x => x.id !== ui.OM); ui.OM = ""; ui.ME = false; save(); A.render(); } return;
       case "t-new": ui.form = "new"; A.render(); return;
       case "t-edit": S0.cur = id; ui.form = "edit"; A.render(); return;
       case "t-cancel": ui.form = null; A.render(); return;
@@ -274,9 +336,16 @@
       case "url": if (tk) { tk.url = t.value.trim(); save(); } break;
       case "pc": { const [i, k] = t.dataset.k.split("."), c = prd().cl[+i]; if (c) { c[k] = k === "n" ? t.value : Math.max(0, parseInt(t.value) || 0); save(); } break; }
       case "pk": prd().ck[t.dataset.k] = t.checked; save(); break;
+      case "gn": S0.links[+t.dataset.k][0] = t.value; save(); return;
+      case "lt": { const [g, i] = t.dataset.k.split("."); S0.links[+g][1][+i][0] = t.value; save(); return; }
+      case "lu": { const [g, i] = t.dataset.k.split("."), u = t.value.trim(), x = S0.links[+g][1][+i]; x[2] = u; x[1] = kind(u); save(); return; }
     }
+    if (f === "due" || f === "url") return; /* 日付やURLを続けて直せるよう、画面は作り直さない */
     A.render();
   });
+  document.addEventListener("input", e => { if (e.target.id === "ts_lq") { ui.LQ = e.target.value; const r = $("ts_ll"); if (r) r.innerHTML = linksHtml(); } });
+  /* 開いた・閉じたは、自分で押したときだけ変わる（直したあとに勝手に閉じない） */
+  document.addEventListener("toggle", e => { const d = e.target; if (d && d.dataset && d.dataset.ph !== undefined && d.classList.contains("wdet")) ui.det[d.dataset.ph] = d.open; }, true);
   A.seiseki.load = load;
   load();
 })(window);

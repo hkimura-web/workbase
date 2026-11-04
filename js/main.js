@@ -154,6 +154,8 @@
     t_home: '<path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L7 5M3.5 12l1.2 1.2L7 11M3.5 18l1.2 1.2L7 17"/>',
     t_tasks: '<rect x="4.5" y="3.5" width="15" height="17" rx="2"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/>',
     t_print: '<path d="M7 9V4h10v5"/><rect x="4" y="9" width="16" height="8" rx="2"/><path d="M7 14h10v6H7z"/>',
+    t_links: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+    t_man: '<path d="M5 4.5h10.5a2.5 2.5 0 0 1 2.5 2.5v13H7.5A2.5 2.5 0 0 1 5 17.5z"/><path d="M5 17.5A2.5 2.5 0 0 1 7.5 15H18M9 8.5h5"/>',
     t_set: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
     set: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
     gear: '<circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8"/>'
@@ -161,7 +163,7 @@
   const SIDE = [
     ["授業", "class", [["today", "今日"], ["plan", "計画表"], ["grid", "一覧"], ["unit", "単元別"], ["sum", "サマリー"], ["lib", "資料"]]],
     ["校務", "work", [["home", "ホーム"], ["year", "年間"], ["links", "リンク集"], ["docs", "手順・メモ"], ["cal", "カレンダー"], ["set", "校務の設定"]]],
-    ["テスト成績", "test", [["home", "ホーム"], ["tasks", "作業一覧"], ["print", "印刷枚数"], ["set", "学期の設定"]]]
+    ["テスト成績", "test", [["home", "ホーム"], ["tasks", "作業一覧"], ["print", "印刷枚数"], ["links", "リンク集"], ["man", "マニュアル"], ["set", "学期の設定"]]]
   ];
   function renderSide() {
     const md0 = A.ui.mode, cur = md0 === "work" ? A.ui.work.tab : md0 === "test" ? A.ui.test.tab : A.ui.tab;

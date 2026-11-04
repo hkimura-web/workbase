@@ -273,7 +273,7 @@
     if (W.conflict) h += '<div class="banner err"><div>別の端末で先に更新されています。</div><div class="btns"><button class="btn" data-wact="reload">最新を読み込み直す</button></div></div>';
     if (due.length) h += panel("p-work", "期限が近い校務", due.length + "件", due.map(x => item(x.t, x.m, dueTag(x))).join(""));
     h += tipsH();
-    h += panel("p-rem", s.y + "年度のようす", "", '<div class="note">' + esc(s.g === "J" ? "中学" : "高" + s.g) + "担当 ・ " + esc(W.st) + '</div><div class="bar"><i style="width:' + (all.length ? dn / all.length * 100 : 0) + '%"></i></div><div class="note">年間の進み: ' + dn + " / " + all.length + "</div>");
+    h += panel("p-rem", s.y + "進捗状況", "", '<div class="note">' + esc(s.g === "J" ? "中学" : "高" + s.g) + "担当 ・ " + esc(W.st) + '</div><div class="bar"><i style="width:' + (all.length ? dn / all.length * 100 : 0) + '%"></i></div><div class="note">年間の進み: ' + dn + " / " + all.length + "</div>");
     if (late) h += panel("p-late", "⚠ 繰越・期限切れ", "", late);
     h += panel("p-now", "今月（" + m + "月）", "", inM(m).map(t => item(t, m)).join("") || '<p class="note" style="margin:0">なし</p>');
     if (nx) h += panel("p-soon", "来月（" + nx + "月）の準備 ― 前倒しOK", "", inM(nx).filter(t => !t.rep && !isD(t, nx)).map(t => item(t, nx)).join("") || '<p class="note" style="margin:0">なし</p>');
