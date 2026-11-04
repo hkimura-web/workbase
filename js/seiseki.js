@@ -60,8 +60,8 @@
       s.links.forEach(g => g[1].forEach(x => { if (x[3]) { s.docs.push({ id: "l_" + (uid++), t: x[0], b: "", u: hrefOf(x[1], x[2]), ut: "", ls: [], tip: true, tag: "", go: "" }); x.length = 3; } }));
       delete s.man; s.docsInit = 1;
     }
-    s.docs = s.docs.filter(d => d && d.id).map(d => ({ id: String(d.id), t: String(d.t || "無題"), b: String(d.b || ""), u: String(d.u || ""), ut: String(d.ut || ""), ls: (Array.isArray(d.ls) ? d.ls : []).filter(x => x && typeof x === "object").slice(0, 4).map(x => ({ t: String(x.t || ""), u: String(x.u || "") })), tip: !!d.tip, tag: String(d.tag || ""), go: d.go === "link" || d.go === "detail" ? d.go : "" }));
-    s.upd = s.upd || 0;
+    s.docs = s.docs.filter(d => d && d.id).map(d => ({ id: String(d.id), t: String(d.t || "無題"), b: String(d.b || ""), u: String(d.u || ""), ut: String(d.ut || ""), ls: (Array.isArray(d.ls) ? d.ls : []).filter(x => x && typeof x === "object").slice(0, 4).map(x => ({ t: String(x.t || ""), u: String(x.u || "") })), tip: !!d.tip, img: Array.isArray(d.img) ? d.img.map(String) : [], tag: String(d.tag || ""), go: d.go === "link" || d.go === "detail" ? d.go : "" }));
+    s.tipOrder = Array.isArray(s.tipOrder) ? s.tipOrder.map(String) : []; s.upd = s.upd || 0;
     return s;
   }
   const fresh = () => mig({});
@@ -240,7 +240,8 @@
   const lnkH = d => dl(d).map(x => '<a class="btn wlnk" href="' + esc(x.u) + '" target="_blank" rel="noopener noreferrer">' + esc(x.t) + " ↗</a>").join("");
   function tipList() {
     const ord = d => { const i = Q.S.tags.findIndex(x => x.id === d.tag); return i < 0 ? 99 : i; };
-    return Q.S.docs.map((d, k) => [d, k]).filter(x => x[0].tip).sort((a, b) => ord(a[0]) - ord(b[0]) || a[1] - b[1]).map(x => x[0]);
+    const to = Q.S.tipOrder || [], pos = d => { const i = to.indexOf(d.id); return i < 0 ? 1e6 : i; };
+    return Q.S.docs.map((d, k) => [d, k]).filter(x => x[0].tip).sort((a, b) => (to.length ? pos(a[0]) - pos(b[0]) : 0) || ord(a[0]) - ord(b[0]) || a[1] - b[1]).map(x => x[0]);
   }
   function impPanel() {
     const l = tipList(), used = Q.S.tags.filter(t => l.some(d => d.tag === t.id));
@@ -274,25 +275,26 @@
     return o || '<p class="note">（本文がありません）</p>';
   }
   A.seiseki.md2h = md2h;
+  A.seiseki.setTipOrder = ids => { Q.S.tipOrder = ids; save(); };
   A.seiseki.ready = () => !!(Q.ready && Q.S && !Q.ask && !Q.conflict && Q.canSave && !Q.needCreate);
   A.seiseki.getDoc = id => (Q.S && Q.S.docs.find(d => d.id === id)) || null;
   A.seiseki.addDocs = function (docs) {
     if (!A.seiseki.ready()) return false;
     if (!Q.S.tags.some(t => t.id === "seiseki")) Q.S.tags.push({ id: "seiseki", n: "成績処理", c: 0 });
-    docs.forEach(d => { if (!Q.S.docs.some(x => x.id === d.id)) Q.S.docs.push({ id: String(d.id), t: String(d.t || "無題"), b: String(d.b || ""), u: String(d.u || ""), ut: String(d.ut || ""), ls: (d.ls || []).slice(0, 4).map(x => ({ t: String(x.t || ""), u: String(x.u || "") })), tip: !!d.tip, tag: "seiseki", go: d.go === "link" || d.go === "detail" ? d.go : "" }); });
+    docs.forEach(d => { if (!Q.S.docs.some(x => x.id === d.id)) Q.S.docs.push({ id: String(d.id), t: String(d.t || "無題"), b: String(d.b || ""), u: String(d.u || ""), ut: String(d.ut || ""), ls: (d.ls || []).slice(0, 4).map(x => ({ t: String(x.t || ""), u: String(x.u || "") })), tip: !!d.tip, img: (d.img || []).map(String), tag: "seiseki", go: d.go === "link" || d.go === "detail" ? d.go : "" }); });
     save(); A.render(); return true;
   };
   A.seiseki.tips = function () {
     if (!Q.ready || !Q.S) return [];
-    return tipList().map(d => { const t = tagOf(d.tag); return { src: "test", id: d.id, t: d.t, cls: "t-stest", tag: t ? t.n : "", href: goLink(d) ? dl(d)[0].u : "", n: dl(d).length,
-      detail: () => '<div class="tsmv-in" style="margin-top:8px">' + (d.b.trim() ? md2h(d.b) : "") + "</div>" + (dl(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") }; });
+    return tipList().map(d => { const t = tagOf(d.tag); return { src: "test", id: d.id, t: d.t, cls: "t-stest", tag: t ? t.n : "", href: goLink(d) ? dl(d)[0].u : "", n: dl(d).length, sortable: true,
+      detail: () => '<div class="tsmv-in" style="margin-top:8px">' + (d.b.trim() ? md2h(d.b) : "") + "</div>" + (A.work && A.work.imgsH ? A.work.imgsH(d) : "") + (dl(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") }; });
   };
   const docMatch = d => { const q = ui.dq.trim().toLowerCase(); return (!ui.dtag || d.tag === ui.dtag) && (!q || (d.t + " " + d.b).toLowerCase().includes(q)); };
   function docCard(d, i) {
     const t = tagOf(d.tag), ed = ui.dedit === d.id, k = "d" + d.id;
     const sum = '<summary><span class="wdt">' + esc(d.t || "（無題）") + "</span>" + (t ? '<span class="tgchip tgx tg-' + t.c + '">' + esc(t.n) + "</span>" : "") + (d.tip ? '<span class="tsstar on tsmini">★</span>' : "") + "</summary>";
     let b;
-    if (!ed) b = '<div class="tsmv">' + md2h(d.b) + "</div>" + (dl(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") + '<div class="btns" style="margin-top:8px"><button class="btn" data-sact="doc-edit" data-id="' + d.id + '">編集する</button><button class="btn" data-sact="doc-star" data-i="' + i + '">' + (d.tip ? "★ 重要から外す" : "☆ 重要にする（ホームに出す）") + "</button></div>";
+    if (!ed) b = '<div class="tsmv">' + md2h(d.b) + "</div>" + (A.work && A.work.imgsH ? A.work.imgsH(d) : "") + (dl(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") + '<div class="btns" style="margin-top:8px"><button class="btn" data-sact="doc-edit" data-id="' + d.id + '">編集する</button><button class="btn" data-sact="doc-star" data-i="' + i + '">' + (d.tip ? "★ 重要から外す" : "☆ 重要にする（ホームに出す）") + "</button></div>";
     else {
       const row = (tt, u, fn, fu, j, ph) => '<div class="wlrow"><input type="text" value="' + esc(tt) + '" placeholder="' + ph + '" data-sf="' + fn + '" data-i="' + i + '" data-j="' + j + '" aria-label="リンクの名前"><input type="url" value="' + esc(u) + '" placeholder="https://…" data-sf="' + fu + '" data-i="' + i + '" data-j="' + j + '" autocomplete="off" aria-label="リンクのURL">' + (j >= 0 ? '<button class="btn sm" data-sact="doc-ldel" data-i="' + i + '" data-j="' + j + '">消す</button>' : "<span></span>") + "</div>";
       b = '<div class="wcard" style="border:0;padding:4px 0 8px"><label>見出し</label><input type="text" value="' + esc(d.t) + '" data-sf="doc-t" data-i="' + i + '">' +
@@ -352,7 +354,7 @@
       case "cl": { const d = $("wdlg"); if (d && d.open) d.close(); return; }
       case "tip": {
         const d = S0.docs.find(x => x.id === id); if (!d) return;
-        $("wbody").innerHTML = '<h2 style="margin:0">' + esc(d.t) + '</h2><div class="tsmv-in" style="margin-top:8px">' + (d.b.trim() ? md2h(d.b) : "") + "</div>" + (dl(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") + '<div class="dlg-btns"><button class="btn" data-sact="cl">閉じる</button></div>';
+        $("wbody").innerHTML = '<h2 style="margin:0">' + esc(d.t) + '</h2><div class="tsmv-in" style="margin-top:8px">' + (d.b.trim() ? md2h(d.b) : "") + "</div>" + (A.work && A.work.imgsH ? A.work.imgsH(d) : "") + (dl(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") + '<div class="dlg-btns"><button class="btn" data-sact="cl">閉じる</button></div>';
         if (!$("wdlg").open) $("wdlg").showModal(); return;
       }
       case "dtag": ui.dtag = t.dataset.v; A.render(); return;

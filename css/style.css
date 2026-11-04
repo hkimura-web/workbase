@@ -943,3 +943,8 @@ body.kinmode .pgt{color:var(--kn-ink)}
 :root:not([data-theme="light"]) .wtp.t-stest{background:#40223a;border-color:#6a3560;color:#f3b4d8}
 :root:not([data-theme="light"]) .wtp.t-class,:root:not([data-theme="light"]) .wtag.t-class{background:#1f3326;border-color:#33563d;color:#a8dcb4}
 :root:not([data-theme="light"]) .wtp.t-none,:root:not([data-theme="light"]) .wtag.t-none{background:#262b33;border-color:#3b424d;color:#e6e9ef}}
+
+.tpband .tpq{width:92px;font-size:12px;padding:3px 8px;border-radius:10px;margin:0 2px 0 0;height:auto}
+.wtp.tphit{box-shadow:0 0 0 2px #f2b84b;position:relative}
+.wtp.tphit::before{content:"今日";font-size:9px;font-weight:700;background:#f2b84b;color:#5a3d00;border-radius:6px;padding:0 4px;margin-right:4px}
+.tpband .wtpw{display:inline-flex;align-items:center;gap:2px;margin:3px 3px 0 0}

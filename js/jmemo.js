@@ -22,8 +22,8 @@
     s = s && typeof s === "object" ? s : {}; s.v = 1;
     if (!Array.isArray(s.tags) || !s.tags.length) s.tags = DEFTAGS();
     s.tags = s.tags.filter(t => t && t.id).map(t => ({ id: String(t.id), n: String(t.n || "タグ"), c: Math.max(0, Math.min(7, +t.c || 0)) }));
-    s.docs = (Array.isArray(s.docs) ? s.docs : []).filter(d => d && d.id).map(d => ({ id: String(d.id), t: String(d.t || "無題"), b: String(d.b || ""), u: String(d.u || ""), ut: String(d.ut || ""), ls: (Array.isArray(d.ls) ? d.ls : []).filter(x => x && typeof x === "object").slice(0, 4).map(x => ({ t: String(x.t || ""), u: String(x.u || "") })), tip: !!d.tip, tag: String(d.tag || ""), go: d.go === "link" || d.go === "detail" ? d.go : "" }));
-    s.upd = s.upd || 0; return s;
+    s.docs = (Array.isArray(s.docs) ? s.docs : []).filter(d => d && d.id).map(d => ({ id: String(d.id), t: String(d.t || "無題"), b: String(d.b || ""), u: String(d.u || ""), ut: String(d.ut || ""), ls: (Array.isArray(d.ls) ? d.ls : []).filter(x => x && typeof x === "object").slice(0, 4).map(x => ({ t: String(x.t || ""), u: String(x.u || "") })), tip: !!d.tip, kw: String(d.kw || ""), img: Array.isArray(d.img) ? d.img.map(String) : [], tag: String(d.tag || ""), go: d.go === "link" || d.go === "detail" ? d.go : "" }));
+    s.tipOrder = Array.isArray(s.tipOrder) ? s.tipOrder.map(String) : []; s.upd = s.upd || 0; return s;
   }
   const ghOn = () => { const s = S.getSettings(); return !!(s.token && s.owner && s.repo); };
   async function load() {
@@ -69,13 +69,15 @@
   }
 
   /* ---------- 重要Tips（共通の帯に渡す） ---------- */
+  A.jmemo.setTipOrder = ids => { Q.S.tipOrder = ids; save(); };
   A.jmemo.tips = function () {
     if (!Q.ready || !Q.S) return [];
     const ord = d => { const i = Q.S.tags.findIndex(x => x.id === d.tag); return i < 0 ? 99 : i; };
-    return Q.S.docs.map((d, k) => [d, k]).filter(x => x[0].tip).sort((a, b) => ord(a[0]) - ord(b[0]) || a[1] - b[1]).map(([d]) => {
+    const to = Q.S.tipOrder || [], pos = d => { const i = to.indexOf(d.id); return i < 0 ? 1e6 : i; };
+    return Q.S.docs.map((d, k) => [d, k]).filter(x => x[0].tip).sort((a, b) => (to.length ? pos(a[0]) - pos(b[0]) : 0) || ord(a[0]) - ord(b[0]) || a[1] - b[1]).map(([d]) => {
       const t = tagOf(d.tag);
-      return { src: "class", id: d.id, t: d.t, cls: "t-sclass", tag: t ? t.n : "", href: goLink(d) ? dl(d)[0].u : "", n: dl(d).length,
-        detail: () => '<div class="tsmv-in" style="margin-top:8px">' + (d.b.trim() ? md2h(d.b) : "") + "</div>" + (dl(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") };
+      return { src: "class", id: d.id, t: d.t, cls: "t-sclass", tag: t ? t.n : "", href: goLink(d) ? dl(d)[0].u : "", n: dl(d).length, kw: d.kw || "", sortable: true,
+        detail: () => '<div class="tsmv-in" style="margin-top:8px">' + (d.b.trim() ? md2h(d.b) : "") + "</div>" + (A.work && A.work.imgsH ? A.work.imgsH(d) : "") + (dl(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") };
     });
   };
 
@@ -85,11 +87,12 @@
     const t = tagOf(d.tag), ed = ui.dedit === d.id, k = "d" + d.id;
     const sum = '<summary><span class="wdt">' + esc(d.t || "（無題）") + "</span>" + (t ? '<span class="tgchip tgx tg-' + t.c + '">' + esc(t.n) + "</span>" : "") + (d.tip ? '<span class="tsstar on tsmini">★</span>' : "") + "</summary>";
     let b;
-    if (!ed) b = '<div class="tsmv">' + md2h(d.b) + "</div>" + (dl(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") + '<div class="btns" style="margin-top:8px"><button class="btn" data-jact="doc-edit" data-id="' + d.id + '">編集する</button><button class="btn" data-jact="doc-star" data-i="' + i + '">' + (d.tip ? "★ 重要から外す" : "☆ 重要にする（ホームに出す）") + "</button></div>";
+    if (!ed) b = '<div class="tsmv">' + md2h(d.b) + "</div>" + (A.work && A.work.imgsH ? A.work.imgsH(d) : "") + (dl(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") + '<div class="btns" style="margin-top:8px"><button class="btn" data-jact="doc-edit" data-id="' + d.id + '">編集する</button><button class="btn" data-jact="doc-star" data-i="' + i + '">' + (d.tip ? "★ 重要から外す" : "☆ 重要にする（ホームに出す）") + "</button></div>";
     else {
       const row = (tt, u, fn, fu, j, ph) => '<div class="wlrow"><input type="text" value="' + esc(tt) + '" placeholder="' + ph + '" data-jf="' + fn + '" data-i="' + i + '" data-j="' + j + '" aria-label="リンクの名前"><input type="url" value="' + esc(u) + '" placeholder="https://…" data-jf="' + fu + '" data-i="' + i + '" data-j="' + j + '" autocomplete="off" aria-label="リンクのURL">' + (j >= 0 ? '<button class="btn sm" data-jact="doc-ldel" data-i="' + i + '" data-j="' + j + '">消す</button>' : "<span></span>") + "</div>";
       b = '<div class="wcard" style="border:0;padding:4px 0 8px"><label>見出し</label><input type="text" value="' + esc(d.t) + '" data-jf="doc-t" data-i="' + i + '">' +
         '<label class="tsimp">タグ： <select data-jchg="doc-tag" data-i="' + i + '" style="width:auto"><option value="">なし</option>' + Q.S.tags.map(x => '<option value="' + x.id + '"' + (d.tag === x.id ? " selected" : "") + ">" + esc(x.n) + "</option>").join("") + "</select></label>" +
+        '<label>今日の授業で目立たせる言葉（空でもOK。例：古文，漢文。授業の単元名やクラス名に含まれると、授業の「今日」でこのTipsが目立ちます）</label><input type="text" value="' + esc(d.kw) + '" data-jf="doc-kw" data-i="' + i + '" placeholder="例：古文，言語文化">' +
         '<label class="tsimp"><input type="checkbox" data-jchg="doc-tip" data-i="' + i + '"' + (d.tip ? " checked" : "") + "> 重要（ホームの重要Tipsに出す）</label>" +
         '<label class="tsimp">重要Tipsのボタンを押したら： <select data-jchg="doc-go" data-i="' + i + '" style="width:auto"><option value="">自動（説明が空なら資料をすぐ開く／説明があれば説明を出す）</option><option value="link"' + (d.go === "link" ? " selected" : "") + '>いつも資料をすぐ開く</option><option value="detail"' + (d.go === "detail" ? " selected" : "") + ">いつも説明を出す</option></select></label>" +
         '<div class="wlset"><b class="small">資料リンク（最大5つ。名前は、押すボタンに出ます）</b>' + row(d.ut, d.u, "doc-ut", "doc-u", -1, "リンク1の名前") + d.ls.map((x, j) => row(x.t, x.u, "doc-lt", "doc-lu", j, "リンク" + (j + 2) + "の名前")).join("") + (1 + d.ls.length < 5 ? '<button class="btn sm" data-jact="doc-ladd" data-i="' + i + '">＋ リンクを足す</button>' : "") + "</div>" +
@@ -120,7 +123,7 @@
       case "draft-use": Q.S = mig(Q.draftP); Q.draftP = null; Q.ask = false; Q.dirty = true; save(); A.render(); return;
       case "reload": S.remoteGet(S.getSettings(), FILE).then(r => { Q.sha = r.sha; Q.S = mig(JSON.parse(r.text)); Q.conflict = false; Q.dirty = false; LS.del(DK); A.render(); }).catch(x => root.alert(S.explain(x))); return;
       case "dtag": ui.dtag = t.dataset.v; A.render(); return;
-      case "doc-add": { const nid = "d" + (uid++); S0.docs.unshift({ id: nid, t: "新しいメモ", b: "", u: "", ut: "", ls: [], tip: false, tag: ui.dtag || "", go: "" }); ui.det["d" + nid] = true; ui.dedit = nid; save(); A.render(); return; }
+      case "doc-add": { const nid = "d" + (uid++); S0.docs.unshift({ id: nid, t: "新しいメモ", b: "", u: "", ut: "", ls: [], tip: false, kw: "", tag: ui.dtag || "", go: "" }); ui.det["d" + nid] = true; ui.dedit = nid; save(); A.render(); return; }
       case "doc-edit": ui.dedit = t.dataset.id; ui.det["d" + t.dataset.id] = true; A.render(); return;
       case "doc-done": ui.dedit = null; A.render(); return;
       case "doc-star": { const d = S0.docs[i]; if (d) { d.tip = !d.tip; ui.det["d" + d.id] = true; save(); A.render(); } return; }
@@ -145,7 +148,7 @@
     const i = +t.dataset.i, d = Q.S.docs[i];
     if (f === "tag-n") { const tg = Q.S.tags[i]; if (tg) { tg.n = t.value; save(); } return; }
     if (!d) return;
-    if (f === "doc-t") d.t = t.value; else if (f === "doc-b") d.b = t.value; else if (f === "doc-u") d.u = t.value; else if (f === "doc-ut") d.ut = t.value;
+    if (f === "doc-t") d.t = t.value; else if (f === "doc-b") d.b = t.value; else if (f === "doc-u") d.u = t.value; else if (f === "doc-ut") d.ut = t.value; else if (f === "doc-kw") d.kw = t.value;
     else if (f === "doc-lt") d.ls[+t.dataset.j].t = t.value; else if (f === "doc-lu") d.ls[+t.dataset.j].u = t.value;
     save();
   });

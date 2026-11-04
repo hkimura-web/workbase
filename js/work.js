@@ -79,6 +79,8 @@
     if (!Array.isArray(mo.items)) mo.items = [{ id: "m1", t: "KGM通信", u: "" }, { id: "m2", t: "BLEND", u: "" }, { id: "m3", t: "学年のドキュメント", u: "" }, { id: "m4", t: "学年のスプレッドシート", u: "" }];
     mo.done = mo.done || {}; mo.weekend = !!mo.weekend;
     { const old = J.addDays(J.ds(new Date()), -3); Object.keys(mo.done).forEach(k => { if (k.slice(0, 10) < old) delete mo.done[k]; }); }
+    if (!Array.isArray(s.tags) || !s.tags.length) s.tags = TAGS.map(t => ({ id: t[0], n: t[1], c: -1 }));
+    s.tags = s.tags.filter(t => t && t.id).map(t => ({ id: String(t.id), n: String(t.n || "タグ"), c: t.c >= 0 ? Math.min(7, +t.c) : -1 }));
     s.moved = s.moved && typeof s.moved === "object" ? s.moved : {}; s.d = s.d || {}; s.cd = s.cd || {}; s.tipOrder = Array.isArray(s.tipOrder) ? s.tipOrder : []; s.fav = Array.isArray(s.fav) ? s.fav : []; s.mine = Array.isArray(s.mine) ? s.mine : [];
     s.bell = bellMig(s.bell);
     s.roles = s.roles || ["担", "教", "部"]; s.g = s.g || "3";
@@ -182,8 +184,9 @@
     const d = dg; dg = null;
     if (!d.on) return;
     d.g.remove(); d.w.classList.remove("dragging");
-    const ids = [...document.querySelectorAll(".p-tips .wtpw")].map(x => x.dataset.id);
-    W.S.tipOrder = ids; save(); A.render();
+    const ids = [...d.w.parentNode.querySelectorAll(".wtpw")].map(x => x.dataset.id);
+    if (A.tipsSetOrder) A.tipsSetOrder(d.w.dataset.src || "work", ids); else { W.S.tipOrder = ids; save(); }
+    A.render();
   }
   document.addEventListener("pointerup", endDrag);
   document.addEventListener("pointercancel", endDrag);
@@ -239,11 +242,14 @@
   }
   const TAGS = [["komu", "校務全般"], ["class", "クラス"], ["jugyo", "授業"], ["kokugo", "国語科"], ["seiseki", "テスト成績"], ["bukatsu", "部活動"]]; /* この順番で、重要Tipsも並ぶ */
   const TAGDEF = { d1: "seiseki", d17: "seiseki", d2: "class", d3: "class", d4: "class", d5: "class", d6: "class", d7: "class", d8: "class", d9: "class", d10: "class", d11: "class", d12: "class", d13: "class", d14: "class", d15: "class", d16: "class" };
-  const tagName = k => (TAGS.find(x => x[0] === k) || ["", ""])[1];
+  const tagsOf = () => (W.S && Array.isArray(W.S.tags) && W.S.tags.length ? W.S.tags : TAGS.map(t => ({ id: t[0], n: t[1], c: -1 })));
+  const tagName = k => (tagsOf().find(x => x.id === k) || { n: "" }).n;
+  const tagCls = k => { const t = tagsOf().find(x => x.id === k); return t && t.c >= 0 ? "tgx tg-" + t.c : "t-" + (t ? k : "none"); };
+  const TGN = ["ピンク", "ブルー", "グリーン", "オレンジ", "パープル", "ティール", "レッド", "グレー"];
   const TO = ["d5", "d3", "d15", "d4", "d16", "d17"];
   /* 重要Tipsの並び: はじめは「公務全般→クラス→授業→部活動」の順。手で動かしたら、その順番を覚える */
   function tipList() {
-    const tr = x => { const k = TAGS.findIndex(t => t[0] === x.tag); return k < 0 ? TAGS.length : k; }, f = x => { const i = TO.indexOf(x.id); return tr(x) * 100 + (i < 0 ? 99 : i); };
+    const tr = x => { const k = tagsOf().findIndex(t => t.id === x.tag); return k < 0 ? 99 : k; }, f = x => { const i = TO.indexOf(x.id); return tr(x) * 100 + (i < 0 ? 99 : i); };
     const ord = W.S.tipOrder || [], pos = x => { const i = ord.indexOf(x.id); return i < 0 ? 1e6 : i; };
     return W.S.docs.filter(d => d.tip).sort((a, b) => ord.length ? (pos(a) - pos(b) || f(a) - f(b)) : f(a) - f(b));
   }
@@ -262,9 +268,12 @@
     W.S.docs = W.S.docs.filter(d => !tags.includes(d.tag)); W.S.tipOrder = (W.S.tipOrder || []).filter(id => !W.S.moved[id]); save(); A.render(); return out;
   };
   A.work.movedIds = () => Object.keys((W.S && W.S.moved) || {});
+  document.addEventListener("toggle", e => { const d = e.target; if (d && d.classList && d.classList.contains("wtagmgr")) ui.tagOpen = d.open; }, true);
+  A.work.imgsH = d => imgs(d);
+  A.work.setTipOrder = ids => { W.S.tipOrder = ids; save(); };
   A.work.tips = function () {
     if (!W.ready || !W.S) return [];
-    return tipList().map(d => ({ src: "work", id: d.id, t: d.t, cls: "t-" + (d.tag || "none"), tag: tagName(d.tag), href: goLink(d) ? dlinks(d)[0].u : "", n: dlinks(d).length, sortable: true,
+    return tipList().map(d => ({ src: "work", id: d.id, t: d.t, cls: tagCls(d.tag), tag: tagName(d.tag), href: goLink(d) ? dlinks(d)[0].u : "", n: dlinks(d).length, sortable: true,
       detail: () => '<div style="margin-top:8px">' + nl(d.b) + "</div>" + (dlinks(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") + imgs(d) }));
   };
   function tipsH() {
@@ -338,16 +347,22 @@
   }
   function docCard(d, i) {
     const open = ui.docOpen[d.id] ? " open" : "";
-    return '<details class="wdet wdoc" data-id="' + d.id + '"' + open + '><summary><span class="wtag t-' + esc(d.tag || "none") + '">' + esc(tagName(d.tag) || "タグなし") + '</span> <b class="wdt">' + esc(d.t || "（無題）") + "</b>" + (d.tip ? ' <span class="wst">★</span>' : "") + "</summary>" +
-      '<div class="wcard" style="border:0;padding:4px 0 8px"><input type="text" value="' + esc(d.t) + '" data-wf="doc-t" data-i="' + i + '" aria-label="見出し"><button class="wstar" data-wact="doc-star" data-i="' + i + '" aria-pressed="' + !!d.tip + '" title="★を付けると、ホームの重要Tipsに出ます">' + (d.tip ? "★" : "☆") + '</button><label class="wck">タグ（ボタンの色）： <select data-wchg="doc-tag" data-i="' + i + '" style="width:auto"><option value="">なし</option>' + TAGS.map(t => '<option value="' + t[0] + '"' + (d.tag === t[0] ? " selected" : "") + ">" + t[1] + "</option>").join("") + '</select></label><label class="wck">重要Tipsのボタンを押したら： <select data-wchg="doc-go" data-i="' + i + '" style="width:auto"><option value="">自動（説明が空なら資料をすぐ開く／説明があれば説明を出す）</option><option value="link"' + (d.go === "link" ? " selected" : "") + '>いつも資料をすぐ開く</option><option value="detail"' + (d.go === "detail" ? " selected" : "") + '>いつも説明を出す</option></select></label><div class="wlset"><b class="small">資料リンク（最大5つ。名前は、押すボタンに出ます）</b>' + linkRows(d, i) + (1 + (d.ls || []).length < 5 ? '<button class="btn sm" data-wact="doc-ladd" data-i="' + i + '">＋ リンクを足す</button>' : "") + '</div><textarea style="min-height:110px" data-wf="doc-b" data-i="' + i + '">' + esc(d.b) + "</textarea>" + imgs(d) + '<button class="btn" data-wact="doc-del" data-i="' + i + '">削除</button></div></details>';
+    return '<details class="wdet wdoc" data-id="' + d.id + '"' + open + '><summary><span class="wtag ' + esc(tagCls(d.tag)) + '">' + esc(tagName(d.tag) || "タグなし") + '</span> <b class="wdt">' + esc(d.t || "（無題）") + "</b>" + (d.tip ? ' <span class="wst">★</span>' : "") + "</summary>" +
+      '<div class="wcard" style="border:0;padding:4px 0 8px"><input type="text" value="' + esc(d.t) + '" data-wf="doc-t" data-i="' + i + '" aria-label="見出し"><button class="wstar" data-wact="doc-star" data-i="' + i + '" aria-pressed="' + !!d.tip + '" title="★を付けると、ホームの重要Tipsに出ます">' + (d.tip ? "★" : "☆") + '</button><label class="wck">タグ（ボタンの色）： <select data-wchg="doc-tag" data-i="' + i + '" style="width:auto"><option value="">なし</option>' + tagsOf().map(t => '<option value="' + esc(t.id) + '"' + (d.tag === t.id ? " selected" : "") + ">" + esc(t.n) + "</option>").join("") + '</select></label><label class="wck">重要Tipsのボタンを押したら： <select data-wchg="doc-go" data-i="' + i + '" style="width:auto"><option value="">自動（説明が空なら資料をすぐ開く／説明があれば説明を出す）</option><option value="link"' + (d.go === "link" ? " selected" : "") + '>いつも資料をすぐ開く</option><option value="detail"' + (d.go === "detail" ? " selected" : "") + '>いつも説明を出す</option></select></label><div class="wlset"><b class="small">資料リンク（最大5つ。名前は、押すボタンに出ます）</b>' + linkRows(d, i) + (1 + (d.ls || []).length < 5 ? '<button class="btn sm" data-wact="doc-ladd" data-i="' + i + '">＋ リンクを足す</button>' : "") + '</div><textarea style="min-height:110px" data-wf="doc-b" data-i="' + i + '">' + esc(d.b) + "</textarea>" + imgs(d) + '<button class="btn" data-wact="doc-del" data-i="' + i + '">削除</button></div></details>';
   }
   function docList() {
     const q = nfkc(ui.dq).split(/\s+/).filter(Boolean);
     return W.S.docs.map((d, i) => [d, i]).filter(x => q.every(t => nfkc(x[0].t + " " + x[0].b).indexOf(t) >= 0)).map(x => docCard(x[0], x[1])).join("") || '<p class="note">見つかりません。</p>';
   }
+  function tagMgr() {
+    const t = W.S.tags;
+    return '<details class="wdet wtagmgr"' + (ui.tagOpen ? " open" : "") + "><summary><b>タグを管理する（増やす・名前や色を変える）</b></summary><div>" +
+      t.map((x, i) => '<div class="tstg"><span class="wtag ' + esc(tagCls(x.id)) + '">' + esc(x.n) + '</span><input type="text" value="' + esc(x.n) + '" data-wf="tag-n" data-i="' + i + '" aria-label="タグの名前">' + (x.c >= 0 ? '<select data-wchg="tag-c" data-i="' + i + '" aria-label="色">' + TGN.map((n, c) => '<option value="' + c + '"' + (x.c === c ? " selected" : "") + ">" + n + "</option>").join("") + "</select>" : '<span class="small" style="white-space:nowrap">元の色</span>') + '<button class="btn sm danger" data-wact="tag-del" data-i="' + i + '">消す</button></div>').join("") +
+      '<div class="tstg"><input type="text" id="wtg_n" placeholder="新しいタグの名前"><select id="wtg_c">' + TGN.map((n, c) => '<option value="' + c + '">' + n + "</option>").join("") + '</select><button class="btn on" data-wact="tag-add">タグを足す</button></div></div></details>';
+  }
   function viewDocs() {
     return '<div class="wdocbar"><input type="search" id="wdq" data-wf="dq" placeholder="メモをさがす" value="' + esc(ui.dq) + '" autocomplete="off"><button class="btn on" data-wact="doc-add">＋ 新しいメモ</button></div>' +
-      '<p class="note">タスクの「手順」として紐づけられる共通メモです。1か所直せば全部に反映されます。</p><div id="wdocs">' + docList() + '</div><button class="wfab" data-wact="doc-add" aria-label="新しいメモを足す" title="新しいメモを足す">＋</button>';
+      '<p class="note">タスクの「手順」として紐づけられる共通メモです。1か所直せば全部に反映されます。</p>' + tagMgr() + '<div id="wdocs">' + docList() + '</div><button class="wfab" data-wact="doc-add" aria-label="新しいメモを足す" title="新しいメモを足す">＋</button>';
   }
   function icsText(o) {
     const yr = calYear, e = s => String(s).replace(/\\/g, "\\\\").replace(/[,;]/g, "\\$&").replace(/\n/g, "\\n"), s = W.S, ev = []; let n = 0;
@@ -538,8 +553,10 @@
       case "doc-ladd": { const d = W.S.docs[i]; d.ls = d.ls || []; if (1 + d.ls.length < 5) d.ls.push({ t: "", u: "" }); ui.docOpen[d.id] = true; save(); A.render(); break; }
       case "doc-ldel": { const d = W.S.docs[i]; d.ls.splice(+t.dataset.j, 1); ui.docOpen[d.id] = true; save(); A.render(); break; }
       case "doc-star": W.S.docs[i].tip = !W.S.docs[i].tip; save(); A.render(); break;
+      case "tag-add": { const n = ($("wtg_n").value || "").trim(); if (!n) break; W.S.tags.push({ id: "g" + Date.now(), n, c: +$("wtg_c").value || 0 }); ui.tagOpen = true; save(); A.render(); break; }
+      case "tag-del": { const tg = W.S.tags[+t.dataset.i]; if (tg && root.confirm("タグ「" + tg.n + "」を消しますか？（メモは残り、タグだけ外れます）")) { W.S.docs.forEach(d => { if (d.tag === tg.id) d.tag = ""; }); W.S.tags.splice(+t.dataset.i, 1); ui.tagOpen = true; save(); A.render(); } break; }
       case "tip-sort": ui.tipSort = !ui.tipSort; A.render(); break;
-      case "tip-auto": W.S.tipOrder = []; save(); A.render(); break;
+      case "tip-auto": if (A.tipsClearOrder) A.tipsClearOrder(); else { W.S.tipOrder = []; save(); } A.render(); break;
       case "tip-mv": {
         const ids = tipList().map(d => d.id), k = ids.indexOf(id), to = k + (+t.dataset.d);
         if (k >= 0 && to >= 0 && to < ids.length) { ids.splice(to, 0, ids.splice(k, 1)[0]); W.S.tipOrder = ids; save(); A.render(); }
@@ -589,6 +606,7 @@
       case "cc": { const tk = W.S.tasks.find(x => x.id === id), k = ck(tk, i); if (W.S.cd[k]) delete W.S.cd[k]; else W.S.cd[k] = true; save(); break; }
       case "mk": W.S.tasks.find(x => x.id === id).k = t.value; save(); if (A.ui.mode === "work") A.render(); break;
       case "doc-tag": W.S.docs[i].tag = t.value; save(); break;
+      case "tag-c": { const tg = W.S.tags[i]; if (tg) { tg.c = +t.value || 0; ui.tagOpen = true; save(); A.render(); } break; }
       case "doc-go": W.S.docs[i].go = t.value; save(); break;
       case "grade": W.S.g = t.dataset.v; save(); break;
       case "role": { const v = t.dataset.v; W.S.roles = W.S.roles.includes(v) ? W.S.roles.filter(x => x !== v) : W.S.roles.concat(v); save(); break; }
@@ -608,6 +626,7 @@
     if (f === "m-t" || f === "m-u") { W.S.morning.items[i][f === "m-t" ? "t" : "u"] = t.value.trim(); save(); return; }
     if (f === "dq") { ui.dq = t.value; const r = $("wdocs"); if (r) r.innerHTML = docList(); return; }
     if (f === "lq") { ui.q = t.value; const r = $("wres"); if (r) r.innerHTML = linkResults(); return; }
+    if (f === "tag-n") { const tg = W.S.tags[i]; if (tg) { tg.n = t.value; save(); } return; }
     if (f === "doc-t") { W.S.docs[i].t = t.value; const sm = t.closest(".wdoc"); if (sm) sm.querySelector(".wdt").textContent = t.value || "（無題）"; } else if (f === "doc-b") W.S.docs[i].b = t.value; else if (f === "doc-u") W.S.docs[i].u = t.value; else if (f === "doc-ut") W.S.docs[i].ut = t.value; else if (f === "doc-lt") W.S.docs[i].ls[+t.dataset.j].t = t.value; else if (f === "doc-lu") W.S.docs[i].ls[+t.dataset.j].u = t.value;
     save();
   });
