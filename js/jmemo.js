@@ -149,6 +149,14 @@
     else if (f === "doc-lt") d.ls[+t.dataset.j].t = t.value; else if (f === "doc-lu") d.ls[+t.dataset.j].u = t.value;
     save();
   });
+  A.jmemo.ready = () => !!(Q.ready && Q.S && !Q.ask && !Q.conflict && Q.canSave);
+  A.jmemo.getDoc = id => (Q.S && Q.S.docs.find(d => d.id === id)) || null;
+  A.jmemo.addDocs = function (docs) {
+    if (!A.jmemo.ready()) return false;
+    if (!Q.S.tags.some(t => t.id === "jugyo")) Q.S.tags.unshift({ id: "jugyo", n: "授業", c: 1 });
+    mig({ docs: docs }).docs.forEach(d => { if (!Q.S.docs.some(x => x.id === d.id)) Q.S.docs.push(d); });
+    save(); A.render(); return true;
+  };
   A.views.memo = () => A.jmemo.view();
   A.jmemo.load = load;
   load();

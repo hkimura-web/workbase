@@ -79,7 +79,7 @@
     if (!Array.isArray(mo.items)) mo.items = [{ id: "m1", t: "KGM通信", u: "" }, { id: "m2", t: "BLEND", u: "" }, { id: "m3", t: "学年のドキュメント", u: "" }, { id: "m4", t: "学年のスプレッドシート", u: "" }];
     mo.done = mo.done || {}; mo.weekend = !!mo.weekend;
     { const old = J.addDays(J.ds(new Date()), -3); Object.keys(mo.done).forEach(k => { if (k.slice(0, 10) < old) delete mo.done[k]; }); }
-    s.d = s.d || {}; s.cd = s.cd || {}; s.tipOrder = Array.isArray(s.tipOrder) ? s.tipOrder : []; s.fav = Array.isArray(s.fav) ? s.fav : []; s.mine = Array.isArray(s.mine) ? s.mine : [];
+    s.moved = s.moved && typeof s.moved === "object" ? s.moved : {}; s.d = s.d || {}; s.cd = s.cd || {}; s.tipOrder = Array.isArray(s.tipOrder) ? s.tipOrder : []; s.fav = Array.isArray(s.fav) ? s.fav : []; s.mine = Array.isArray(s.mine) ? s.mine : [];
     s.bell = bellMig(s.bell);
     s.roles = s.roles || ["担", "教", "部"]; s.g = s.g || "3";
     if (!s.y || s.y < FY) s.y = FY; /* 年度が変わると自動で新しい年度になる（完了チェックは年度ごとに別なので、未完了に戻る） */
@@ -253,6 +253,15 @@
   const lnkH = d => dlinks(d).map(x => '<a class="btn wlnk" href="' + esc(x.u) + '" target="_blank" rel="noopener noreferrer">' + esc(x.t) + " ↗</a>").join("");
   /* ボタンを押したとき: 自動＝リンクが1つで説明が空ならすぐ開く（複数ならリンクの選択、説明があれば説明）。手で固定もできる */
   function goLink(d) { const n = dlinks(d).length; if (!n) return false; if (d.go === "link") return true; if (d.go === "detail") return false; return n === 1 && !String(d.b || "").trim(); }
+  /* 校務の手順・メモから、授業・テスト成績の側へ移したメモ（タスクの「手順」のリンクは、移したあとも開けるように覚えておく） */
+  A.work.ready = () => !!(W.ready && W.S && !W.ask && !W.conflict && !W.needCreate && W.canSave);
+  A.work.peekDocs = tags => W.S.docs.filter(d => tags.includes(d.tag));
+  A.work.takeDocs = function (tags) {
+    const out = W.S.docs.filter(d => tags.includes(d.tag)); if (!out.length) return [];
+    W.S.moved = W.S.moved || {}; out.forEach(d => { W.S.moved[d.id] = d.tag === "jugyo" ? "class" : "test"; });
+    W.S.docs = W.S.docs.filter(d => !tags.includes(d.tag)); W.S.tipOrder = (W.S.tipOrder || []).filter(id => !W.S.moved[id]); save(); A.render(); return out;
+  };
+  A.work.movedIds = () => Object.keys((W.S && W.S.moved) || {});
   A.work.tips = function () {
     if (!W.ready || !W.S) return [];
     return tipList().map(d => ({ src: "work", id: d.id, t: d.t, cls: "t-" + (d.tag || "none"), tag: tagName(d.tag), href: goLink(d) ? dlinks(d)[0].u : "", n: dlinks(d).length, sortable: true,
@@ -442,7 +451,7 @@
     save(); redraw();
   }
   function openTask(id, m) {
-    const t = W.S.tasks.find(x => x.id === id), p = W.S.docs.find(d => d.id === t.p), dn = isD(t, m);
+    const t = W.S.tasks.find(x => x.id === id), p = W.S.docs.find(d => d.id === t.p) || (A.movedDoc && A.movedDoc(t.p)), dn = isD(t, m);
     modal('<h2 style="margin:0">' + esc(t.t) + '</h2><div class="note">' + (t.rep ? "毎月" : t.m + "月") + " ・ " + RL[t.r] + " ・ " + (t.tg ? tgl(t.tg) : "全学年") + "</div>" +
       (t.n ? '<div class="ww2">⚠ ' + nl(t.n) + "</div>" : "") +
       (p ? '<details class="wdet" open><summary>' + esc(p.t) + "</summary><div>" + nl(p.b) + "</div>" + (dlinks(p).length ? '<div class="wlnks">' + lnkH(p) + "</div>" : "") + imgs(p) + "</details>" : "") +
@@ -462,7 +471,7 @@
       '<label>役割</label><select id="we3">' + ["担", "教", "部"].map(r => '<option value="' + r + '" ' + (r === t.r ? "selected" : "") + ">" + RL[r] + "</option>").join("") + "</select>" +
       '<div>対象(未選択=全学年): ' + ["J", "1", "2", "3"].map(g => '<label class="wck" style="display:inline-block;margin-right:8px"><input type="checkbox" class="we4" value="' + g + '" ' + (t.tg.includes(g) ? "checked" : "") + "> " + (g === "J" ? "中学" : "高" + g) + "</label>").join("") + '<label class="wck" style="display:inline-block"><input type="checkbox" id="we8" ' + (t.rep ? "checked" : "") + "> 毎月繰り返す</label></div>" +
       '<label>日(任意・期限のお知らせとカレンダー用)</label><input type="number" id="we10" min="0" max="31" value="' + (t.dd || "") + '" style="width:90px"><label>注意事項(見落とし防止)</label><textarea id="we5">' + esc(t.n) + '</textarea><label>資料URL</label><input type="text" id="we6" value="' + esc(t.u) + '">' +
-      '<label>手順メモ</label><select id="we7"><option value="">なし</option>' + W.S.docs.map(d => '<option value="' + d.id + '" ' + (d.id === t.p ? "selected" : "") + ">" + esc(d.t) + "</option>").join("") + "</select>" +
+      '<label>手順メモ</label><select id="we7"><option value="">なし</option>' + W.S.docs.map(d => '<option value="' + d.id + '" ' + (d.id === t.p ? "selected" : "") + ">" + esc(d.t) + "</option>").join("") + A.work.movedIds().map(i => A.movedDoc && A.movedDoc(i)).filter(Boolean).map(d => '<option value="' + d.id + '" ' + (d.id === t.p ? "selected" : "") + ">" + esc(d.t) + "（移動済）</option>").join("") + "</select>" +
       '<label>リンク集のリンク（タスクを開いたときに出ます）</label>' + (t.lk.length ? t.lk.map((u, i) => '<div class="wlink"><span class="ml">' + esc(linkTitle(u)) + '</span><button class="btn sm danger" data-wact="lk-del" data-i="' + i + '">外す</button></div>').join("") : "") +
       '<div class="wlink"><select id="we_lk"><option value="">リンク集から選ぶ…</option>' + Object.keys(secs).map(k => '<optgroup label="' + esc(k) + '">' + secs[k].map(x => '<option value="' + esc(x.u) + '">' + esc(x.t) + "</option>").join("") + "</optgroup>").join("") + '</select><button class="btn sm" data-wact="lk-add">追加</button></div>' +
       '<label>完了前チェック(1行1項目)</label><textarea id="we9">' + esc(t.c.join("\n")) + '</textarea><div class="dlg-btns" style="justify-content:flex-start"><button class="btn on" data-wact="es">保存</button>' + (id ? '<button class="btn danger" data-wact="task-del" data-id="' + id + '">削除</button>' : "") + '<button class="btn" data-wact="cl">キャンセル</button></div>');

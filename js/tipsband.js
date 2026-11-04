@@ -25,6 +25,15 @@
     const memoBtn = '<button class="btn sm" data-tbact="goto" data-k="' + scope + '">手順・メモを開く</button>';
     return '<section class="panel p-tips tpband"><header class="panel-h"><h2>重要Tips</h2><span class="panel-n">' + (scope === "work" ? '<button class="btn sm" data-wact="tip-sort">' + (sorting ? "完了" : "並べ替え") + "</button> " : "") + memoBtn + '</span></header><div class="panel-b">' + b + "</div></section>";
   };
+  A.movedDoc = id => (A.jmemo && A.jmemo.getDoc && A.jmemo.getDoc(id)) || (A.seiseki && A.seiseki.getDoc && A.seiseki.getDoc(id)) || null;
+  /* 校務の手順・メモで、タグが「授業」のものは授業へ、「テスト成績」のものはテスト成績へ、自動で移す（先に移し先へ入れてから、校務から外す） */
+  const mv = setInterval(() => {
+    const w = A.work, j = A.jmemo, s = A.seiseki; if (!w || !j || !s || !w.ready() || !j.ready() || !s.ready()) return;
+    clearInterval(mv);
+    const a = w.peekDocs(["jugyo"]), b = w.peekDocs(["seiseki"]);
+    if (a.length && j.addDocs(JSON.parse(JSON.stringify(a)))) w.takeDocs(["jugyo"]);
+    if (b.length && s.addDocs(JSON.parse(JSON.stringify(b)))) w.takeDocs(["seiseki"]);
+  }, 1000);
   document.addEventListener("toggle", e => { const d = e.target; if (d && d.classList && d.classList.contains("tpmore")) ui.more = d.open; }, true);
   document.addEventListener("click", e => {
     const t = e.target.closest && e.target.closest("[data-tbact]"); if (!t) return;

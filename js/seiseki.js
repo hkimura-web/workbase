@@ -274,6 +274,14 @@
     return o || '<p class="note">（本文がありません）</p>';
   }
   A.seiseki.md2h = md2h;
+  A.seiseki.ready = () => !!(Q.ready && Q.S && !Q.ask && !Q.conflict && Q.canSave && !Q.needCreate);
+  A.seiseki.getDoc = id => (Q.S && Q.S.docs.find(d => d.id === id)) || null;
+  A.seiseki.addDocs = function (docs) {
+    if (!A.seiseki.ready()) return false;
+    if (!Q.S.tags.some(t => t.id === "seiseki")) Q.S.tags.push({ id: "seiseki", n: "成績処理", c: 0 });
+    docs.forEach(d => { if (!Q.S.docs.some(x => x.id === d.id)) Q.S.docs.push({ id: String(d.id), t: String(d.t || "無題"), b: String(d.b || ""), u: String(d.u || ""), ut: String(d.ut || ""), ls: (d.ls || []).slice(0, 4).map(x => ({ t: String(x.t || ""), u: String(x.u || "") })), tip: !!d.tip, tag: "seiseki", go: d.go === "link" || d.go === "detail" ? d.go : "" }); });
+    save(); A.render(); return true;
+  };
   A.seiseki.tips = function () {
     if (!Q.ready || !Q.S) return [];
     return tipList().map(d => { const t = tagOf(d.tag); return { src: "test", id: d.id, t: d.t, cls: tgc(d).trim(), tag: t ? t.n : "", href: goLink(d) ? dl(d)[0].u : "", n: dl(d).length,
