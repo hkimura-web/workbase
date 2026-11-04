@@ -2,7 +2,7 @@
  * 配置: 上に濃い藍の帯（題名・学期・基準日）、その下に4つのタブ、本文は色分けした見出し付きのパネルを縦に並べる。
  * 色: 藍を主役にして、現代の国語は藍系、言語文化は青緑系。注意が必要な所だけ黄土色・朱色を使う。 */
 :root{
-  --bg:#fffdf1; --bg2:#fbf6df; --surface:#ffffff; --ink:#1b2533; --muted:#586677; --line:#d5dce6;
+  --bg:#edf0f5; --bg2:#e6ebf2; --surface:#ffffff; --ink:#1b2533; --muted:#586677; --line:#d5dce6;
   --accent:#2b4a9b; --accent-soft:#e1e8f8; --on-solid:#ffffff; --remain:#a8b8e2;
   --band:#1c2f68; --band2:#2f4f9e; --band-ink:#ffffff; --hero-field:rgba(255,255,255,.95); --hero-field-ink:#1b2533;
   --gen:#2b4a9b; --gen-soft:#e6ecfa; --gen-line:#c7d3f0; --gen-ink:#27428a;
