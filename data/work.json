@@ -92,15 +92,6 @@
  "docs": [
   {
    "b": "",
-   "id": "d1793785141459",
-   "img": [],
-   "t": "スタディサプリ",
-   "tag": "jugyo",
-   "tip": true,
-   "u": "https://link.studysapuri.jp/ja/organizations/56bda76c1cd9bf0dca000129/dashboard"
-  },
-  {
-   "b": "",
    "id": "d1793785017260",
    "img": [],
    "ls": [],
@@ -140,17 +131,6 @@
    "tag": "",
    "tip": true,
    "u": "https://lib-finder.net/kgmlibrary/",
-   "ut": ""
-  },
-  {
-   "b": "",
-   "id": "d1793703994649",
-   "img": [],
-   "ls": [],
-   "t": "授業関係忘備録",
-   "tag": "jugyo",
-   "tip": true,
-   "u": "https://docs.google.com/document/d/1nVccjeWJfE_6hFBmR7AckM8g7J9XnLgum6ll4JMpZLY/edit?pli=1&tab=t.5f2nktfiuu89#heading=h.s3ipxt9u4qc5",
    "ut": ""
   },
   {
@@ -248,17 +228,6 @@
   },
   {
    "b": "",
-   "id": "d1793537645038",
-   "img": [],
-   "ls": [],
-   "t": "見込点計算ﾂｰﾙ",
-   "tag": "seiseki",
-   "tip": true,
-   "u": "https://hkimura-web.github.io/expected-score/",
-   "ut": ""
-  },
-  {
-   "b": "",
    "id": "d1793537545485",
    "img": [],
    "ls": [],
@@ -277,54 +246,6 @@
    "tag": "bukatsu",
    "tip": true,
    "u": "https://hkimura-web.github.io/expenses-app/",
-   "ut": ""
-  },
-  {
-   "b": "",
-   "id": "d1793537430081",
-   "img": [],
-   "ls": [],
-   "t": "大学入試漢字TOP2000ﾃｽﾄ自動作成",
-   "tag": "jugyo",
-   "tip": true,
-   "u": "https://hkimura-web.github.io/TOP2000-test/",
-   "ut": ""
-  },
-  {
-   "b": "",
-   "id": "d1793537401821",
-   "img": [],
-   "ls": [],
-   "t": "留学生 成績処理ﾅﾋﾞ",
-   "tag": "seiseki",
-   "tip": true,
-   "u": "https://hkimura-web.github.io/study-abroad-gpa/",
-   "ut": ""
-  },
-  {
-   "b": "",
-   "go": "",
-   "id": "d1793536565892",
-   "img": [],
-   "ls": [],
-   "t": "テスト・成績総合ﾎﾞｰﾄﾞ",
-   "tag": "seiseki",
-   "tip": true,
-   "u": "https://hkimura-web.github.io/test-portal/#home",
-   "ut": ""
-  },
-  {
-   "b": "❶主体性評価確定(定期試験前)\n❷テスト返却→素点一覧→BLEND入力\n❸評定確定→成績報告書→不振者報告書→教科連絡一覧\n❹BLEND入力は教科会前日に全クラス一括\n・素点: 成績管理＞担当グループ＞授業選択＞CSV一括登録\n・欠席は得点欄右横のチェック0→1。欠席も留学も「欠」、別室受験は点数。1年留学でも全部チェック\n・BLEND出欠入力を授業時数計画と照合→欠課時数超過者を確認\n・評定は「学期評定」と「通知表評定」の両方に入力(高3は学期末評定も)\n・教科主任: 評定分布表・教科会レジュメ・不振者報告書",
-   "id": "d1",
-   "img": [
-    "i5",
-    "i8"
-   ],
-   "ls": [],
-   "t": "成績処理の手順(各学期共通)",
-   "tag": "seiseki",
-   "tip": false,
-   "u": "",
    "ut": ""
   },
   {
@@ -507,20 +428,6 @@
    "ut": ""
   },
   {
-   "b": "BLEND: メイン＞授業一覧(左カラム)＞[該当授業を選択]＞内訳＞日付範囲(学期指定)\n確認の前に、BLENDの出欠入力に漏れがないかを授業時数計画と照合する\n超過者の抽出: 成績管理＞成績抽出＞定期試験・評定・欠課時数(高校)・会議資料\n欠課時数には遅刻の合計(3回遅刻で欠課1)も入るので、出席率ページの数値と違うことがある\n欠課時数の早見表(1/5・1/3)は下の画像",
-   "id": "d17",
-   "img": [
-    "i5",
-    "i8"
-   ],
-   "ls": [],
-   "t": "欠課時数の確認(年間・学期)",
-   "tag": "jugyo",
-   "tip": true,
-   "u": "",
-   "ut": ""
-  },
-  {
    "b": "",
    "id": "d1793532014412",
    "img": [],
@@ -562,17 +469,6 @@
    "tag": "komu",
    "tip": true,
    "u": "https://saiten-navi.cloud/Home",
-   "ut": ""
-  },
-  {
-   "b": "【ﾄｲﾚ退出】S1-( ) 退出時刻: / 戻り時刻:\n【試験開始遅れ】開始時刻: / 終了予定時刻:\n【体調不良】S1-( )：保健室等への搬出をお願いします。\n【CR受験】物理実験室 / 教科( )：出題者の巡回をお願いします。\n【再問い合わせ】S-  / 教科( )：出題者の対応をお願いします。\n【緊急問い合わせ】S- / 教科( )：至急の対応をお願いします。",
-   "id": "d1793535194015",
-   "img": [],
-   "ls": [],
-   "t": "定期試験ﾁｬｯﾄ雛形",
-   "tag": "seiseki",
-   "tip": true,
-   "u": "https://docs.google.com/document/d/1nVccjeWJfE_6hFBmR7AckM8g7J9XnLgum6ll4JMpZLY/edit?pli=1&tab=t.odfzxfkspi2a#heading=h.v7ictokpwkdz",
    "ut": ""
   }
  ],
@@ -621,6 +517,17 @@
    }
   ],
   "weekend": false
+ },
+ "moved": {
+  "d1": "test",
+  "d17": "class",
+  "d1793535194015": "test",
+  "d1793536565892": "test",
+  "d1793537401821": "test",
+  "d1793537430081": "class",
+  "d1793537645038": "test",
+  "d1793703994649": "class",
+  "d1793785141459": "class"
  },
  "roles": [
   "担",
@@ -1869,14 +1776,6 @@
   "d1793571721951",
   "d1793537545485",
   "d1793537506487",
-  "d1793536565892",
-  "d1793535194015",
-  "d1793537645038",
-  "d1793537401821",
-  "d1793703994649",
-  "d1793537430081",
-  "d1793785141459",
-  "d17",
   "d1793785017260",
   "d1793703517144",
   "d1793700590066",
