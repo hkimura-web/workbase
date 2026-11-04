@@ -932,3 +932,14 @@ body.kinmode .pgt{color:var(--kn-ink)}
 .tpband .tpmore>summary{font-size:11px;color:var(--muted);cursor:pointer;padding:2px 0}
 @media (max-width:640px){.tpband .tplab{min-width:30px;padding:3px 4px}}
 @media (max-width:899px){.tabbar .ctabs{grid-template-columns:repeat(7,1fr)}.tabbar .ctabs .tab{font-size:10px;letter-spacing:-.04em}}
+
+/* 重要Tipsの色：授業=青／テスト=ピンク／校務のクラス=緑／タグなし=白 */
+.wtp.t-sclass{background:#e8f1fb;border-color:#c6dbf2;color:#2f609b}
+.wtp.t-stest{background:#fde4f0;border-color:#f3b4d3;color:#a3256b}
+.wtp.t-class,.wtag.t-class{background:#e6f5e9;border-color:#c4e5cb;color:#2f6b3d}
+.wtp.t-none,.wtag.t-none{background:#fff;border-color:#d5dae3;color:var(--ink)}
+@media (prefers-color-scheme: dark){
+:root:not([data-theme="light"]) .wtp.t-sclass{background:#1f2c40;border-color:#344b6b;color:#a9c8f0}
+:root:not([data-theme="light"]) .wtp.t-stest{background:#40223a;border-color:#6a3560;color:#f3b4d8}
+:root:not([data-theme="light"]) .wtp.t-class,:root:not([data-theme="light"]) .wtag.t-class{background:#1f3326;border-color:#33563d;color:#a8dcb4}
+:root:not([data-theme="light"]) .wtp.t-none,:root:not([data-theme="light"]) .wtag.t-none{background:#262b33;border-color:#3b424d;color:#e6e9ef}}

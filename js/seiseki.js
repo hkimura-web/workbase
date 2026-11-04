@@ -284,7 +284,7 @@
   };
   A.seiseki.tips = function () {
     if (!Q.ready || !Q.S) return [];
-    return tipList().map(d => { const t = tagOf(d.tag); return { src: "test", id: d.id, t: d.t, cls: tgc(d).trim(), tag: t ? t.n : "", href: goLink(d) ? dl(d)[0].u : "", n: dl(d).length,
+    return tipList().map(d => { const t = tagOf(d.tag); return { src: "test", id: d.id, t: d.t, cls: "t-stest", tag: t ? t.n : "", href: goLink(d) ? dl(d)[0].u : "", n: dl(d).length,
       detail: () => '<div class="tsmv-in" style="margin-top:8px">' + (d.b.trim() ? md2h(d.b) : "") + "</div>" + (dl(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") }; });
   };
   const docMatch = d => { const q = ui.dq.trim().toLowerCase(); return (!ui.dtag || d.tag === ui.dtag) && (!q || (d.t + " " + d.b).toLowerCase().includes(q)); };

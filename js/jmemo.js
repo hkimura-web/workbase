@@ -74,7 +74,7 @@
     const ord = d => { const i = Q.S.tags.findIndex(x => x.id === d.tag); return i < 0 ? 99 : i; };
     return Q.S.docs.map((d, k) => [d, k]).filter(x => x[0].tip).sort((a, b) => ord(a[0]) - ord(b[0]) || a[1] - b[1]).map(([d]) => {
       const t = tagOf(d.tag);
-      return { src: "class", id: d.id, t: d.t, cls: "tgx tg-" + (t ? t.c : "n"), tag: t ? t.n : "", href: goLink(d) ? dl(d)[0].u : "", n: dl(d).length,
+      return { src: "class", id: d.id, t: d.t, cls: "t-sclass", tag: t ? t.n : "", href: goLink(d) ? dl(d)[0].u : "", n: dl(d).length,
         detail: () => '<div class="tsmv-in" style="margin-top:8px">' + (d.b.trim() ? md2h(d.b) : "") + "</div>" + (dl(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") };
     });
   };
