@@ -260,11 +260,12 @@
   };
 
   /* 授業の「今日」タブの下に出す、テスト成績の期限が近い作業（なければ何も出さない） */
-  A.seiseki.todayPanel = function () {
-    if (!Q.ready) return "";
-    const l = nearList(); if (!l.length) return "";
+  A.seiseki.todayPanel = function () { return ""; }; /* 今は「今日の校務」の枠の中に一緒に出す（todayItems） */
+  A.seiseki.todayItems = function () {
+    if (!Q.ready) return { n: 0, html: "" };
+    const l = nearList(); if (!l.length) return { n: 0, html: "" };
     const more = l.length > 6 ? '<p class="note" style="margin:6px 0 0">ほか ' + (l.length - 6) + "件</p>" : "";
-    return panel("p-ts", "テスト・成績", l.length + "件", l.slice(0, 6).map(row).join("") + more + '<p style="margin:8px 0 0"><button class="btn sm" data-sact="go">テスト成績を開く</button></p>');
+    return { n: l.length, html: '<h3 class="tstd">テスト・成績 <span class="note">' + l.length + "件</span></h3>" + l.slice(0, 6).map(row).join("") + more + '<p style="margin:8px 0 0"><button class="btn sm" data-sact="go">テスト成績を開く</button></p>' };
   };
 
   /* ---------- 操作 ---------- */

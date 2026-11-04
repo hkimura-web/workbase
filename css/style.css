@@ -831,3 +831,5 @@ body.testmode .tab[aria-selected="true"]{color:var(--ts-ink)}
 .tsseg .btn.on,.tsbar .btn.on{background:var(--ts);border-color:var(--ts);color:#fff}
 /* 今日の校務が空のときは、右の枠を3分の1の幅に（用事があるときは半分ずつ） */
 @media (min-width:900px){.tworow.slim{grid-template-columns:2fr 1fr}}
+.tstd{font-size:13px;margin:14px 0 4px;padding-top:10px;border-top:1px solid var(--line);color:var(--ts-ink)}
+.tstd .note{font-weight:400}
