@@ -9,7 +9,7 @@
 <link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="css/style.css?v=43">
+<link rel="stylesheet" href="css/style.css?v=45">
 </head>
 <body>
 <div class="wrap">
@@ -31,13 +31,14 @@
     <div class="seg modeseg"><button data-act="mode" data-v="class" id="mode-class" aria-pressed="true">授業</button><button data-act="mode" data-v="work" id="mode-work" aria-pressed="false">校務</button><button data-act="mode" data-v="test" id="mode-test" aria-pressed="false">テスト成績</button><button data-act="mode" data-v="kin" id="mode-kin" aria-pressed="false">勤怠</button></div>
   </div>
   <div class="tabbar" id="classtabs">
-    <div class="tabs" role="tablist">
+    <div class="tabs ctabs" role="tablist">
       <button class="tab" role="tab" id="tab-today" data-tab="today"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><circle cx="12" cy="15" r="1.6" fill="currentColor" stroke="none"/></svg><span>今日</span></button>
       <button class="tab" role="tab" id="tab-plan" data-tab="plan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1" fill="currentColor"/><circle cx="4.5" cy="12" r="1" fill="currentColor"/><circle cx="4.5" cy="18" r="1" fill="currentColor"/></svg><span>計画表</span></button>
       <button class="tab" role="tab" id="tab-grid" data-tab="grid"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="1.5"/><path d="M3.5 10h17M9.2 5.5v13M14.8 5.5v13"/></svg><span>一覧</span></button>
       <button class="tab" role="tab" id="tab-unit" data-tab="unit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg><span>単元別</span></button>
       <button class="tab" role="tab" id="tab-sum" data-tab="sum"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V11M12 20V4M19 20v-6"/></svg><span>サマリー</span></button>
       <button class="tab" role="tab" id="tab-lib" data-tab="lib"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h10.5a2.5 2.5 0 0 1 2.5 2.5v13H7.5A2.5 2.5 0 0 1 5 17.5z"/><path d="M5 17.5A2.5 2.5 0 0 1 7.5 15H18M9 8.5h5"/></svg><span>資料</span></button>
+      <button class="tab" role="tab" id="tab-memo" data-tab="memo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h8l3 3V20.5H7z"/><path d="M10 11h5M10 15h5"/></svg><span>手順メモ</span></button>
     </div>
   </div>
   <div class="tabbar" id="worktabs" hidden>
@@ -120,13 +121,15 @@
 
 <script src="js/logic.js?v=3"></script>
 <script src="js/storage.js?v=2"></script>
-<script src="js/views.js?v=9"></script>
+<script src="js/views.js?v=10"></script>
 <script src="js/library.js?v=3"></script>
 <script src="js/workseed.js?v=3"></script>
-<script src="js/work.js?v=24"></script>
+<script src="js/work.js?v=25"></script>
 <script src="js/seisekiseed.js?v=1"></script>
-<script src="js/seiseki.js?v=6"></script>
+<script src="js/seiseki.js?v=7"></script>
 <script src="js/kintai.js?v=1"></script>
-<script src="js/main.js?v=8"></script>
+<script src="js/jmemo.js?v=1"></script>
+<script src="js/tipsband.js?v=1"></script>
+<script src="js/main.js?v=9"></script>
 </body>
 </html>

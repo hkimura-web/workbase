@@ -165,13 +165,13 @@
     let h = askH();
     const T = cur();
     if (!T) {
-      return h + '<div class="pghd"><div><h2 class="pgt">TEST</h2><p class="pgs">試験の準備から、成績会議まで。</p></div></div>' + impPanel() + (ui.form === "new" ? termForm() : panel("p-ts", "はじめに", "", '<p style="margin-top:0">試験の初日・成績の提出期限・成績会議の日を入れると、作業が自動で並びます。</p><div class="btns"><button class="btn on" data-sact="t-new">＋ 学期を作る</button></div><p class="note">今の「テスト・成績 総合ボード」の内容を引き継ぐときは、「学期の設定」から読み込めます。</p>'));
+      return h + '<div class="pghd"><div><h2 class="pgt">TEST</h2><p class="pgs">試験の準備から、成績会議まで。</p></div></div>' + (A.tipsBand ? A.tipsBand("test") : "") + (ui.form === "new" ? termForm() : panel("p-ts", "はじめに", "", '<p style="margin-top:0">試験の初日・成績の提出期限・成績会議の日を入れると、作業が自動で並びます。</p><div class="btns"><button class="btn on" data-sact="t-new">＋ 学期を作る</button></div><p class="note">今の「テスト・成績 総合ボード」の内容を引き継ぐときは、「学期の設定」から読み込めます。</p>'));
     }
     const all = mine(), op = open(), over = op.filter(t => diff(t.due) < 0), w1 = op.filter(t => diff(t.due) >= 0 && diff(t.due) <= 7), m1 = op.filter(t => diff(t.due) > 7 && diff(t.due) <= 30);
     const pct = all.length ? Math.round(100 * (all.length - op.length) / all.length) : 0;
     const dd = (lbl, d) => { const n = diff(d); return '<div class="tsd"><span>' + lbl + '</span><b class="num">' + md(d) + '</b><small>' + (n > 0 ? "あと" + n + "日" : n === 0 ? "今日" : "終了") + "</small></div>"; };
     h += '<div class="pghd"><div><h2 class="pgt">TEST</h2><p class="pgs">' + esc(T.name) + "</p></div>" + '<div class="pgd num">' + md(today()) + " <small>" + "日月火水木金土"[new Date().getDay()] + "曜日</small></div></div>";
-    h += impPanel();
+    h += (A.tipsBand ? A.tipsBand("test") : "");
     if (Q.S.terms.length > 1) h += '<select id="ts_sel" data-schg="sel" style="width:auto;margin:0 0 12px">' + Q.S.terms.map(t => '<option value="' + t.id + '"' + (t.id === Q.S.cur ? " selected" : "") + ">" + esc(t.name) + "</option>").join("") + "</select>";
     h += '<div class="tsdates">' + dd("試験の初日", T.E) + dd("成績の提出", T.G) + dd("成績会議", T.M) + "</div>";
     h += '<div class="tskpi"><div class="k"><b>' + pct + '%</b><span>進み（' + (all.length - op.length) + "/" + all.length + '件）</span></div><div class="k' + (over.length ? " bad" : "") + '"><b>' + over.length + '</b><span>期限超過</span></div><div class="k' + (w1.length ? " warn" : "") + '"><b>' + w1.length + '</b><span>7日以内</span></div><div class="k"><b>' + m1.length + "</b><span>8〜30日先</span></div></div>";
@@ -273,6 +273,12 @@
     }
     return o || '<p class="note">（本文がありません）</p>';
   }
+  A.seiseki.md2h = md2h;
+  A.seiseki.tips = function () {
+    if (!Q.ready || !Q.S) return [];
+    return tipList().map(d => { const t = tagOf(d.tag); return { src: "test", id: d.id, t: d.t, cls: tgc(d).trim(), tag: t ? t.n : "", href: goLink(d) ? dl(d)[0].u : "", n: dl(d).length,
+      detail: () => '<div class="tsmv-in" style="margin-top:8px">' + (d.b.trim() ? md2h(d.b) : "") + "</div>" + (dl(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") }; });
+  };
   const docMatch = d => { const q = ui.dq.trim().toLowerCase(); return (!ui.dtag || d.tag === ui.dtag) && (!q || (d.t + " " + d.b).toLowerCase().includes(q)); };
   function docCard(d, i) {
     const t = tagOf(d.tag), ed = ui.dedit === d.id, k = "d" + d.id;

@@ -149,6 +149,7 @@
     grid: '<rect x="3.5" y="5.5" width="17" height="13" rx="1.5"/><path d="M3.5 10h17M9.2 5.5v13M14.8 5.5v13"/>',
     unit: '<path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/>',
     sum: '<path d="M5 20V11M12 20V4M19 20v-6"/>',
+    memo: '<path d="M5 4.5h10.5a2.5 2.5 0 0 1 2.5 2.5v13H7.5A2.5 2.5 0 0 1 5 17.5z"/><path d="M5 17.5A2.5 2.5 0 0 1 7.5 15H18M9 8.5h5"/>',
     lib: '<path d="M5 4.5h10.5a2.5 2.5 0 0 1 2.5 2.5v13H7.5A2.5 2.5 0 0 1 5 17.5z"/><path d="M5 17.5A2.5 2.5 0 0 1 7.5 15H18M9 8.5h5"/>',
     home: '<path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/><path d="M10 20v-6h4v6"/>',
     year: '<rect x="3.5" y="4.5" width="17" height="16" rx="2"/><path d="M3.5 9h17M8 4.5v-2M16 4.5v-2"/><path d="M7.5 13h3M13.5 13h3M7.5 16.5h3"/>',
@@ -172,7 +173,7 @@
     gear: '<circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8"/>'
   };
   const SIDE = [
-    ["授業", "class", [["today", "今日"], ["plan", "計画表"], ["grid", "一覧"], ["unit", "単元別"], ["sum", "サマリー"], ["lib", "資料"]]],
+    ["授業", "class", [["today", "今日"], ["plan", "計画表"], ["grid", "一覧"], ["unit", "単元別"], ["sum", "サマリー"], ["lib", "資料"], ["memo", "手順・メモ"]]],
     ["校務", "work", [["home", "ホーム"], ["year", "年間"], ["links", "リンク集"], ["docs", "手順・メモ"], ["cal", "カレンダー"], ["set", "校務の設定"]]],
     ["テスト成績", "test", [["home", "ホーム"], ["tasks", "作業一覧"], ["print", "印刷枚数"], ["links", "リンク集"], ["man", "手順・メモ"], ["set", "学期の設定"]]],
     ["勤怠", "kin", [["home", "ダッシュボード"], ["cal", "カレンダー"], ["yk", "有給"], ["ot", "超過勤務"], ["fh", "振替休日"], ["ev", "行事予定"], ["set", "勤怠の設定"]]]
@@ -226,7 +227,7 @@
     }
     $("sub").textContent = A.st.term.name + "（" + J.md(A.st.term.start) + "〜" + J.md(A.st.term.end) + "）";
     $("asof").value = A.ui.asof;
-    ["today", "plan", "grid", "unit", "sum", "lib"].forEach(t => $("tab-" + t).setAttribute("aria-selected", A.ui.tab === t));
+    ["today", "plan", "grid", "unit", "sum", "lib", "memo"].forEach(t => $("tab-" + t).setAttribute("aria-selected", A.ui.tab === t));
     document.querySelector(".wrap").classList.toggle("wide", A.ui.tab === "grid");
     const old = document.querySelector(".gridwrap");
     const keep = old && !A.ui.gridReset ? { t: old.scrollTop, l: old.scrollLeft } : null;

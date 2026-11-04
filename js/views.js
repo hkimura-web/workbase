@@ -213,6 +213,7 @@
     A.liveRows = today;
     if (isToday) h += liveHtml(today);
     const wkP = A.work ? A.work.todayPanel() : "";
+    h += A.tipsBand ? A.tipsBand("class") : "";
     h += '<div class="tworow' + (wkP ? (wkP.indexOf("p-slim") >= 0 ? " slim" : "") : " one") + '">' + nowP + wkP + "</div>";
     h += A.seiseki ? A.seiseki.todayPanel() : "";
     h += panel("p-rem", "担当クラスの授業進度", "残りの授業時間（" + md(asof) + "から）", tiles);

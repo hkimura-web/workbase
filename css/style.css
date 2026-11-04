@@ -921,3 +921,14 @@ body.kinmode .pgt{color:var(--kn-ink)}
 .wdoc .wlrow{display:grid;grid-template-columns:minmax(90px,1fr) 2fr auto;gap:6px;margin:5px 0}.wdoc .wlrow input{margin:0}
 .wleg{margin:0 0 6px}
 @media (max-width:640px){.wdoc .wlrow{grid-template-columns:1fr}.tstg{grid-template-columns:1fr 1fr}}
+
+/* 共通の重要Tips帯 */
+.p-tips .wtp.tgx{font-size:12px;padding:2px 9px;margin:3px 3px 0 0;border-radius:12px;line-height:1.5}
+.tpband .tprow{display:flex;gap:8px;align-items:flex-start;padding:2px 0}
+.tpband .tplab{flex:none;min-width:34px;text-align:center;font-size:10px;font-weight:700;border-radius:6px;padding:3px 6px;margin-top:4px;color:#fff;letter-spacing:.04em}
+.tpband .tb-class{background:#6b86b8}.tpband .tb-work{background:#5aa574}.tpband .tb-test{background:#d6458a}
+.tpband .tpchips{flex:1;min-width:0}
+.tpband .tpmore{margin-top:6px;border-top:1px dashed var(--line);padding-top:4px}
+.tpband .tpmore>summary{font-size:11px;color:var(--muted);cursor:pointer;padding:2px 0}
+@media (max-width:640px){.tpband .tplab{min-width:30px;padding:3px 4px}}
+@media (max-width:899px){.tabbar .ctabs{grid-template-columns:repeat(7,1fr)}.tabbar .ctabs .tab{font-size:10px;letter-spacing:-.04em}}

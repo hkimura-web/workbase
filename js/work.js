@@ -253,6 +253,11 @@
   const lnkH = d => dlinks(d).map(x => '<a class="btn wlnk" href="' + esc(x.u) + '" target="_blank" rel="noopener noreferrer">' + esc(x.t) + " ↗</a>").join("");
   /* ボタンを押したとき: 自動＝リンクが1つで説明が空ならすぐ開く（複数ならリンクの選択、説明があれば説明）。手で固定もできる */
   function goLink(d) { const n = dlinks(d).length; if (!n) return false; if (d.go === "link") return true; if (d.go === "detail") return false; return n === 1 && !String(d.b || "").trim(); }
+  A.work.tips = function () {
+    if (!W.ready || !W.S) return [];
+    return tipList().map(d => ({ src: "work", id: d.id, t: d.t, cls: "t-" + (d.tag || "none"), tag: tagName(d.tag), href: goLink(d) ? dlinks(d)[0].u : "", n: dlinks(d).length, sortable: true,
+      detail: () => '<div style="margin-top:8px">' + nl(d.b) + "</div>" + (dlinks(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") + imgs(d) }));
+  };
   function tipsH() {
     const l = tipList(), used = TAGS.filter(t => l.some(d => d.tag === t[0])), sorting = ui.tipSort;
     const btn = d => (goLink(d) && !sorting) ? '<a class="wtp t-' + esc(d.tag || "none") + '" href="' + esc(dlinks(d)[0].u) + '" target="_blank" rel="noopener noreferrer" title="押すと資料がすぐ開きます">' + esc(d.t) + ' <span class="wgo">↗</span></a>' : '<button class="wtp t-' + esc(d.tag || "none") + '" data-wact="tip" data-id="' + d.id + '"' + (dlinks(d).length > 1 ? ' title="押すとリンクを選べます"' : "") + ">" + esc(d.t) + (dlinks(d).length > 1 ? ' <span class="wgo">▾' + dlinks(d).length + "</span>" : "") + "</button>";
@@ -273,7 +278,7 @@
     h += askH();
     if (W.conflict) h += '<div class="banner err"><div>別の端末で先に更新されています。</div><div class="btns"><button class="btn" data-wact="reload">最新を読み込み直す</button></div></div>';
     if (due.length) h += panel("p-work", "期限が近い校務", due.length + "件", due.map(x => item(x.t, x.m, dueTag(x))).join(""));
-    h += tipsH();
+    h += A.tipsBand ? A.tipsBand("work") : tipsH();
     h += panel("p-rem", s.y + "進捗状況", "", '<div class="note">' + esc(s.g === "J" ? "中学" : "高" + s.g) + "担当 ・ " + esc(W.st) + '</div><div class="bar"><i style="width:' + (all.length ? dn / all.length * 100 : 0) + '%"></i></div><div class="note">年間の進み: ' + dn + " / " + all.length + "</div>");
     if (late) h += panel("p-late", "⚠ 繰越・期限切れ", "", late);
     h += panel("p-now", "今月（" + m + "月）", "", inM(m).map(t => item(t, m)).join("") || '<p class="note" style="margin:0">なし</p>');
