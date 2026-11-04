@@ -269,6 +269,7 @@
     let late = ""; for (let i = 0; i < cur; i++) { const m = ORDER[i]; inM(m).filter(t => !isD(t, m)).forEach(t => { late += item(t, m, '<span class="late">' + m + "月</span>"); }); }
     const m = ORDER[Math.max(0, Math.min(11, cur))], nx = cur < 11 ? ORDER[cur + 1] : null;
     let h = A.work.morning();
+    h += '<div class="pghd"><div><h2 class="pgt">WORK</h2><p class="pgs">校務を、1年のながれで。</p></div><div class="pgd num">' + (new Date().getMonth() + 1) + "/" + new Date().getDate() + " <small>" + "日月火水木金土"[new Date().getDay()] + "曜日</small></div></div>";
     h += askH();
     if (W.conflict) h += '<div class="banner err"><div>別の端末で先に更新されています。</div><div class="btns"><button class="btn" data-wact="reload">最新を読み込み直す</button></div></div>';
     if (due.length) h += panel("p-work", "期限が近い校務", due.length + "件", due.map(x => item(x.t, x.m, dueTag(x))).join(""));

@@ -371,7 +371,7 @@
 
   /* ---------- 操作 ---------- */
   function refreshLib() { const r = $("libres"); if (r) r.innerHTML = results(); }
-  function ensureMat(u, i) { const un = A.st.units[u]; if (!un) return null; const m = un.mats = un.mats || []; while (m.length < 6) m.push({}); return m[i]; }
+  function ensureMat(u, i) { const un = A.st.units[u]; if (!un) return null; const m = un.mats = un.mats || []; while (m.length <= i) m.push({}); return m[i]; }
   function trimMats(u) { const un = A.st.units[u], m = un.mats || []; while (m.length && !Object.keys(m[m.length - 1]).length) m.pop(); if (!m.length) delete un.mats; }
 
   document.addEventListener("click", e => {

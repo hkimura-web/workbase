@@ -876,3 +876,11 @@ body.kinmode .tab[aria-selected="true"]{color:var(--kn-ink)}
   .tabbar .ktabs{grid-template-columns:repeat(7,1fr)}.tabbar .ktabs .tab{font-size:9.5px;letter-spacing:-.04em}
   .modeseg button{padding:6px 2px;font-size:13px;letter-spacing:0}
 }
+/* 授業進度の「別の内容」は、明るい紫（薄め） */
+.m-free{background:#c3aaf0}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .m-free{background:#a58be0}}
+:root[data-theme="dark"] .m-free{background:#a58be0}
+/* 単元の「教材とリンク」の折りたたみ */
+.matdet{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:6px 12px;background:var(--surface)}
+.matdet>summary{cursor:pointer;font-weight:700;padding:4px 0}
+.matdet>summary .note{font-weight:400}

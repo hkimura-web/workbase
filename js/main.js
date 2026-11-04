@@ -511,9 +511,19 @@
         const nm = tu.name;
         if (Object.keys(A.st.units).some(k => A.st.units[k].name === nm)) { toast("「" + nm + "」は、もう単元にあります"); break; }
         const id = newUnit(nm, $("tb_subj").value), un = A.st.units[id];
-        un.mats = tu.mats.slice(0, 6).map(x => ({ n: x.n })).concat(tu.manabi && tu.mats.length < 6 ? [{ n: "学びを広げる：" + tu.manabi.n }] : []);
+        un.mats = tu.mats.slice(0, 4).map(x => ({ n: x.n })).concat(tu.manabi && tu.mats.length < 4 ? [{ n: "学びを広げる：" + tu.manabi.n }] : []);
         un.tb = bk.book + " " + pt.part + (tu.no ? " " + tu.no : "");
         commit(); toast("「" + nm + "」を追加しました（教材名も入っています）"); break;
+      }
+      case "un-del": {
+        const un = A.st.units[id]; if (!un) break;
+        const used = []; A.st.classes.forEach(c => { const n = (A.st.plans[c.id] || []).filter(b => b.u === id).length; if (n) used.push(c.name + " " + n + "コマ"); });
+        const recN = Object.keys(A.st.rec).filter(k => A.st.rec[k] && A.st.rec[k].fu === id).length;
+        if (used.length || recN) { window.alert("「" + un.name + "」は、" + (used.length ? "計画（" + used.join("、") + "）" : "") + (used.length && recN ? "と" : "") + (recN ? "記録（" + recN + "件）" : "") + "で使われているので、削除できません。\n\n先に、計画表でこの単元のコマを外してから、もう一度お試しください。"); break; }
+        if (!window.confirm("単元「" + un.name + "」を削除します。（教材・授業内容の予定・振り返りメモも消えます）\nよろしいですか？")) break;
+        delete A.st.units[id]; delete A.st.unitNotes[id];
+        Object.keys(A.ui.lastUnit || {}).forEach(c => { if (A.ui.lastUnit[c] === id) delete A.ui.lastUnit[c]; });
+        commit(); toast("単元を削除しました"); break;
       }
       case "addunit": {
         const nm = $("newunit").value.trim(); if (!nm) { toast("単元名を入れてください"); break; }
@@ -555,7 +565,7 @@
       const f = t.dataset.f, i = Number(t.dataset.i), val = v.trim();
       if (f !== "n" && val && !/^https?:\/\//i.test(val)) { toast("https:// から始まるアドレスを入れてください"); return; }
       const m = u.mats = u.mats || [];
-      while (m.length < 6) m.push({});
+      while (m.length <= i) m.push({});
       if (val) m[i][f] = val; else delete m[i][f];
       while (m.length && !Object.keys(m[m.length - 1]).length) m.pop();
       if (!m.length) delete u.mats;
@@ -642,6 +652,8 @@
     d.close();
   });
   $("celldlg").addEventListener("close", () => { A.ui.cell = null; render(); });
+  /* 教材とリンクの開き・閉じは、自分で押したときだけ変わる */
+  document.addEventListener("toggle", e => { const d = e.target; if (d && d.dataset && d.dataset.mat !== undefined && d.classList.contains("matdet")) { A.ui.matOpen = A.ui.matOpen || {}; if (d.open) A.ui.matOpen[d.dataset.mat] = true; else delete A.ui.matOpen[d.dataset.mat]; } }, true);
   window.addEventListener("beforeunload", e => { if (dirty && mode === "github") { e.preventDefault(); e.returnValue = ""; } });
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden" && dirty) { clearTimeout(timer); flush(); }

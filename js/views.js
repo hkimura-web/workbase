@@ -141,15 +141,15 @@
       (x.x || []).map(e => ' <a class="ml" href="' + esc(e.u) + '" target="_blank" rel="noopener noreferrer" title="' + esc(e.l) + '">' + esc(A.shortLabel ? A.shortLabel(e.l) : e.l) + "</a>").join("") + "</div>").join("") + "</div>";
   }
   function matForm(u) {
-    const un = A.st.units[u], m = un.mats || [];
-    let h = '<div class="csec" style="margin-top:14px">教材とリンク（教科書の教材を最大6つ。リンクは一覧からも開けます）</div>';
-    for (let i = 0; i < 6; i++) {
+    const un = A.st.units[u], m = un.mats || [], used = m.filter(x => x && Object.keys(x).length).length, nb = Math.max(4, m.length);
+    let h = '<details class="matdet" data-mat="' + u + '"' + (A.ui.matOpen && A.ui.matOpen[u] ? " open" : "") + '><summary>教材とリンク（最大4つ）<span class="note">' + (used ? "　登録 " + used + "件" : "　未登録") + '</span></summary><p class="note" style="margin:6px 0 0">教科書の教材を、最大4つまで。リンクは一覧からも開けます。</p>';
+    for (let i = 0; i < nb; i++) {
       const x = m[i] || {};
       h += '<div class="matbox"><label class="small" for="mn_' + u + i + '">教材' + (i + 1) + "の名前</label>" +
         '<input type="text" id="mn_' + u + i + '" data-act="mat" data-u="' + u + '" data-i="' + i + '" data-f="n" value="' + esc(x.n || "") + '" placeholder="' + (i === 0 ? "例：羅生門" : "") + '">' +
         '<div class="matlinks">' + MATF.map(f => '<div><label class="small" for="m_' + u + i + f[0] + '">' + f[1] + '</label><input type="url" id="m_' + u + i + f[0] + '" data-act="mat" data-u="' + u + '" data-i="' + i + '" data-f="' + f[0] + '" value="' + esc(x[f[0]] || "") + '" placeholder="https://…" autocomplete="off"></div>').join("") + "</div>" + (A.views.matPicker ? A.views.matPicker(u, i) : "") + (A.views.matExtra ? A.views.matExtra(u, i) : "") + "</div>";
     }
-    return h;
+    return h + "</details>";
   }
 
   /* ---------- いま授業中／次の授業 ---------- */
@@ -412,7 +412,7 @@
         else if (al != null && al !== "") { const diff = x.slotsU - al; d = diff === 0 ? '<span class="pill p-ok">配当どおり</span>' : '<span class="pill p-warn">' + (diff > 0 ? "+" : "") + diff + "</span>"; }
         b += "<tr><td>" + esc(c.name) + '</td><td><input class="num-in" type="number" min="0" step="1" inputmode="numeric" aria-label="' + esc(c.name) + 'の配当" data-act="allot" data-u="' + u + '" data-c="' + c.id + '" value="' + (al == null ? "" : al) + '"></td><td>' + x.planned + "</td><td>" + x.actual + (x.swapped ? ' <span class="small muted">（別の内容で ' + x.swapped + '）</span>' : "") + "</td><td>" + (x.start ? md(x.start) + "〜" + md(x.end) : "−") + "</td><td>" + d + "</td></tr>";
       });
-      b += '</tbody></table></div>' + prevHtml(un) + (A.views.past ? A.views.past(u) : "") + '<div style="margin-top:12px"><button class="btn" data-act="flow-open" data-u="' + u + '">この単元の予定を各クラスの計画に入れる</button></div>' + matForm(u) + '<label class="small unitnote" for="ui_' + u + '">この単元の授業内容の予定（1行＝1コマ。一覧の画面で選んで使えます）</label><textarea id="ui_' + u + '" data-act="un-items" data-id="' + u + '" style="min-height:110px" placeholder="例：\n導入・語句の確認\n本文の読解①\n本文の読解②\nまとめ・小テスト">' + esc((un.items || []).join("\n")) + '</textarea><label class="small unitnote" for="un_' + u + '">学期末の振り返りメモ</label><textarea id="un_' + u + '" data-act="un" data-id="' + u + '" placeholder="うまくいった点、時間がかかった点、次回の工夫">' + esc(st.unitNotes[u] || "") + "</textarea>";
+      b += '</tbody></table></div>' + prevHtml(un) + (A.views.past ? A.views.past(u) : "") + '<div style="margin-top:12px"><button class="btn" data-act="flow-open" data-u="' + u + '">この単元の予定を各クラスの計画に入れる</button></div>' + matForm(u) + '<label class="small unitnote" for="ui_' + u + '">この単元の授業内容の予定（1行＝1コマ。一覧の画面で選んで使えます）</label><textarea id="ui_' + u + '" data-act="un-items" data-id="' + u + '" style="min-height:110px" placeholder="例：\n導入・語句の確認\n本文の読解①\n本文の読解②\nまとめ・小テスト">' + esc((un.items || []).join("\n")) + '</textarea><label class="small unitnote" for="un_' + u + '">学期末の振り返りメモ</label><textarea id="un_' + u + '" data-act="un" data-id="' + u + '" placeholder="うまくいった点、時間がかかった点、次回の工夫">' + esc(st.unitNotes[u] || "") + '</textarea><div style="margin-top:14px;text-align:right"><button class="btn sm danger" data-act="un-del" data-id="' + u + '">この単元を削除</button></div>';
       h += panel("p-soon", esc(un.name), un.subj || "共通", b);
     });
     return h + panel("p-ev", "単元を追加", "", '<div class="addrow" style="grid-template-columns:160px 1fr auto"><select id="newunit_s" aria-label="科目">' + ["", ...subjectList()].map(x => '<option value="' + esc(x) + '">' + esc(x || "共通") + "</option>").join("") + '</select><input type="text" id="newunit" aria-label="単元名" placeholder="単元名（例：羅生門）"><button class="btn on" data-act="addunit">追加</button></div>' + (A.views.tbPicker ? A.views.tbPicker() : ""));
