@@ -8,7 +8,7 @@
    "ls": [],
    "t": "課題評価・漢字テスト",
    "tag": "jugyo",
-   "tip": false,
+   "tip": true,
    "u": "https://docs.google.com/spreadsheets/d/1o8vDY4fioLx_9b_RAPE8Vnz-8zgJQi-70nSb9lwfVak/edit?gid=471861910#gid=471861910",
    "ut": ""
   },
@@ -83,6 +83,6 @@
   }
  ],
  "tipOrder": [],
- "upd": 1793845896260,
+ "upd": 1793845901977,
  "v": 1
 }
