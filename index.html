@@ -7,6 +7,7 @@
 <meta name="description" content="授業の予定と記録を管理するアプリ。データはこのリポジトリのJSONに保存されます。">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
+<meta name="wb-build" content="20261105a">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="css/style.css?v=47">
@@ -131,5 +132,23 @@
 <script src="js/jmemo.js?v=4"></script>
 <script src="js/tipsband.js?v=3"></script>
 <script src="js/main.js?v=9"></script>
+<script>
+/* 古い版が残っていたら知らせる（スマホのホーム画面アプリなどで、前の画面のまま固まるのを防ぐ） */
+(function () {
+  var mine = (document.querySelector('meta[name="wb-build"]') || {}).content, shown = false;
+  function chk() {
+    if (shown || document.hidden || !window.fetch) return;
+    fetch("index.html?t=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : ""; }).then(function (t) {
+      var m = /name="wb-build" content="([^"]+)"/.exec(t || ""); if (!m || m[1] === mine) return;
+      shown = true; var b = document.createElement("div");
+      b.setAttribute("style", "position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#fff3cd;color:#5a4300;border-top:2px solid #e0b84a;padding:10px 14px;font-size:14px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap");
+      b.innerHTML = '<span>新しい版があります。</span><button style="font:inherit;padding:6px 14px;border-radius:8px;border:1px solid #b88a00;background:#fff;cursor:pointer">読み込み直す</button>';
+      b.querySelector("button").onclick = function () { location.replace(location.pathname + "?v=" + Date.now()); };
+      document.body.appendChild(b);
+    }).catch(function () {});
+  }
+  setTimeout(chk, 3000); window.addEventListener("focus", chk); document.addEventListener("visibilitychange", chk);
+})();
+</script>
 </body>
 </html>
