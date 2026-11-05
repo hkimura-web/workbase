@@ -26,6 +26,28 @@
       un.subj = ks.length === 1 ? ks[0] : "";
     });
   }
+  /* 古いデータ（2時間続きを1コマとして記録していた）を、1時限ごとのコマに移す。記録・授業なし・しるしを各時限にコピーする */
+  function migrateSlots(st) {
+    ["rec", "off", "flags"].forEach(m => {
+      const map = st[m]; if (!map) return;
+      Object.keys(map).forEach(k => {
+        const a = k.split("|"); if (a.length !== 2) return;
+        const cls = st.classes.find(c => c.id === a[0]); if (!cls) return;
+        const w = pd(a[1]).getDay(), pers = cls.tt.filter(t => t[0] === w).map(t => t[1]).sort((x, y) => x - y);
+        if (pers.length < 2) return;
+        const v = map[k]; delete map[k];
+        pers.forEach((p, i) => {
+          const nk = k + "|" + p; if (map[nk] != null) return;
+          if (m === "rec" && v && typeof v === "object") {
+            const r = Object.assign({}, v);
+            if (r.s === "part" && i < pers.length - 1) r.s = "done";   /* 「途中まで」は最後の時限だけ */
+            if (i > 0) delete r.n;                                      /* 記録メモは最初の時限だけ */
+            map[nk] = r;
+          } else map[nk] = v;
+        });
+      });
+    });
+  }
   const hrsOf = b => (b && b.h) || 1;
 
   /* 学期内の各日について、その授業の時間割に当たる日を「コマ」にする（1日1コマ、hrs=その日の時数）。 */
@@ -35,8 +57,12 @@
       const w = pd(d).getDay();
       const pers = cls.tt.filter(t => t[0] === w).map(t => t[1]).sort((a, b) => a - b), hrs = pers.length;
       if (!hrs) continue;
-      const key = cls.id + "|" + d;
-      out.push({ key, date: d, hrs, periods: pers, off: (st.off && st.off[key]) || null, ev: (st.events && st.events[d]) || (api.evExtra ? api.evExtra(d) : "") || "" });
+      /* 2時間続きなど、1日に複数の時限がある授業は、1時限ごとに別のコマにする（キーは「クラス|日付|時限」）。1時限だけの日は今までどおり「クラス|日付」 */
+      const multi = hrs > 1;
+      (multi ? pers : [null]).forEach(p => {
+        const key = cls.id + "|" + d + (multi ? "|" + p : "");
+        out.push({ key, date: d, hrs: 1, periods: multi ? [p] : pers, off: (st.off && st.off[key]) || null, ev: (st.events && st.events[d]) || (api.evExtra ? api.evExtra(d) : "") || "" });
+      });
     }
     return out;
   }
@@ -45,20 +71,23 @@
    * 「途中まで」のコマでは最後のブロックが次のコマに続く。 */
   function project(st, cls) {
     const blocks = st.plans[cls.id] || [];
-    let p = 0, contFrom = -1;
+    let p = 0, contFrom = -1, rem = 0, cur = null;
     const rows = buildSlots(st, cls).map(s => {
       if (s.off) return Object.assign({}, s, { kind: "off", blocks: [], used: 0, rec: {} });
       const rec = st.rec[s.key] || {}, stt = rec.s || "plan";
       if (stt === "cancel" || stt === "free") return Object.assign({}, s, { kind: stt, blocks: [], used: 0, rec });
       const assigned = [];
-      let used = 0;
-      const cont = contFrom === p && p < blocks.length;
-      while (used < s.hrs && p < blocks.length) { const b = blocks[p]; assigned.push(b); used += hrsOf(b); p++; }
-      if (stt === "part" && assigned.length) { p--; contFrom = p; } else contFrom = -1;
+      let cont = false, b2 = false;
+      if (rem > 0 && cur) { assigned.push(cur); rem--; b2 = true; }          /* 2時間ぶんのブロックの、2時間目以降 */
+      else if (p < blocks.length) {
+        cont = contFrom === p;
+        cur = blocks[p]; assigned.push(cur); rem = hrsOf(cur) - 1; p++;
+      }
+      if (stt === "part" && assigned.length) { p--; contFrom = p; rem = 0; cur = null; } else contFrom = -1;
       const kind = assigned.length || stt !== "plan" ? stt : "empty";
-      return Object.assign({}, s, { kind, blocks: assigned, used, cont, rec });
+      return Object.assign({}, s, { kind, blocks: assigned, used: assigned.length, cont, b2, rec });
     });
-    return { rows, left: blocks.slice(p) };
+    return { rows, left: blocks.slice(p), rem };
   }
 
   function classStats(st, cls, asof) {
@@ -67,7 +96,7 @@
     const remain = fut.reduce((a, r) => a + r.hrs, 0);
     const blank = r => r.blocks.filter(b => !(b.t || "").trim()).reduce((x, b) => x + hrsOf(b), 0);
     const spare = fut.reduce((a, r) => a + Math.max(0, r.hrs - r.used) + Math.min(r.hrs, blank(r)), 0);
-    const needed = pj.left.reduce((a, b) => a + hrsOf(b), 0);
+    const needed = pj.left.reduce((a, b) => a + hrsOf(b), 0) + (pj.rem || 0);
     return { pj, remain, needed, spare };
   }
 
@@ -78,8 +107,8 @@
     let actual = 0, slotsU = 0, start = null, end = null;
     pj.rows.forEach(r => r.blocks.forEach(b => {
       if (b.u !== u) return;
-      slotsU += hrsOf(b);
-      if (r.kind === "done" || r.kind === "part") actual += hrsOf(b);
+      slotsU += 1;
+      if (r.kind === "done" || r.kind === "part") actual += 1;
       if (!start) start = r.date;
       end = r.date;
     }));
@@ -111,6 +140,6 @@
   }
   const toJSON = st => JSON.stringify(stable(st), null, 1) + "\n";
 
-  const api = { subjectOf, migrateUnits, DOW, pad, ds, pd, md, dw, addDays, esc, clone, hrsOf, buildSlots, project, classStats, unitStats, firstPendingIndex, toJSON };
+  const api = { subjectOf, migrateUnits, migrateSlots, DOW, pad, ds, pd, md, dw, addDays, esc, clone, hrsOf, buildSlots, project, classStats, unitStats, firstPendingIndex, toJSON };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.JD = api;
 })(typeof window !== "undefined" ? window : globalThis);

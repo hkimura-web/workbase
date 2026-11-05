@@ -82,7 +82,7 @@
     if (r.kind === "cancel") return "休講";
     if (r.kind === "free") return freeTitle(r);
     if (r.kind === "empty") return "この日に入れる計画がありません";
-    return (r.cont ? "（続き）" : "") + (r.blocks.map(b => b.t).filter(Boolean).join("　／　") || "（内容未入力）");
+    return ((r.cont || r.b2) ? "（続き）" : "") + (r.blocks.map(b => b.t).filter(Boolean).join("　／　") || "（内容未入力）");
   }
   function pillFor(r) {
     const waiting = r.date < A.ui.asof && r.kind === "plan";
@@ -506,7 +506,7 @@
     else if (k === "free") text = freeTitle(r);
     else if (k === "empty") text = "（計画なし）";
     else if (blank) text = "（内容を入力）";
-    else text = (r.cont ? "（続き）" : "") + r.blocks.map(b => b.t).filter(Boolean).join(" ／ ");
+    else text = ((r.cont || r.b2) ? "（続き）" : "") + r.blocks.map(b => b.t).filter(Boolean).join(" ／ ");
     if (k === "done") mark = '<span class="gk ok">実施</span>';
     else if (k === "part") mark = '<span class="gk mid">途中</span>';
     else if (waiting) mark = '<span class="gk wait">記録待ち</span>';
@@ -523,7 +523,7 @@
     if (A.ui.gridSubj !== "all") cls = cls.filter(c => subj(c.name) === A.ui.gridSubj);
     if (A.ui.gridOrder === "subject") cls = cls.map((c, i) => ({ c, i })).sort((a, b) => (subj(a.c.name) === subj(b.c.name) ? 0 : subj(a.c.name) === "gen" ? -1 : 1) || a.i - b.i).map(x => x.c);
     const stats = {}, rmap = {};
-    cls.forEach(c => { stats[c.id] = J.classStats(st, c, asof); rmap[c.id] = {}; stats[c.id].pj.rows.forEach(r => { rmap[c.id][r.date] = r; }); });
+    cls.forEach(c => { stats[c.id] = J.classStats(st, c, asof); rmap[c.id] = {}; stats[c.id].pj.rows.forEach(r => { (rmap[c.id][r.date] = rmap[c.id][r.date] || []).push(r); }); });
     const prefixes = [];
     st.classes.forEach(c => { const p = parts(c.name)[0]; if (prefixes.indexOf(p) < 0) prefixes.push(p); });
     const grp = c => prefixes.indexOf(parts(c.name)[0]) % 4 + 1;
@@ -539,17 +539,28 @@
     const lastUnit = {};
     for (let d = st.term.start; d <= st.term.end; d = addDays(d, 1)) {
       const w = J.pd(d).getDay(), ev = (A.evOf ? A.evOf(d) : st.events[d]) || "";
-      let active = 0, cells = "";
+      /* 2時間続きの授業は、1時限ごとに別の行にする（日付と行事は縦にまとめる） */
+      const nR = Math.max(1, ...cls.map(c => (rmap[c.id][d] || []).length));
+      let active = 0; const cellsBy = [];
+      for (let j = 0; j < nR; j++) cellsBy.push("");
       cls.forEach(c => {
-        const r = rmap[c.id][d];
-        if (!r) { cells += '<td class="gc"></td>'; return; }
-        let chip = "";
-        if (r.blocks.length) chip = r.blocks.map(b => unitName(b.u)).filter((x, i, arr) => arr.indexOf(x) === i).join("・");
-        if (r.kind !== "off") active++;
-        cells += gridCell(r, c, asof, chip);
+        const rs = rmap[c.id][d] || [];
+        if (!rs.length) { cellsBy[0] += '<td class="gc"' + (nR > 1 ? ' rowspan="' + nR + '"' : "") + "></td>"; return; }
+        rs.forEach((r, j) => {
+          let chip = "";
+          if (r.blocks.length) chip = r.blocks.map(b => unitName(b.u)).filter((x, i, arr) => arr.indexOf(x) === i).join("・");
+          if (r.kind !== "off") active++;
+          let td = gridCell(r, c, asof, chip);
+          if (rs.length === 1 && nR > 1) td = td.replace("<td ", '<td rowspan="' + nR + '" ');
+          cellsBy[j] += td;
+        });
       });
       const wk = w === 0 || w === 6;
-      h += '<tr class="' + (d === asof ? "gr-today " : "") + (w === 1 ? "mon " : "") + (!active ? (wk ? "wk" : "none") : "") + '"' + (d === asof ? ' id="gr-today"' : "") + '><td class="c-date"><b class="num">' + md(d) + '</b><span class="dow">' + dw(d) + '</span></td><td class="c-ev" title="' + esc(ev) + '">' + esc(clip(ev, 70)) + "</td>" + cells + "</tr>";
+      const cls0 = (d === asof ? "gr-today " : "") + (w === 1 ? "mon " : "") + (!active ? (wk ? "wk" : "none") : "");
+      for (let j = 0; j < nR; j++) {
+        h += '<tr class="' + cls0 + (j ? " gr-sub2" : "") + '"' + (d === asof && !j ? ' id="gr-today"' : "") + ">" +
+          (j ? "" : '<td class="c-date"' + (nR > 1 ? ' rowspan="' + nR + '"' : "") + '><b class="num">' + md(d) + '</b><span class="dow">' + dw(d) + '</span></td><td class="c-ev"' + (nR > 1 ? ' rowspan="' + nR + '"' : "") + ' title="' + esc(ev) + '">' + esc(clip(ev, 70)) + "</td>") + cellsBy[j] + "</tr>";
+      }
     }
     return h + "</tbody></table></div>";
   }

@@ -11,7 +11,7 @@
     ["rec", "off", "flags", "events", "units", "plans", "unitNotes"].forEach(k => { st[k] = st[k] || {}; });
     st.classes.forEach(c => { st.plans[c.id] = st.plans[c.id] || []; });
     Object.keys(st.units).forEach(u => { if (!Array.isArray(st.units[u].items)) st.units[u].items = []; });
-    J.migrateUnits(st);
+    J.migrateUnits(st); J.migrateSlots(st);
     return st;
   }
   function clampAsof() {
@@ -332,6 +332,8 @@
     if (j < 0 || j >= a.length) { toast(dir < 0 ? "これより前には動かせません" : "これより後ろには動かせません"); return; }
     [a[i], a[j]] = [a[j], a[i]]; A.ui.cellRefresh = true; commit();
   }
+  /* 「授業なし」は、同じ日の同じクラスの全時限に付ける（2時間続きでも、片方だけ残さない） */
+  function dayKeys(key) { const o = rowOf(key); if (!o || !o.c) return [key]; const a = key.split("|"); return J.project(A.st, o.c).rows.filter(x => x.date === a[1]).map(x => x.key); }
   function setRec(key, patch) {
     const nx = Object.assign({}, A.st.rec[key] || {}, patch);
     if (!nx.s || nx.s === "plan") { delete nx.s; delete nx.t; delete nx.sj; delete nx.fu; }
@@ -481,8 +483,8 @@
       case "gsub": A.ui.gridSubj = t.dataset.v; render(); break;
       case "gridtoday": { const g = document.querySelector(".gridwrap"); if (g) scrollGridToToday(g); break; }
       case "st": A.ui.cellRefresh = true; { const cur = (A.st.rec[k] || {}).s || "plan", v = t.dataset.v; setRec(k, { s: cur === v && v !== "plan" ? "plan" : v }); break; }
-      case "offset": A.ui.cellRefresh = true; A.st.off[k] = (A.evOf ? A.evOf(k.split("|")[1]) : A.st.events[k.split("|")[1]]) || "授業なし"; delete A.st.rec[k]; A.ui.open = null; commit(); break;
-      case "offclear": A.ui.cellRefresh = true; delete A.st.off[k]; commit(); break;
+      case "offset": { A.ui.cellRefresh = true; const why = (A.evOf ? A.evOf(k.split("|")[1]) : A.st.events[k.split("|")[1]]) || "授業なし"; dayKeys(k).forEach(x => { A.st.off[x] = why; delete A.st.rec[x]; }); A.ui.open = null; commit(); break; }
+      case "offclear": A.ui.cellRefresh = true; dayKeys(k).forEach(x => { delete A.st.off[x]; }); commit(); break;
       case "bup": shiftBlock(id, -1); break;
       case "bdn": shiftBlock(id, 1); break;
       case "bdel": { const c = planOf(id); if (c) { A.st.plans[c] = A.st.plans[c].filter(b => b.id !== id); A.ui.cellRefresh = true; commit(); } break; }
