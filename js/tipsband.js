@@ -5,7 +5,7 @@
   "use strict";
   const A = root.A, esc = root.JD.esc, $ = id => document.getElementById(id);
   const SRC = [["class", "授業", "jmemo", "memo"], ["work", "校務", "work", "docs"], ["test", "テスト", "seiseki", "man"]];
-  const ui = { more: false, q: "" }; let map = {};
+  const ui = { more: (function () { try { return localStorage.getItem("jd.tpmore") !== "0"; } catch (e) { return true; } })(), q: "" }; let map = {};
   const nf = x => String(x || "").normalize("NFKC").toLowerCase();
   const chip = (it, sorting) => {
     const wrap = h => sorting ? '<span class="wtpw" data-src="' + it.src + '" data-id="' + esc(it.id) + '"><span class="wgrip" aria-hidden="true">⠿</span>' + h + "</span>" : h;
@@ -23,7 +23,7 @@
     const rows = rowsOf().map(r => ({ k: r.k, n: r.n, all: r.l, l: q.length ? r.l.filter(it => q.every(w => nf(it.t + " " + it.tag + " " + (it.kw || "")).indexOf(w) >= 0)) : r.l }));
     const me = rows.find(r => r.k === scope), others = rows.filter(r => r.k !== scope && r.l.length);
     const row = r => '<div class="tprow"><span class="tplab tb-' + r.k + '">' + r.n + '</span><span class="tpchips">' + r.l.map(it => chip(it, sorting)).join("") + "</span></div>";
-    const cnt = others.reduce((a, r) => a + r.l.length, 0), openMore = ui.more || !me.l.length || q.length > 0;
+    const cnt = others.reduce((a, r) => a + r.l.length, 0), openMore = ui.more || q.length > 0;
     let b = "";
     if (sorting) b += '<p class="note" style="margin:0 0 6px">ボタンをつかんで、同じ段の中で動かしたい場所にドラッグして離してください。 <button class="btn sm" data-wact="tip-auto">自動の並びに戻す</button></p>';
     if (me.l.length) b += row(me);
@@ -62,7 +62,7 @@
     if (a.length && j.addDocs(JSON.parse(JSON.stringify(a)))) w.takeDocs(["jugyo"]);
     if (b.length && s.addDocs(JSON.parse(JSON.stringify(b)))) w.takeDocs(["seiseki"]);
   }, 1000);
-  document.addEventListener("toggle", e => { const d = e.target; if (d && d.classList && d.classList.contains("tpmore")) ui.more = d.open; }, true);
+  document.addEventListener("toggle", e => { const d = e.target; if (d && d.classList && d.classList.contains("tpmore")) { ui.more = d.open; try { localStorage.setItem("jd.tpmore", d.open ? "1" : "0"); } catch (x) { /* 保存できなくても動く */ } } }, true);
   document.addEventListener("click", e => {
     const t = e.target.closest && e.target.closest("[data-tbact]"); if (!t) return;
     const a = t.dataset.tbact;
