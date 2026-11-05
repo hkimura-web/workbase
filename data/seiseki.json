@@ -8,7 +8,7 @@
    "ls": [],
    "t": "採点ﾅﾋﾞ",
    "tag": "",
-   "tip": false,
+   "tip": true,
    "u": "https://saiten-navi.cloud/Home",
    "ut": ""
   },
@@ -765,6 +765,6 @@
   }
  ],
  "tipOrder": [],
- "upd": 1793847065674,
+ "upd": 1793847075370,
  "v": 1
 }
