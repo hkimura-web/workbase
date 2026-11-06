@@ -12,6 +12,14 @@
     st.classes.forEach(c => { st.plans[c.id] = st.plans[c.id] || []; });
     Object.keys(st.units).forEach(u => { if (!Array.isArray(st.units[u].items)) st.units[u].items = []; });
     J.migrateUnits(st); J.migrateSlots(st);
+    /* 特別日課。2026年度2学期だけ、最初に来週（面談週間）の分を入れておく（あとから画面で直せる・消せる） */
+    if (!Array.isArray(st.days)) {
+      st.days = [];
+      if (st.term && st.term.id === "2026-2") st.days = [
+        { id: "z1", from: "2026-11-09", to: "2026-11-10", name: "面談週間（40分授業）", off: [5, 6, 7], why: "面談", bell: { s: 532, len: 40, brk: 8 } },
+        { id: "z2", from: "2026-11-11", to: "2026-11-12", name: "模擬試験", off: "all", why: "模擬試験", bell: null },
+        { id: "z3", from: "2026-11-13", to: "2026-11-13", name: "面談週間（40分授業）", off: [5, 6, 7], why: "面談", bell: { s: 532, len: 40, brk: 8 } }];
+    }
     return st;
   }
   function clampAsof() {

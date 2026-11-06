@@ -14,9 +14,9 @@
   const cur = () => A.st.classes.find(c => c.id === A.ui.cls) || A.st.classes[0];
   /* 授業時間表（50分授業・8分休み）。分は「0時からの分」 */
   const BELL0 = { 1: [532, 582], 2: [590, 640], 3: [648, 698], 4: [706, 756], 5: [794, 844], 6: [852, 902], 7: [910, 960] };
-  const bellP = () => (A.work && A.work.bell ? A.work.bell().p : BELL0);
+  const bellP = d => { const base = A.work && A.work.bell ? A.work.bell().p : BELL0; return d && A.st ? J.bellFor(A.st, d, base) : base; };
   const hm = m => Math.floor(m / 60) + ":" + String(m % 60).padStart(2, "0");
-  function span(r) { const B = bellP(), ps = (r.periods || []).filter(p => B[p]); if (!ps.length) return null; return [B[Math.min.apply(null, ps)][0], B[Math.max.apply(null, ps)][1]]; }
+  function span(r) { const B = bellP(r.date), ps = (r.periods || []).filter(p => B[p]); if (!ps.length) return null; return [B[Math.min.apply(null, ps)][0], B[Math.max.apply(null, ps)][1]]; }
   const nowMin = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60; };
   /* 今日の授業で、終わったのにまだ記録がないコマ */
   const needRec = r => r.date === J.ds(new Date()) && (r.kind === "plan" || r.kind === "empty") && span(r) && nowMin() >= span(r)[1];
@@ -531,7 +531,7 @@
     let h = '<div class="gridbar">' + seg("gord", A.ui.gridOrder, [["class", "クラス順"], ["subject", "科目ごと"]]) +
       seg("gsub", A.ui.gridSubj, [["all", "すべて"], ["gen", "現代の国語"], ["lang", "言語文化"]]) +
       seg("gedit", A.ui.gridEdit ? "e" : "v", [["e", "編集"], ["v", "見るだけ"]]) +
-      '<button class="btn" data-act="gridtoday">今日の位置へ</button><button class="btn" data-act="carry-open" title="前の学期の計画・単元・教材を、この学期に写します">前の学期から引き継ぐ</button><button class="btn" data-act="url-open" title="各クラスのGoogle Classroomのリンクを設定します">Classroomリンク</button><button class="btn" data-act="flow-open" title="単元別タブで作った予定を、各クラスの計画に順に入れます">単元の予定を計画に入れる</button><span class="glegend"><span><i class="lg-gen"></i>現代の国語</span><span><i class="lg-lang"></i>言語文化</span><span><i style="background:var(--today-soft);border-color:var(--today)"></i>今日</span></span><span class="note">' + (A.ui.gridEdit ? "コマの中で単元・内容・記録を直接直せます。「詳細」で順番の入れ替えなど。" : "コマをタップすると、記録・休講・内容の書き換えができます。") + '</span></div>';
+      '<button class="btn" data-act="gridtoday">今日の位置へ</button><button class="btn" data-act="days-open" title="短縮授業・模試・面談週間など、その日だけ時間割が変わる日を入れます">特別日課</button><button class="btn" data-act="carry-open" title="前の学期の計画・単元・教材を、この学期に写します">前の学期から引き継ぐ</button><button class="btn" data-act="url-open" title="各クラスのGoogle Classroomのリンクを設定します">Classroomリンク</button><button class="btn" data-act="flow-open" title="単元別タブで作った予定を、各クラスの計画に順に入れます">単元の予定を計画に入れる</button><span class="glegend"><span><i class="lg-gen"></i>現代の国語</span><span><i class="lg-lang"></i>言語文化</span><span><i style="background:var(--today-soft);border-color:var(--today)"></i>今日</span></span><span class="note">' + (A.ui.gridEdit ? "コマの中で単元・内容・記録を直接直せます。「詳細」で順番の入れ替えなど。" : "コマをタップすると、記録・休講・内容の書き換えができます。") + '</span></div>';
     h += '<div class="gridwrap" tabindex="-1"><table class="gridt' + (A.ui.gridEdit ? " edit" : "") + '" style="--n:' + cls.length + '"><colgroup><col class="col-d"><col class="col-e">' + cls.map(() => '<col class="col-c">').join("") + "</colgroup><thead><tr>" +
       '<th class="c-date" rowspan="2">日</th><th class="c-ev" rowspan="2">行事</th>' +
       cls.map(c => '<th class="gh1 hs-' + subj(c.name) + '">' + (c.url ? '<a class="gcl" href="' + esc(c.url) + '" target="_blank" rel="noopener noreferrer" title="Google Classroomを新しいタブで開く">' + esc(c.short) + ' <span aria-hidden="true">↗</span></a>' : '<button class="gcl none" data-act="url-open" title="Google Classroomのリンクを設定する">' + esc(c.short) + ' <span aria-hidden="true">＋</span></button>') + "<small>" + esc(c.tt.map(t => J.DOW[t[0]] + t[1]).join("・")) + "</small></th>").join("") + "</tr><tr>" +

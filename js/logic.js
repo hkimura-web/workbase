@@ -48,6 +48,15 @@
       });
     });
   }
+  /* 特別日課（短縮授業・模試・行事の日）：st.days = [{id, from, to, name, off:[時限…]|"all", why, bell:{s,len,brk}|null}] */
+  function dayOf(st, d) { return ((st && st.days) || []).find(x => x && x.from && d >= x.from && d <= (x.to || x.from)) || null; }
+  function dayOff(st, d, p) { const e = dayOf(st, d); if (!e) return null; return e.off === "all" || (Array.isArray(e.off) && e.off.indexOf(p) >= 0) ? (e.why || e.name || "授業なし") : null; }
+  /* その日の授業時間表。日課に「時間を変える」があれば、1限の開始・1コマの長さ・休み時間から作る。なければ普通の時間表 */
+  function bellFor(st, d, base) {
+    const e = dayOf(st, d); if (!e || !e.bell || !(e.bell.len > 0)) return base;
+    const o = {}; for (let i = 1; i <= 7; i++) { const s = e.bell.s + (i - 1) * (e.bell.len + (e.bell.brk || 0)); o[i] = [s, s + e.bell.len]; }
+    return o;
+  }
   const hrsOf = b => (b && b.h) || 1;
 
   /* 学期内の各日について、その授業の時間割に当たる日を「コマ」にする（1日1コマ、hrs=その日の時数）。 */
@@ -61,7 +70,7 @@
       const multi = hrs > 1;
       (multi ? pers : [null]).forEach(p => {
         const key = cls.id + "|" + d + (multi ? "|" + p : "");
-        out.push({ key, date: d, hrs: 1, periods: multi ? [p] : pers, off: (st.off && st.off[key]) || null, ev: (st.events && st.events[d]) || (api.evExtra ? api.evExtra(d) : "") || "" });
+        out.push({ key, date: d, hrs: 1, periods: multi ? [p] : pers, off: (st.off && st.off[key]) || dayOff(st, d, (multi ? p : pers[0])) || null, ev: (st.events && st.events[d]) || (api.evExtra ? api.evExtra(d) : "") || "" });
       });
     }
     return out;
@@ -140,6 +149,6 @@
   }
   const toJSON = st => JSON.stringify(stable(st), null, 1) + "\n";
 
-  const api = { subjectOf, migrateUnits, migrateSlots, DOW, pad, ds, pd, md, dw, addDays, esc, clone, hrsOf, buildSlots, project, classStats, unitStats, firstPendingIndex, toJSON };
+  const api = { dayOf, dayOff, bellFor, subjectOf, migrateUnits, migrateSlots, DOW, pad, ds, pd, md, dw, addDays, esc, clone, hrsOf, buildSlots, project, classStats, unitStats, firstPendingIndex, toJSON };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.JD = api;
 })(typeof window !== "undefined" ? window : globalThis);
