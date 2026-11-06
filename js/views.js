@@ -14,9 +14,9 @@
   const cur = () => A.st.classes.find(c => c.id === A.ui.cls) || A.st.classes[0];
   /* 授業時間表（50分授業・8分休み）。分は「0時からの分」 */
   const BELL0 = { 1: [532, 582], 2: [590, 640], 3: [648, 698], 4: [706, 756], 5: [794, 844], 6: [852, 902], 7: [910, 960] };
-  const bellP = () => (A.work && A.work.bell ? A.work.bell().p : BELL0);
+  const bellP = d => { const base = A.work && A.work.bell ? A.work.bell().p : BELL0; return d && A.st ? J.bellFor(A.st, d, base) : base; };
   const hm = m => Math.floor(m / 60) + ":" + String(m % 60).padStart(2, "0");
-  function span(r) { const B = bellP(), ps = (r.periods || []).filter(p => B[p]); if (!ps.length) return null; return [B[Math.min.apply(null, ps)][0], B[Math.max.apply(null, ps)][1]]; }
+  function span(r) { const B = bellP(r.date), ps = (r.periods || []).filter(p => B[p]); if (!ps.length) return null; return [B[Math.min.apply(null, ps)][0], B[Math.max.apply(null, ps)][1]]; }
   const nowMin = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60; };
   /* 今日の授業で、終わったのにまだ記録がないコマ */
   const needRec = r => r.date === J.ds(new Date()) && (r.kind === "plan" || r.kind === "empty") && span(r) && nowMin() >= span(r)[1];
@@ -82,7 +82,7 @@
     if (r.kind === "cancel") return "休講";
     if (r.kind === "free") return freeTitle(r);
     if (r.kind === "empty") return "この日に入れる計画がありません";
-    return (r.cont ? "（続き）" : "") + (r.blocks.map(b => b.t).filter(Boolean).join("　／　") || "（内容未入力）");
+    return ((r.cont || r.b2) ? "（続き）" : "") + (r.blocks.map(b => b.t).filter(Boolean).join("　／　") || "（内容未入力）");
   }
   function pillFor(r) {
     const waiting = r.date < A.ui.asof && r.kind === "plan";
@@ -506,7 +506,7 @@
     else if (k === "free") text = freeTitle(r);
     else if (k === "empty") text = "（計画なし）";
     else if (blank) text = "（内容を入力）";
-    else text = (r.cont ? "（続き）" : "") + r.blocks.map(b => b.t).filter(Boolean).join(" ／ ");
+    else text = ((r.cont || r.b2) ? "（続き）" : "") + r.blocks.map(b => b.t).filter(Boolean).join(" ／ ");
     if (k === "done") mark = '<span class="gk ok">実施</span>';
     else if (k === "part") mark = '<span class="gk mid">途中</span>';
     else if (waiting) mark = '<span class="gk wait">記録待ち</span>';
@@ -523,7 +523,7 @@
     if (A.ui.gridSubj !== "all") cls = cls.filter(c => subj(c.name) === A.ui.gridSubj);
     if (A.ui.gridOrder === "subject") cls = cls.map((c, i) => ({ c, i })).sort((a, b) => (subj(a.c.name) === subj(b.c.name) ? 0 : subj(a.c.name) === "gen" ? -1 : 1) || a.i - b.i).map(x => x.c);
     const stats = {}, rmap = {};
-    cls.forEach(c => { stats[c.id] = J.classStats(st, c, asof); rmap[c.id] = {}; stats[c.id].pj.rows.forEach(r => { rmap[c.id][r.date] = r; }); });
+    cls.forEach(c => { stats[c.id] = J.classStats(st, c, asof); rmap[c.id] = {}; stats[c.id].pj.rows.forEach(r => { (rmap[c.id][r.date] = rmap[c.id][r.date] || []).push(r); }); });
     const prefixes = [];
     st.classes.forEach(c => { const p = parts(c.name)[0]; if (prefixes.indexOf(p) < 0) prefixes.push(p); });
     const grp = c => prefixes.indexOf(parts(c.name)[0]) % 4 + 1;
@@ -531,7 +531,7 @@
     let h = '<div class="gridbar">' + seg("gord", A.ui.gridOrder, [["class", "クラス順"], ["subject", "科目ごと"]]) +
       seg("gsub", A.ui.gridSubj, [["all", "すべて"], ["gen", "現代の国語"], ["lang", "言語文化"]]) +
       seg("gedit", A.ui.gridEdit ? "e" : "v", [["e", "編集"], ["v", "見るだけ"]]) +
-      '<button class="btn" data-act="gridtoday">今日の位置へ</button><button class="btn" data-act="carry-open" title="前の学期の計画・単元・教材を、この学期に写します">前の学期から引き継ぐ</button><button class="btn" data-act="url-open" title="各クラスのGoogle Classroomのリンクを設定します">Classroomリンク</button><button class="btn" data-act="flow-open" title="単元別タブで作った予定を、各クラスの計画に順に入れます">単元の予定を計画に入れる</button><span class="glegend"><span><i class="lg-gen"></i>現代の国語</span><span><i class="lg-lang"></i>言語文化</span><span><i style="background:var(--today-soft);border-color:var(--today)"></i>今日</span></span><span class="note">' + (A.ui.gridEdit ? "コマの中で単元・内容・記録を直接直せます。「詳細」で順番の入れ替えなど。" : "コマをタップすると、記録・休講・内容の書き換えができます。") + '</span></div>';
+      '<button class="btn" data-act="gridtoday">今日の位置へ</button><button class="btn" data-act="days-open" title="短縮授業・模試・面談週間など、その日だけ時間割が変わる日を入れます">特別日課</button><button class="btn" data-act="carry-open" title="前の学期の計画・単元・教材を、この学期に写します">前の学期から引き継ぐ</button><button class="btn" data-act="url-open" title="各クラスのGoogle Classroomのリンクを設定します">Classroomリンク</button><button class="btn" data-act="flow-open" title="単元別タブで作った予定を、各クラスの計画に順に入れます">単元の予定を計画に入れる</button><span class="glegend"><span><i class="lg-gen"></i>現代の国語</span><span><i class="lg-lang"></i>言語文化</span><span><i style="background:var(--today-soft);border-color:var(--today)"></i>今日</span></span><span class="note">' + (A.ui.gridEdit ? "コマの中で単元・内容・記録を直接直せます。「詳細」で順番の入れ替えなど。" : "コマをタップすると、記録・休講・内容の書き換えができます。") + '</span></div>';
     h += '<div class="gridwrap" tabindex="-1"><table class="gridt' + (A.ui.gridEdit ? " edit" : "") + '" style="--n:' + cls.length + '"><colgroup><col class="col-d"><col class="col-e">' + cls.map(() => '<col class="col-c">').join("") + "</colgroup><thead><tr>" +
       '<th class="c-date" rowspan="2">日</th><th class="c-ev" rowspan="2">行事</th>' +
       cls.map(c => '<th class="gh1 hs-' + subj(c.name) + '">' + (c.url ? '<a class="gcl" href="' + esc(c.url) + '" target="_blank" rel="noopener noreferrer" title="Google Classroomを新しいタブで開く">' + esc(c.short) + ' <span aria-hidden="true">↗</span></a>' : '<button class="gcl none" data-act="url-open" title="Google Classroomのリンクを設定する">' + esc(c.short) + ' <span aria-hidden="true">＋</span></button>') + "<small>" + esc(c.tt.map(t => J.DOW[t[0]] + t[1]).join("・")) + "</small></th>").join("") + "</tr><tr>" +
@@ -539,17 +539,28 @@
     const lastUnit = {};
     for (let d = st.term.start; d <= st.term.end; d = addDays(d, 1)) {
       const w = J.pd(d).getDay(), ev = (A.evOf ? A.evOf(d) : st.events[d]) || "";
-      let active = 0, cells = "";
+      /* 2時間続きの授業は、1時限ごとに別の行にする（日付と行事は縦にまとめる） */
+      const nR = Math.max(1, ...cls.map(c => (rmap[c.id][d] || []).length));
+      let active = 0; const cellsBy = [];
+      for (let j = 0; j < nR; j++) cellsBy.push("");
       cls.forEach(c => {
-        const r = rmap[c.id][d];
-        if (!r) { cells += '<td class="gc"></td>'; return; }
-        let chip = "";
-        if (r.blocks.length) chip = r.blocks.map(b => unitName(b.u)).filter((x, i, arr) => arr.indexOf(x) === i).join("・");
-        if (r.kind !== "off") active++;
-        cells += gridCell(r, c, asof, chip);
+        const rs = rmap[c.id][d] || [];
+        if (!rs.length) { cellsBy[0] += '<td class="gc"' + (nR > 1 ? ' rowspan="' + nR + '"' : "") + "></td>"; return; }
+        rs.forEach((r, j) => {
+          let chip = "";
+          if (r.blocks.length) chip = r.blocks.map(b => unitName(b.u)).filter((x, i, arr) => arr.indexOf(x) === i).join("・");
+          if (r.kind !== "off") active++;
+          let td = gridCell(r, c, asof, chip);
+          if (rs.length === 1 && nR > 1) td = td.replace("<td ", '<td rowspan="' + nR + '" ');
+          cellsBy[j] += td;
+        });
       });
       const wk = w === 0 || w === 6;
-      h += '<tr class="' + (d === asof ? "gr-today " : "") + (w === 1 ? "mon " : "") + (!active ? (wk ? "wk" : "none") : "") + '"' + (d === asof ? ' id="gr-today"' : "") + '><td class="c-date"><b class="num">' + md(d) + '</b><span class="dow">' + dw(d) + '</span></td><td class="c-ev" title="' + esc(ev) + '">' + esc(clip(ev, 70)) + "</td>" + cells + "</tr>";
+      const cls0 = (d === asof ? "gr-today " : "") + (w === 1 ? "mon " : "") + (!active ? (wk ? "wk" : "none") : "");
+      for (let j = 0; j < nR; j++) {
+        h += '<tr class="' + cls0 + (j ? " gr-sub2" : "") + '"' + (d === asof && !j ? ' id="gr-today"' : "") + ">" +
+          (j ? "" : '<td class="c-date"' + (nR > 1 ? ' rowspan="' + nR + '"' : "") + '><b class="num">' + md(d) + '</b><span class="dow">' + dw(d) + '</span></td><td class="c-ev"' + (nR > 1 ? ' rowspan="' + nR + '"' : "") + ' title="' + esc(ev) + '">' + esc(clip(ev, 70)) + "</td>") + cellsBy[j] + "</tr>";
+      }
     }
     return h + "</tbody></table></div>";
   }

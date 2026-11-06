@@ -11,7 +11,15 @@
     ["rec", "off", "flags", "events", "units", "plans", "unitNotes"].forEach(k => { st[k] = st[k] || {}; });
     st.classes.forEach(c => { st.plans[c.id] = st.plans[c.id] || []; });
     Object.keys(st.units).forEach(u => { if (!Array.isArray(st.units[u].items)) st.units[u].items = []; });
-    J.migrateUnits(st);
+    J.migrateUnits(st); J.migrateSlots(st);
+    /* 特別日課。2026年度2学期だけ、最初に来週（面談週間）の分を入れておく（あとから画面で直せる・消せる） */
+    if (!Array.isArray(st.days)) {
+      st.days = [];
+      if (st.term && st.term.id === "2026-2") st.days = [
+        { id: "z1", from: "2026-11-09", to: "2026-11-10", name: "面談週間（40分授業）", off: [5, 6, 7], why: "面談", bell: { s: 532, len: 40, brk: 8 } },
+        { id: "z2", from: "2026-11-11", to: "2026-11-12", name: "模擬試験", off: "all", why: "模擬試験", bell: null },
+        { id: "z3", from: "2026-11-13", to: "2026-11-13", name: "面談週間（40分授業）", off: [5, 6, 7], why: "面談", bell: { s: 532, len: 40, brk: 8 } }];
+    }
     return st;
   }
   function clampAsof() {
@@ -144,6 +152,7 @@
   }
   /* ---------- 左のメニュー（パソコンの画面だけに出る） ---------- */
   const IC = {
+    repeat: '<path d="M4 12a8 8 0 0 1 13.7-5.6L20 8.5M20 4v4.5h-4.5"/><path d="M20 12a8 8 0 0 1-13.7 5.6L4 15.5M4 20v-4.5h4.5"/>',
     today: '<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><circle cx="12" cy="15" r="1.6" fill="currentColor" stroke="none"/>',
     plan: '<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1" fill="currentColor"/><circle cx="4.5" cy="12" r="1" fill="currentColor"/><circle cx="4.5" cy="18" r="1" fill="currentColor"/>',
     grid: '<rect x="3.5" y="5.5" width="17" height="13" rx="1.5"/><path d="M3.5 10h17M9.2 5.5v13M14.8 5.5v13"/>',
@@ -174,7 +183,7 @@
   };
   const SIDE = [
     ["授業", "class", [["today", "今日"], ["plan", "計画表"], ["grid", "一覧"], ["unit", "単元別"], ["sum", "サマリー"], ["lib", "資料"], ["memo", "手順・メモ"]]],
-    ["校務", "work", [["home", "ホーム"], ["year", "年間"], ["links", "リンク集"], ["docs", "手順・メモ"], ["cal", "カレンダー"], ["set", "校務の設定"]]],
+    ["校務", "work", [["home", "ホーム"], ["year", "年間"], ["links", "リンク集"], ["docs", "手順・メモ"], ["repeat", "くり返し"], ["cal", "カレンダー"], ["set", "校務の設定"]]],
     ["テスト成績", "test", [["home", "ホーム"], ["tasks", "作業一覧"], ["print", "印刷枚数"], ["links", "リンク集"], ["man", "手順・メモ"], ["set", "学期の設定"]]],
     ["勤怠", "kin", [["home", "ダッシュボード"], ["cal", "カレンダー"], ["yk", "有給"], ["ot", "超過勤務"], ["fh", "振替休日"], ["ev", "行事予定"], ["set", "勤怠の設定"]]]
   ];
@@ -332,6 +341,8 @@
     if (j < 0 || j >= a.length) { toast(dir < 0 ? "これより前には動かせません" : "これより後ろには動かせません"); return; }
     [a[i], a[j]] = [a[j], a[i]]; A.ui.cellRefresh = true; commit();
   }
+  /* 「授業なし」は、同じ日の同じクラスの全時限に付ける（2時間続きでも、片方だけ残さない） */
+  function dayKeys(key) { const o = rowOf(key); if (!o || !o.c) return [key]; const a = key.split("|"); return J.project(A.st, o.c).rows.filter(x => x.date === a[1]).map(x => x.key); }
   function setRec(key, patch) {
     const nx = Object.assign({}, A.st.rec[key] || {}, patch);
     if (!nx.s || nx.s === "plan") { delete nx.s; delete nx.t; delete nx.sj; delete nx.fu; }
@@ -481,8 +492,8 @@
       case "gsub": A.ui.gridSubj = t.dataset.v; render(); break;
       case "gridtoday": { const g = document.querySelector(".gridwrap"); if (g) scrollGridToToday(g); break; }
       case "st": A.ui.cellRefresh = true; { const cur = (A.st.rec[k] || {}).s || "plan", v = t.dataset.v; setRec(k, { s: cur === v && v !== "plan" ? "plan" : v }); break; }
-      case "offset": A.ui.cellRefresh = true; A.st.off[k] = (A.evOf ? A.evOf(k.split("|")[1]) : A.st.events[k.split("|")[1]]) || "授業なし"; delete A.st.rec[k]; A.ui.open = null; commit(); break;
-      case "offclear": A.ui.cellRefresh = true; delete A.st.off[k]; commit(); break;
+      case "offset": { A.ui.cellRefresh = true; const why = (A.evOf ? A.evOf(k.split("|")[1]) : A.st.events[k.split("|")[1]]) || "授業なし"; dayKeys(k).forEach(x => { A.st.off[x] = why; delete A.st.rec[x]; }); A.ui.open = null; commit(); break; }
+      case "offclear": A.ui.cellRefresh = true; dayKeys(k).forEach(x => { delete A.st.off[x]; }); commit(); break;
       case "bup": shiftBlock(id, -1); break;
       case "bdn": shiftBlock(id, 1); break;
       case "bdel": { const c = planOf(id); if (c) { A.st.plans[c] = A.st.plans[c].filter(b => b.id !== id); A.ui.cellRefresh = true; commit(); } break; }

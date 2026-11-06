@@ -103,7 +103,7 @@
         try {
           let st;
           if (A.st && A.st.term.id === t.id) st = A.st;
-          else { st = await (await fetch("data/" + t.file + "?t=" + Date.now(), { cache: "no-store" })).json(); ["rec", "off", "flags", "events", "units", "plans", "unitNotes"].forEach(k => { st[k] = st[k] || {}; }); st.classes.forEach(c => { st.plans[c.id] = st.plans[c.id] || []; }); J.migrateUnits(st); }
+          else { st = await (await fetch("data/" + t.file + "?t=" + Date.now(), { cache: "no-store" })).json(); ["rec", "off", "flags", "events", "units", "plans", "unitNotes"].forEach(k => { st[k] = st[k] || {}; }); J.migrateSlots(st); st.classes.forEach(c => { st.plans[c.id] = st.plans[c.id] || []; }); J.migrateUnits(st); }
           histRows(st, t.name).forEach(x => rows.push(x));
         } catch (e) { /* この学期は読めなかった */ }
       }
@@ -219,7 +219,7 @@
           const st = await (await fetch("data/" + t.file + "?t=" + Date.now(), { cache: "no-store" })).json();
           ["rec", "off", "flags", "events", "units", "plans", "unitNotes"].forEach(k => { st[k] = st[k] || {}; });
           st.classes.forEach(c => { st.plans[c.id] = st.plans[c.id] || []; });
-          J.migrateUnits(st); out.push({ name: t.name, st });
+          J.migrateUnits(st); J.migrateSlots(st); out.push({ name: t.name, st });
         } catch (e) { /* 読めない学期は飛ばす */ }
       }
     } catch (e) { /* 一覧が読めない */ }

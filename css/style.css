@@ -948,3 +948,8 @@ body.kinmode .pgt{color:var(--kn-ink)}
 .wtp.tphit{box-shadow:0 0 0 2px #f2b84b;position:relative}
 .wtp.tphit::before{content:"今日";font-size:9px;font-weight:700;background:#f2b84b;color:#5a3d00;border-radius:6px;padding:0 4px;margin-right:4px}
 .tpband .wtpw{display:inline-flex;align-items:center;gap:2px;margin:3px 3px 0 0}
+
+.yh{margin:14px 0 4px;font-size:14px;color:var(--muted)}
+.ysg{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line)}
+.ysg:last-child{border-bottom:0}
+@media (max-width:899px){.tabbar .wtabs{grid-template-columns:repeat(7,1fr)}.tabbar .wtabs .tab{font-size:10px;letter-spacing:-.04em}}

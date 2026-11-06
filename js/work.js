@@ -431,7 +431,7 @@
   };
   A.work.view = function () {
     if (!W.ready) return '<p class="note">読み込んでいます…</p>';
-    return { home: viewHome, year: viewYear, links: viewLinks, docs: viewDocs, cal: viewCal, set: viewSet }[ui.tab]();
+    return { home: viewHome, year: viewYear, links: viewLinks, docs: viewDocs, repeat: () => (A.yearly ? A.yearly.view() : ""), cal: viewCal, set: viewSet }[ui.tab]();
   };
   A.work.sub = () => W.ready ? "校務 ・ " + W.S.y + "年度" : "校務";
   A.work.statusText = () => W.st;
