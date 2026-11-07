@@ -45,7 +45,7 @@
    "ls": [],
    "t": "留学中の成績",
    "tag": "seiseki",
-   "tip": false,
+   "tip": true,
    "u": "https://hkimura-web.github.io/study-abroad-gpa/",
    "ut": "留学生 成績処理ナビ"
   },
@@ -761,6 +761,6 @@
   "d1793536565892",
   "d1793535194015"
  ],
- "upd": 1794058962179,
+ "upd": 1794058966129,
  "v": 1
 }
