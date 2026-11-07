@@ -12,7 +12,7 @@
     const order = SRC.slice().sort((a, b) => (a[0] === scope ? -1 : 0) - (b[0] === scope ? -1 : 0));
     const cnt = k => data[k].late.length + data[k].now.length + data[k].soon.length;
     const show = k => ui.f === "all" || ui.f === k;
-    const ds = scope === "test" ? { late: "⚠ 繰越・期限切れ", now: "いまやること（1週間）", soon: "来月までの見通し ― 前倒しOK" } : { late: "⚠ 繰越・期限切れ", now: "今月（" + (data.work.m || "") + "月）", soon: "来月（" + (data.work.nx || "") + "月）の準備 ― 前倒しOK" };
+    const ds = { late: "⚠ 繰越・期限切れ", now: "今月（" + (data.work.m || (new Date().getMonth() + 1)) + "月）", soon: "来月（" + (data.work.nx || (new Date().getMonth() + 2 > 12 ? 1 : new Date().getMonth() + 2)) + "月）の準備 ― 前倒しOK" };
     const seg = [["all", "すべて"], ["work", "校務"], ["test", "テスト"]].map(([v, n]) => '<button class="btn sm' + (ui.f === v ? " on" : "") + '" data-tdf="' + v + '">' + n + "</button>").join("");
     const mk = (b, cls) => {
       const list = [];
