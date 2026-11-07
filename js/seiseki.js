@@ -175,8 +175,7 @@
     if (Q.S.terms.length > 1) h += '<select id="ts_sel" data-schg="sel" style="width:auto;margin:0 0 12px">' + Q.S.terms.map(t => '<option value="' + t.id + '"' + (t.id === Q.S.cur ? " selected" : "") + ">" + esc(t.name) + "</option>").join("") + "</select>";
     h += '<div class="tsdates">' + dd("試験の初日", T.E) + dd("成績の提出", T.G) + dd("成績会議", T.M) + "</div>";
     h += '<div class="tskpi"><div class="k"><b>' + pct + '%</b><span>進み（' + (all.length - op.length) + "/" + all.length + '件）</span></div><div class="k' + (over.length ? " bad" : "") + '"><b>' + over.length + '</b><span>期限超過</span></div><div class="k' + (w1.length ? " warn" : "") + '"><b>' + w1.length + '</b><span>7日以内</span></div><div class="k"><b>' + m1.length + "</b><span>8〜30日先</span></div></div>";
-    h += panel("p-ts", "いまやること（超過＋7日以内）", over.length + w1.length ? over.length + w1.length + "件" : "", over.concat(w1).map(row).join("") || empty("直近の未完了はありません。"));
-    h += panel("p-ts", "来月までの見通し（8〜30日先）", m1.length ? m1.length + "件" : "", m1.map(row).join("") || empty("30日以内に控えているものはありません。"));
+    h += A.todoBand ? A.todoBand("test") : "";
     const s0 = J.addDays(today(), -new Date().getDay());
     let cells = "";
     for (let i = 0; i < 35; i++) {
@@ -274,6 +273,13 @@
     }
     return o || '<p class="note">（本文がありません）</p>';
   }
+  A.seiseki.todo = function () {
+    const o = { late: [], now: [], soon: [] }; if (!Q.ready || !Q.S || !cur()) return o;
+    const op = open(); op.filter(t => diff(t.due) < 0).forEach(t => o.late.push({ html: row(t) }));
+    op.filter(t => diff(t.due) >= 0 && diff(t.due) <= 7).forEach(t => o.now.push({ html: row(t) }));
+    op.filter(t => diff(t.due) > 7 && diff(t.due) <= 30).forEach(t => o.soon.push({ html: row(t) }));
+    return o;
+  };
   A.seiseki.md2h = md2h;
   A.seiseki.setTipOrder = ids => { Q.S.tipOrder = ids; save(); };
   A.seiseki.ready = () => !!(Q.ready && Q.S && !Q.ask && !Q.conflict && Q.canSave && !Q.needCreate);

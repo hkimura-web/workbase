@@ -270,6 +270,19 @@
   A.work.movedIds = () => Object.keys((W.S && W.S.moved) || {});
   document.addEventListener("toggle", e => { const d = e.target; if (d && d.classList && d.classList.contains("wtagmgr")) ui.tagOpen = d.open; }, true);
   A.work.imgsH = d => imgs(d);
+  /* 校務・テスト共通の「やること・見通し」に出す行（校務の分） */
+  A.work.todo = function () {
+    const o = { late: [], now: [], soon: [] }; if (!W.ready || !W.S) return o;
+    const s = W.S, cur = fyIdx(), seen = new Set(), m = ORDER[Math.max(0, Math.min(11, cur))], nx = cur < 11 ? ORDER[cur + 1] : null;
+    const add = (b, t, mm, tag) => { const k = key(t, mm); if (seen.has(k)) return; seen.add(k); o[b].push({ html: item(t, mm, tag) }); };
+    const due = dueList();
+    due.filter(x => x.kind === "late").forEach(x => add("late", x.t, x.m, dueTag(x)));
+    for (let i = 0; i < cur; i++) { const mo = ORDER[i]; inM(mo).filter(t => !isD(t, mo)).forEach(t => add("late", t, mo, '<span class="late">' + mo + "月</span>")); }
+    due.filter(x => x.kind !== "late").forEach(x => add("now", x.t, x.m, dueTag(x)));
+    inM(m).filter(t => !isD(t, m)).forEach(t => add("now", t, m));
+    if (nx) inM(nx).filter(t => !t.rep && !isD(t, nx)).forEach(t => add("soon", t, nx));
+    return o;
+  };
   A.work.setTipOrder = ids => { W.S.tipOrder = ids; save(); };
   A.work.tips = function () {
     if (!W.ready || !W.S) return [];
@@ -295,12 +308,9 @@
     h += '<div class="pghd"><div><h2 class="pgt">WORK</h2><p class="pgs">校務を、1年のながれで。</p></div><div class="pgd num">' + (new Date().getMonth() + 1) + "/" + new Date().getDate() + " <small>" + "日月火水木金土"[new Date().getDay()] + "曜日</small></div></div>";
     h += askH();
     if (W.conflict) h += '<div class="banner err"><div>別の端末で先に更新されています。</div><div class="btns"><button class="btn" data-wact="reload">最新を読み込み直す</button></div></div>';
-    if (due.length) h += panel("p-work", "期限が近い校務", due.length + "件", due.map(x => item(x.t, x.m, dueTag(x))).join(""));
     h += A.tipsBand ? A.tipsBand("work") : tipsH();
     h += panel("p-rem", s.y + "進捗状況", "", '<div class="note">' + esc(s.g === "J" ? "中学" : "高" + s.g) + "担当 ・ " + esc(W.st) + '</div><div class="bar"><i style="width:' + (all.length ? dn / all.length * 100 : 0) + '%"></i></div><div class="note">年間の進み: ' + dn + " / " + all.length + "</div>");
-    if (late) h += panel("p-late", "⚠ 繰越・期限切れ", "", late);
-    h += panel("p-now", "今月（" + m + "月）", "", inM(m).map(t => item(t, m)).join("") || '<p class="note" style="margin:0">なし</p>');
-    if (nx) h += panel("p-soon", "来月（" + nx + "月）の準備 ― 前倒しOK", "", inM(nx).filter(t => !t.rep && !isD(t, nx)).map(t => item(t, nx)).join("") || '<p class="note" style="margin:0">なし</p>');
+    h += A.todoBand ? A.todoBand("work") : "";
     return h;
   }
   function viewYear() {
