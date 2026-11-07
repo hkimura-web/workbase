@@ -20,6 +20,11 @@
         { id: "z2", from: "2026-11-11", to: "2026-11-12", name: "模擬試験", off: "all", why: "模擬試験", bell: null },
         { id: "z3", from: "2026-11-13", to: "2026-11-13", name: "面談週間（40分授業）", off: [5, 6, 7], why: "面談", bell: { s: 532, len: 40, brk: 8 } }];
     }
+    /* 2026年度3学期：行事予定表と確認ずみの授業なしの日を、はじめに入れる */
+    if (st.term && st.term.id === "2026-3" && window.WB_SEED_3) {
+      if (!Object.keys(st.events).length) st.events = JSON.parse(JSON.stringify(window.WB_SEED_3.events));
+      if (!st.days.length) st.days = JSON.parse(JSON.stringify(window.WB_SEED_3.days));
+    }
     return st;
   }
   function clampAsof() {

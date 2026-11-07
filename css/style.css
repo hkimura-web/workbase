@@ -1014,3 +1014,9 @@ body.testmode .tdp.p-now{border-top-color:var(--ts)}
 .tdp .tdr{display:flex;gap:8px;align-items:flex-start}
 .tdp .tdl{margin-top:11px}
 .tdp .tdh{margin:0}
+/* チェックボックス：ひと回り小さく、ふだんは薄く（さわる・チェックすると濃くなる） */
+.wit>input[type=checkbox]{width:16px;height:16px;margin-top:5px;opacity:.5;transition:opacity .15s}
+.wit>input[type=checkbox]:hover,.wit>input[type=checkbox]:checked,.wit>input[type=checkbox]:focus-visible{opacity:1}
+.tser>input[type=checkbox]{width:16px;height:16px;opacity:.5}
+.tser>input[type=checkbox]:hover,.tser>input[type=checkbox]:checked{opacity:1}
+.tdp .tdl{margin-top:9px}
