@@ -21,7 +21,7 @@
     });
     if (!body) body = '<p class="note" style="margin:0">いまやること・1か月以内に控えていることは、ありません。</p>';
     const seg = [["all", "すべて"], ["work", "校務"], ["test", "テスト"]].map(([v, n]) => '<button class="btn sm' + (ui.f === v ? " on" : "") + '" data-tdf="' + v + '">' + n + "</button>").join("");
-    return '<section class="panel p-todo"><header class="panel-h"><h2>やること・見通し</h2><span class="panel-n"><span class="tdcnt"><b class="tdl tdl-work">校務</b> ' + cnt("work") + ' <b class="tdl tdl-test">テスト</b> ' + cnt("test") + "</span> " + seg + '</span></header><div class="panel-b">' + body + "</div></section>";
+    return '<section class="panel p-todo"><header class="panel-h"><h2>やること・見通し</h2><span class="panel-n"><span class="tdcnt"><i class="tdd tdd-work"></i>校務 ' + cnt("work") + '<i class="tdd tdd-test"></i>テスト ' + cnt("test") + "</span> " + seg + '</span></header><div class="panel-b">' + body + "</div></section>";
   };
   document.addEventListener("click", e => {
     const t = e.target.closest && e.target.closest("[data-tdf]"); if (!t) return;

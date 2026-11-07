@@ -971,3 +971,21 @@ body.kinmode .pgt{color:var(--kn-ink)}
 .tdl-work{background:#5aa574}.tdl-test{background:#d6458a}
 .p-todo .tdcnt{font-size:12px;margin-right:4px}.p-todo .tdcnt .tdl{margin:0 2px 0 6px}
 .p-todo .tdc>*{margin-top:0}
+
+/* やること・見通し：今までの「今月」のように、白い見出しと上の細い線だけの、控えめな見た目に */
+.p-todo{border-top:3px solid var(--wk)}
+body.testmode .p-todo{border-top-color:var(--ts)}
+.p-todo .panel-h{background:var(--surface);color:var(--ink);border-bottom:1px solid var(--line)}
+.p-todo .panel-h h2{font-family:var(--f-body);font-size:15px;letter-spacing:.02em}
+.p-todo .tdcnt{font-size:12px;color:var(--muted);margin-right:6px}
+.p-todo .tdd{display:inline-block;width:7px;height:7px;border-radius:50%;margin:0 4px 0 8px;vertical-align:1px}
+.p-todo .tdcnt .tdd:first-child{margin-left:0}
+.tdd-work{background:#5aa574}.tdd-test{background:#d6458a}
+.p-todo .panel-n .btn{font-size:11px;padding:1px 8px;background:transparent}
+.p-todo .panel-n .btn.on{background:var(--bg2);color:var(--ink);border-color:var(--line)}
+.p-todo .tdr{border-left:2px solid;padding-left:8px;opacity:1}
+.p-todo .tdr-work{border-left-color:rgba(90,165,116,.45)}.p-todo .tdr-test{border-left-color:rgba(214,69,138,.45)}
+.p-todo .tdl{background:transparent;color:var(--muted);font-weight:600;padding:2px 0;min-width:2.6em;margin-top:7px;letter-spacing:.02em}
+.p-todo .tdl-work{color:#3f8a5a}.p-todo .tdl-test{color:#b8326f}
+.p-todo .tdh{font-size:12px;color:var(--muted);letter-spacing:.04em}
+.p-todo .tdh-late{color:#b3261e}
