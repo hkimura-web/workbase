@@ -953,3 +953,7 @@ body.kinmode .pgt{color:var(--kn-ink)}
 .ysg{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line)}
 .ysg:last-child{border-bottom:0}
 @media (max-width:899px){.tabbar .wtabs{grid-template-columns:repeat(7,1fr)}.tabbar .wtabs .tab{font-size:10px;letter-spacing:-.04em}}
+/* 文字を大きくしたとき、ヘッダーや見出しが窮屈にならないように */
+.tools{flex-wrap:wrap}
+.panel-h{flex-wrap:wrap;row-gap:6px}
+.panel-h .panel-n{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
