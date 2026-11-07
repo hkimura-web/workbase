@@ -989,3 +989,28 @@ body.testmode .p-todo{border-top-color:var(--ts)}
 .p-todo .tdl-work{color:#3f8a5a}.p-todo .tdl-test{color:#b8326f}
 .p-todo .tdh{font-size:12px;color:var(--muted);letter-spacing:.04em}
 .p-todo .tdh-late{color:#b3261e}
+
+/* 同じ控えめな印を、別々のパネルにも */
+.tdp .tdcnt{font-size:12px;color:var(--muted);margin-right:6px}
+.tdp .tdd{display:inline-block;width:7px;height:7px;border-radius:50%;margin:0 4px 0 8px;vertical-align:1px}
+.tdp .tdcnt .tdd:first-child{margin-left:0}
+.tdd-work{background:#5aa574}.tdd-test{background:#d6458a}
+.tdp .panel-n .btn{font-size:11px;padding:1px 8px;background:transparent}
+.tdp .panel-n .btn.on{background:var(--bg2);color:var(--ink);border-color:var(--line)}
+.tdp .tdr{border-left:2px solid;padding-left:8px;opacity:1}
+.tdp .tdr-work{border-left-color:rgba(90,165,116,.45)}.tdp .tdr-test{border-left-color:rgba(214,69,138,.45)}
+.tdp .tdl{background:transparent;color:var(--muted);font-weight:600;padding:2px 0;min-width:2.6em;margin-top:7px;letter-spacing:.02em}
+.tdp .tdl-work{color:#3f8a5a}.tdp .tdl-test{color:#b8326f}
+.tdp .tdh{font-size:12px;color:var(--muted);letter-spacing:.04em}
+.tdp .tdh-late{color:#b3261e}
+/* 今月・来月：以前の形（別々のパネル）に戻す。完了は取り消し線で残る */
+.tdp.p-now .panel-h,.tdp.p-soon .panel-h{background:var(--surface);color:var(--ink);border-bottom:1px solid var(--line)}
+body.testmode .tdp.p-now{border-top-color:var(--ts)}
+.tdp .tdr{margin:0;padding:0 0 0 8px}
+.tdp .tdr .wit{flex:1;min-width:0}
+.tdp .tdr .tdc{flex:1;min-width:0}
+.tdp .tdl{margin-top:11px}
+.tdp .panel-h h2{font-size:15px}
+.tdp .tdr{display:flex;gap:8px;align-items:flex-start}
+.tdp .tdl{margin-top:11px}
+.tdp .tdh{margin:0}

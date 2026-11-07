@@ -12,16 +12,18 @@
     const order = SRC.slice().sort((a, b) => (a[0] === scope ? -1 : 0) - (b[0] === scope ? -1 : 0));
     const cnt = k => data[k].late.length + data[k].now.length + data[k].soon.length;
     const show = k => ui.f === "all" || ui.f === k;
-    let body = "";
-    BK.forEach(([b, title, cls]) => {
+    const ds = scope === "test" ? { late: "⚠ 繰越・期限切れ", now: "いまやること（1週間）", soon: "来月までの見通し ― 前倒しOK" } : { late: "⚠ 繰越・期限切れ", now: "今月（" + (data.work.m || "") + "月）", soon: "来月（" + (data.work.nx || "") + "月）の準備 ― 前倒しOK" };
+    const seg = [["all", "すべて"], ["work", "校務"], ["test", "テスト"]].map(([v, n]) => '<button class="btn sm' + (ui.f === v ? " on" : "") + '" data-tdf="' + v + '">' + n + "</button>").join("");
+    const mk = (b, cls) => {
       const list = [];
       order.forEach(([k, name]) => { if (!show(k)) return; data[k][b].forEach(r => list.push('<div class="tdr tdr-' + k + '"><span class="tdl tdl-' + k + '">' + name + '</span><div class="tdc">' + r.html + "</div></div>")); });
       const n = list.length, lim = b === "late" && !ui.all && n > 6;
-      if (n) body += '<h3 class="tdh ' + cls + '">' + title + ' <span class="note">' + n + "件</span></h3>" + (lim ? list.slice(0, 5) : list).join("") + (lim ? '<p style="margin:6px 0 0"><button class="btn sm" data-tdf="more">残り ' + (n - 5) + "件も表示する</button></p>" : (b === "late" && ui.all && n > 6 ? '<p style="margin:6px 0 0"><button class="btn sm" data-tdf="less">たたむ</button></p>' : ""));
-    });
-    if (!body) body = '<p class="note" style="margin:0">いまやること・1か月以内に控えていることは、ありません。</p>';
-    const seg = [["all", "すべて"], ["work", "校務"], ["test", "テスト"]].map(([v, n]) => '<button class="btn sm' + (ui.f === v ? " on" : "") + '" data-tdf="' + v + '">' + n + "</button>").join("");
-    return '<section class="panel p-todo"><header class="panel-h"><h2>やること・見通し</h2><span class="panel-n"><span class="tdcnt"><i class="tdd tdd-work"></i>校務 ' + cnt("work") + '<i class="tdd tdd-test"></i>テスト ' + cnt("test") + "</span> " + seg + '</span></header><div class="panel-b">' + body + "</div></section>";
+      if (!n && b === "late") return "";
+      let body = !n ? '<p class="note" style="margin:0">なし</p>' : (lim ? list.slice(0, 5) : list).join("") + (lim ? '<p style="margin:6px 0 0"><button class="btn sm" data-tdf="more">残り ' + (n - 5) + "件も表示する</button></p>" : (b === "late" && ui.all && n > 6 ? '<p style="margin:6px 0 0"><button class="btn sm" data-tdf="less">たたむ</button></p>' : ""));
+      const cn = b === "now" ? '<span class="tdcnt"><i class="tdd tdd-work"></i>校務 ' + cnt("work") + '<i class="tdd tdd-test"></i>テスト ' + cnt("test") + "</span> " + seg : (n + "件");
+      return '<section class="panel tdp ' + cls + '"><header class="panel-h"><h2>' + ds[b] + '</h2><span class="panel-n">' + cn + '</span></header><div class="panel-b">' + body + "</div></section>";
+    };
+    return mk("late", "p-late") + mk("now", "p-now") + mk("soon", "p-soon");
   };
   document.addEventListener("click", e => {
     const t = e.target.closest && e.target.closest("[data-tdf]"); if (!t) return;

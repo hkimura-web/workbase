@@ -276,7 +276,7 @@
   A.seiseki.todo = function () {
     const o = { late: [], now: [], soon: [] }; if (!Q.ready || !Q.S || !cur()) return o;
     const op = open(); op.filter(t => diff(t.due) < 0).forEach(t => o.late.push({ html: row(t) }));
-    op.filter(t => diff(t.due) >= 0 && diff(t.due) <= 7).forEach(t => o.now.push({ html: row(t) }));
+    mine().sort(byDue).filter(t => diff(t.due) >= 0 && diff(t.due) <= 7 || (t.done && diff(t.due) < 0 && diff(t.due) >= -3)).forEach(t => o.now.push({ html: row(t) }));
     op.filter(t => diff(t.due) > 7 && diff(t.due) <= 30).forEach(t => o.soon.push({ html: row(t) }));
     return o;
   };

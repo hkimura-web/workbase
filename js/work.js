@@ -279,7 +279,8 @@
     due.filter(x => x.kind === "late").forEach(x => add("late", x.t, x.m, dueTag(x)));
     for (let i = 0; i < cur; i++) { const mo = ORDER[i]; inM(mo).filter(t => !isD(t, mo)).forEach(t => add("late", t, mo, '<span class="late">' + mo + "月</span>")); }
     due.filter(x => x.kind !== "late").forEach(x => add("now", x.t, x.m, dueTag(x)));
-    inM(m).filter(t => !isD(t, m)).forEach(t => add("now", t, m));
+    inM(m).forEach(t => add("now", t, m));
+    o.m = m; o.nx = nx;
     if (nx) inM(nx).filter(t => !t.rep && !isD(t, nx)).forEach(t => add("soon", t, nx));
     return o;
   };
