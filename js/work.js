@@ -11,7 +11,7 @@
   const now = new Date(), FY = now.getMonth() + 1 >= 4 ? now.getFullYear() : now.getFullYear() - 1;
   const MAIL = "h.k1(サブ)のGmail";
   const EM = "\nClaudeアカウント: " + MAIL;
-  const DAYS = { "前年度の出金伝票": 11, "中間試験問題作成": 28, "面談調査用紙": 20, "スポーツ安全保険": 31 };
+  const DAYS = { "前年度の出金伝票": 11, "中間試験問題作成": 28, "面談調査用紙": 20, "六浦祭: 実行委員を決める": 12, "六浦祭: 何をやりたいかをLHRで話し合う": 30, "スポーツ安全保険": 31, "六浦祭: 文化部・試合のある生徒を確認する": 30, "六浦祭: 飲食・物販の方向性を実行委員と決める": 10, "六浦祭: 出展団体募集フォームを出す": 15, "六浦祭: 飲食・物販の仕入れを決める": 20, "六浦祭: 服装デザイン申請": 15, "六浦祭: 決済端末使用者登録届": 23, "六浦祭: 会計の連絡を確認し、決算報告書を用意": 1, "六浦祭: 収支決算報告書を提出": 6 };
   const PAT = { "懇談会(S1)": "d11", "懇談会(S3)": "d12", "夏期面談の実施": "d13", "通知表プレビュー": "d7", "指導要録ほぼ完成": "d8", "指導要録の最終確認": "d8" };
   const PV = ["備考欄の「出停」「忌引」の数字が表と一致", "成績に抜けがない", "委員・係・検定の入力", "欠課時数の合算(遅刻3回=欠課1)"];
   const W = { S: null, links: null, sha: null, dirty: false, saving: false, timer: null, token: false, conflict: false, ask: false, needCreate: false, draftP: null, canSave: true, st: "読み込み中…", ready: false, ed: null };
@@ -68,6 +68,7 @@
     s.docs = s.docs.filter(d => !(d.t === "新しいTips" && !String(d.b || "").trim() && !d.u && !(d.ls || []).length)); /* 追加ボタンで作ってしまった空のTipsは消す */
     s.docs.forEach(d => { if (d.tag === undefined) d.tag = TAGDEF[d.id] || ""; });
     s.docs.forEach(d => { d.img = (DOCS.find(x => x.id === d.id) || {}).img || d.img || []; d.b = san(d.b); d.t = san(d.t); d.u = d.u || ""; d.ut = typeof d.ut === "string" ? d.ut : ""; d.ls = (Array.isArray(d.ls) ? d.ls : []).filter(x => x && typeof x === "object").slice(0, 4).map(x => ({ t: String(x.t || ""), u: String(x.u || "") })); });
+    if (!s.fx1) { const FX = {"六浦祭: 実行委員を決める": [4, 12], "六浦祭: 何をやりたいかをLHRで話し合う": [6, 30], "六浦祭: 文化部・試合のある生徒を確認する": [6, 30], "六浦祭: 飲食・物販の方向性を実行委員と決める": [7, 10], "六浦祭: 飲食・物販の仕入れを決める": [9, 20], "六浦祭: 服装デザイン申請": [10, 15], "六浦祭: 会計の連絡を確認し、決算報告書を用意": [10, 1]}; s.tasks.forEach(t => { if (FX[t.t]) { t.m = FX[t.t][0]; t.dd = FX[t.t][1]; } }); s.fx1 = 1; } /* 六浦祭の日付を先生の指定に合わせる（1回だけ） */
     s.tasks.forEach(t => {
       if (t.dd == null) t.dd = 0;
       for (const k in DAYS) if (!t.dd && t.t.startsWith(k)) t.dd = DAYS[k];
