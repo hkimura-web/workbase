@@ -103,7 +103,7 @@
         '<label class="tsimp"><input type="checkbox" data-jchg="doc-tip" data-i="' + i + '"' + (d.tip ? " checked" : "") + "> 重要（ホームの重要Tipsに出す）</label>" +
         '<label class="tsimp">重要Tipsのボタンを押したら： <select data-jchg="doc-go" data-i="' + i + '" style="width:auto"><option value="">自動（説明が空なら資料をすぐ開く／説明があれば説明を出す）</option><option value="link"' + (d.go === "link" ? " selected" : "") + '>いつも資料をすぐ開く</option><option value="detail"' + (d.go === "detail" ? " selected" : "") + ">いつも説明を出す</option></select></label>" +
         '<div class="wlset"><b class="small">資料リンク（最大5つ。名前は、押すボタンに出ます）</b>' + row(d.ut, d.u, "doc-ut", "doc-u", -1, "リンク1の名前") + d.ls.map((x, j) => row(x.t, x.u, "doc-lt", "doc-lu", j, "リンク" + (j + 2) + "の名前")).join("") + (1 + d.ls.length < 5 ? '<button class="btn sm" data-jact="doc-ladd" data-i="' + i + '">＋ リンクを足す</button>' : "") + "</div>" +
-        '<label>本文（「# 」見出し・「- 」箇条書き・「1. 」番号・「|表|」・上のボタンで 太字・赤字・青字・下線、[名前](URL) が使えます）</label>' + A.rt.bar() + '<textarea rows="12" data-jf="doc-b" data-i="' + i + '">' + esc(d.b) + "</textarea>" +
+        '<label>本文（「# 」見出し・「- 」箇条書き・「1. 」番号・「|表|」・上のボタンで 太字・赤字・青字・下線、[名前](URL) が使えます）</label>' + A.rt.bar() + '<textarea rows="24" data-jf="doc-b" data-i="' + i + '">' + esc(d.b) + "</textarea>" +
         '<div class="btns"><button class="btn on" data-jact="doc-done">編集を終える</button><button class="btn danger" data-jact="doc-del" data-i="' + i + '">このメモを削除</button></div></div>';
     }
     return '<details class="wdet wdoc" data-ph="' + k + '"' + (ui.det[k] || ed ? " open" : "") + ">" + sum + b + "</details>";
