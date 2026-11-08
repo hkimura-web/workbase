@@ -240,6 +240,10 @@
     {
      "t": "生徒情報",
      "u": "https://docs.google.com/document/d/1V30TVdlRF3O8-GUebX1rant4cqxE66UbNaPKCXV1hPE/edit?tab=t.0"
+    },
+    {
+     "t": "",
+     "u": ""
     }
    ],
    "t": "S1-1生徒情報",
@@ -548,6 +552,7 @@
   "https://docs.google.com/spreadsheets/d/1xraYto7Ko5Zr14DHbkkIHbKoeVp83eFXurvhHWRA390/edit?gid=1512247108"
  ],
  "fx1": 1,
+ "fx2": 1,
  "g": "1",
  "mine": [],
  "morning": {
