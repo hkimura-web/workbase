@@ -396,6 +396,44 @@
     const nm = (window.prompt("新しい単元の名前を入れてください（例：羅生門）" + (sj ? "\n科目は「" + sj + "」になります。" : "")) || "").trim();
     return nm ? newUnit(nm, sj) : null;
   }
+  /* ---------- 新しい学期をアプリの中で作る ---------- */
+  function openNewTerm() {
+    const cur = A.st.term, Y = window.WB_SEED_3, seeded = Y && cur.id === "2026-2";
+    const d = seeded ? { id: "2026-3", name: "2026年度 3学期", start: "2027-01-08", end: "2027-02-26" } : { id: "", name: "", start: "", end: "" };
+    $("ntbody").innerHTML = '<h2 style="margin:0 0 4px">新しい学期を作る</h2><p class="note" style="margin:0 0 10px">日付の範囲を決めると、いまの学期のクラスと時間割をもとに、その期間の授業の時間が一覧に先に並びます。行事予定表が入っている期間は、行事と授業なしの日も入ります。単元は、そのあと「単元別」で作り、「単元の予定を計画に入れる」で流し込めます。</p>' +
+      '<label class="small">学期の名前</label><input type="text" id="nt_name" value="' + J.esc(d.name) + '" placeholder="例：2026年度 3学期">' +
+      '<label class="small">学期のID（半角。例：2026-3）</label><input type="text" id="nt_id" value="' + J.esc(d.id) + '" autocapitalize="off">' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap"><div><label class="small">はじまり</label><input type="date" id="nt_s" value="' + d.start + '"></div><div><label class="small">おわり</label><input type="date" id="nt_e" value="' + d.end + '"></div></div>' +
+      '<p class="small" id="nt_msg" role="status" style="color:var(--bad,#b3261e)"></p>' +
+      '<div class="dlg-btns"><button class="btn" data-act="newterm-cancel">やめる</button><button class="btn on" data-act="newterm-ok">作る</button></div>';
+    $("ntdlg").showModal();
+  }
+  async function createTerm() {
+    const id = $("nt_id").value.trim(), name = $("nt_name").value.trim(), start = $("nt_s").value, end = $("nt_e").value, msg = t => { $("nt_msg").textContent = t; };
+    if (!/^[0-9A-Za-z_-]+$/.test(id)) return msg("IDは半角の英数字で入れてください（例：2026-3）。");
+    if (!name || !start || !end) return msg("名前と日付を入れてください。");
+    if (end < start) return msg("おわりの日が、はじまりより前になっています。");
+    if (terms.some(x => x.id === id)) return msg("そのIDの学期はもうあります。");
+    const s = S.getSettings();
+    if (!(s.token && s.owner && s.repo)) return msg("GitHubの設定がまだです。右上の「設定」で入れてから作ってください。");
+    const Y = window.WB_SEED_3, ev = {};
+    if (Y && Y.all) Object.keys(Y.all).forEach(k => { if (k >= start && k <= end) ev[k] = Y.all[k]; });
+    const st = { schema: A.st.schema || 1, term: { id, name, start, end }, classes: JSON.parse(JSON.stringify(A.st.classes)), events: ev, units: {}, plans: {}, rec: {}, off: {}, flags: {}, unitNotes: {} };
+    st.classes.forEach(c => { st.plans[c.id] = []; });
+    if (id === "2026-3" && Y && Y.days) st.days = JSON.parse(JSON.stringify(Y.days)); else st.days = [];
+    const file = id + ".json";
+    try {
+      await S.remotePut(s, "data/" + file, J.toJSON(st), null, "新しい学期を作成（" + name + "）");
+      let ix = await S.remoteGet(s, "data/index.json"), o = JSON.parse(ix.text);
+      o.terms = (o.terms || []).concat([{ id, name, file }]);
+      await S.remotePut(s, "data/index.json", JSON.stringify(o, null, 2) + "\n", ix.sha, "学期を追加（" + name + "）");
+    } catch (e) { return msg("GitHubに保存できませんでした：" + S.explain(e)); }
+    terms.push({ id, name, file });
+    $("term").innerHTML = terms.map(t => '<option value="' + J.esc(t.id) + '">' + J.esc(t.name) + "</option>").join("");
+    $("termwrap").hidden = false;
+    $("ntdlg").close(); toast("学期を作りました");
+    await loadTerm(id);
+  }
   function importFile(f) {
     if (!f) return;
     const rd = new FileReader();
@@ -546,6 +584,9 @@
         const nm = $("newunit").value.trim(); if (!nm) { toast("単元名を入れてください"); break; }
         newUnit(nm, $("newunit_s").value); commit(); break;
       }
+      case "newterm-open": openNewTerm(); break;
+      case "newterm-cancel": $("ntdlg").close(); break;
+      case "newterm-ok": createTerm(); break;
       case "settings": openSettings(); break;
       case "close-dlg": $("dlg").close(); break;
       case "test": testConn(); break;
