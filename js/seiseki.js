@@ -60,7 +60,7 @@
       s.links.forEach(g => g[1].forEach(x => { if (x[3]) { s.docs.push({ id: "l_" + (uid++), t: x[0], b: "", u: hrefOf(x[1], x[2]), ut: "", ls: [], tip: true, tag: "", go: "" }); x.length = 3; } }));
       delete s.man; s.docsInit = 1;
     }
-    s.docs = s.docs.filter(d => d && d.id).map(d => ({ id: String(d.id), t: String(d.t || "無題"), b: String(d.b || ""), u: String(d.u || ""), ut: String(d.ut || ""), ls: (Array.isArray(d.ls) ? d.ls : []).filter(x => x && typeof x === "object").slice(0, 4).map(x => ({ t: String(x.t || ""), u: String(x.u || "") })), tip: !!d.tip, img: Array.isArray(d.img) ? d.img.map(String) : [], tag: String(d.tag || ""), go: d.go === "link" || d.go === "detail" ? d.go : "" }));
+    s.docs = s.docs.filter(d => d && d.id).map(d => ({ id: String(d.id), t: String(d.t || "無題"), b: String(d.b || ""), u: String(d.u || ""), ut: String(d.ut || ""), ls: (Array.isArray(d.ls) ? d.ls : []).filter(x => x && typeof x === "object").slice(0, 7).map(x => ({ t: String(x.t || ""), u: String(x.u || "") })), tip: !!d.tip, img: Array.isArray(d.img) ? d.img.map(String) : [], tag: String(d.tag || ""), go: d.go === "link" || d.go === "detail" ? d.go : "" }));
     s.tipOrder = Array.isArray(s.tipOrder) ? s.tipOrder.map(String) : []; s.upd = s.upd || 0;
     return s;
   }
@@ -287,7 +287,7 @@
   A.seiseki.addDocs = function (docs) {
     if (!A.seiseki.ready()) return false;
     if (!Q.S.tags.some(t => t.id === "seiseki")) Q.S.tags.push({ id: "seiseki", n: "成績処理", c: 0 });
-    docs.forEach(d => { if (!Q.S.docs.some(x => x.id === d.id)) Q.S.docs.push({ id: String(d.id), t: String(d.t || "無題"), b: String(d.b || ""), u: String(d.u || ""), ut: String(d.ut || ""), ls: (d.ls || []).slice(0, 4).map(x => ({ t: String(x.t || ""), u: String(x.u || "") })), tip: !!d.tip, img: (d.img || []).map(String), tag: "seiseki", go: d.go === "link" || d.go === "detail" ? d.go : "" }); });
+    docs.forEach(d => { if (!Q.S.docs.some(x => x.id === d.id)) Q.S.docs.push({ id: String(d.id), t: String(d.t || "無題"), b: String(d.b || ""), u: String(d.u || ""), ut: String(d.ut || ""), ls: (d.ls || []).slice(0, 7).map(x => ({ t: String(x.t || ""), u: String(x.u || "") })), tip: !!d.tip, img: (d.img || []).map(String), tag: "seiseki", go: d.go === "link" || d.go === "detail" ? d.go : "" }); });
     save(); A.render(); return true;
   };
   A.seiseki.tips = function () {
@@ -313,7 +313,7 @@
         '<label class="tsimp">タグ： <select data-schg="doc-tag" data-i="' + i + '" style="width:auto"><option value="">なし</option>' + Q.S.tags.map(x => '<option value="' + x.id + '"' + (d.tag === x.id ? " selected" : "") + ">" + esc(x.n) + "</option>").join("") + "</select></label>" +
         '<label class="tsimp"><input type="checkbox" data-schg="doc-tip" data-i="' + i + '"' + (d.tip ? " checked" : "") + "> 重要（ホームの重要Tipsに出す）</label>" +
         '<label class="tsimp">重要Tipsのボタンを押したら： <select data-schg="doc-go" data-i="' + i + '" style="width:auto"><option value="">自動（説明が空なら資料をすぐ開く／説明があれば説明を出す）</option><option value="link"' + (d.go === "link" ? " selected" : "") + '>いつも資料をすぐ開く</option><option value="detail"' + (d.go === "detail" ? " selected" : "") + ">いつも説明を出す</option></select></label>" +
-        '<div class="wlset"><b class="small">資料リンク（最大5つ。名前は、押すボタンに出ます）</b>' + row(d.ut, d.u, "doc-ut", "doc-u", -1, "リンク1の名前") + d.ls.map((x, j) => row(x.t, x.u, "doc-lt", "doc-lu", j, "リンク" + (j + 2) + "の名前")).join("") + (1 + d.ls.length < 5 ? '<button class="btn sm" data-sact="doc-ladd" data-i="' + i + '">＋ リンクを足す</button>' : "") + "</div>" +
+        '<div class="wlset"><b class="small">資料リンク（最大8つ。名前は、押すボタンに出ます）</b>' + row(d.ut, d.u, "doc-ut", "doc-u", -1, "リンク1の名前") + d.ls.map((x, j) => row(x.t, x.u, "doc-lt", "doc-lu", j, "リンク" + (j + 2) + "の名前")).join("") + (1 + d.ls.length < 8 ? '<button class="btn sm" data-sact="doc-ladd" data-i="' + i + '">＋ リンクを足す</button>' : "") + "</div>" +
         '<label>本文（「# 」見出し・「- 」箇条書き・「1. 」番号・「|表|」・上のボタンで 太字・赤字・青字・下線、[名前](URL) が使えます）</label>' + A.rt.bar() + '<textarea rows="24" data-sf="doc-b" data-i="' + i + '">' + esc(d.b) + "</textarea>" +
         '<div class="btns"><button class="btn on" data-sact="doc-done">編集を終える</button><button class="btn danger" data-sact="doc-del" data-i="' + i + '">このメモを削除</button></div></div>';
     }
@@ -376,7 +376,7 @@
       case "doc-done": ui.dedit = null; A.render(); return;
       case "doc-star": { const d = S0.docs[+t.dataset.i]; if (d) { d.tip = !d.tip; save(); A.render(); } return; }
       case "doc-del": if (root.confirm("このメモを削除しますか？")) { S0.docs.splice(+t.dataset.i, 1); ui.dedit = null; save(); A.render(); } return;
-      case "doc-ladd": { const d = S0.docs[+t.dataset.i]; if (d && 1 + d.ls.length < 5) { d.ls.push({ t: "", u: "" }); save(); A.render(); } return; }
+      case "doc-ladd": { const d = S0.docs[+t.dataset.i]; if (d && 1 + d.ls.length < 8) { d.ls.push({ t: "", u: "" }); save(); A.render(); } return; }
       case "doc-ldel": { const d = S0.docs[+t.dataset.i]; if (d) { d.ls.splice(+t.dataset.j, 1); save(); A.render(); } return; }
       case "tag-add": { const n = V("tg_new").trim(); if (!n) { root.alert("タグの名前を入れてください。"); return; } S0.tags.push({ id: "g" + (uid++), n, c: +V("tg_col") || 0 }); ui.det.tagmgr = true; save(); A.render(); return; }
       case "tag-del": { const tg = S0.tags[+t.dataset.i]; if (tg && root.confirm("タグ「" + tg.n + "」を消します。このタグが付いたメモは、タグなしになります。よろしいですか？")) { S0.docs.forEach(d => { if (d.tag === tg.id) d.tag = ""; }); S0.tags.splice(+t.dataset.i, 1); if (ui.dtag === tg.id) ui.dtag = ""; ui.det.tagmgr = true; save(); A.render(); } return; }

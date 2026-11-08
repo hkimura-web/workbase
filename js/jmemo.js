@@ -22,7 +22,7 @@
     s = s && typeof s === "object" ? s : {}; s.v = 1;
     if (!Array.isArray(s.tags) || !s.tags.length) s.tags = DEFTAGS();
     s.tags = s.tags.filter(t => t && t.id).map(t => ({ id: String(t.id), n: String(t.n || "タグ"), c: Math.max(0, Math.min(7, +t.c || 0)) }));
-    s.docs = (Array.isArray(s.docs) ? s.docs : []).filter(d => d && d.id).map(d => ({ id: String(d.id), t: String(d.t || "無題"), b: String(d.b || ""), u: String(d.u || ""), ut: String(d.ut || ""), ls: (Array.isArray(d.ls) ? d.ls : []).filter(x => x && typeof x === "object").slice(0, 4).map(x => ({ t: String(x.t || ""), u: String(x.u || "") })), tip: !!d.tip, kw: String(d.kw || ""), img: Array.isArray(d.img) ? d.img.map(String) : [], tag: String(d.tag || ""), go: d.go === "link" || d.go === "detail" ? d.go : "" }));
+    s.docs = (Array.isArray(s.docs) ? s.docs : []).filter(d => d && d.id).map(d => ({ id: String(d.id), t: String(d.t || "無題"), b: String(d.b || ""), u: String(d.u || ""), ut: String(d.ut || ""), ls: (Array.isArray(d.ls) ? d.ls : []).filter(x => x && typeof x === "object").slice(0, 7).map(x => ({ t: String(x.t || ""), u: String(x.u || "") })), tip: !!d.tip, kw: String(d.kw || ""), img: Array.isArray(d.img) ? d.img.map(String) : [], tag: String(d.tag || ""), go: d.go === "link" || d.go === "detail" ? d.go : "" }));
     s.tipOrder = Array.isArray(s.tipOrder) ? s.tipOrder.map(String) : []; s.upd = s.upd || 0; return s;
   }
   const ghOn = () => { const s = S.getSettings(); return !!(s.token && s.owner && s.repo); };
@@ -102,7 +102,7 @@
         '<label>今日の授業で目立たせる言葉（空でもOK。例：古文，漢文。授業の単元名やクラス名に含まれると、授業の「今日」でこのTipsが目立ちます）</label><input type="text" value="' + esc(d.kw) + '" data-jf="doc-kw" data-i="' + i + '" placeholder="例：古文，言語文化">' +
         '<label class="tsimp"><input type="checkbox" data-jchg="doc-tip" data-i="' + i + '"' + (d.tip ? " checked" : "") + "> 重要（ホームの重要Tipsに出す）</label>" +
         '<label class="tsimp">重要Tipsのボタンを押したら： <select data-jchg="doc-go" data-i="' + i + '" style="width:auto"><option value="">自動（説明が空なら資料をすぐ開く／説明があれば説明を出す）</option><option value="link"' + (d.go === "link" ? " selected" : "") + '>いつも資料をすぐ開く</option><option value="detail"' + (d.go === "detail" ? " selected" : "") + ">いつも説明を出す</option></select></label>" +
-        '<div class="wlset"><b class="small">資料リンク（最大5つ。名前は、押すボタンに出ます）</b>' + row(d.ut, d.u, "doc-ut", "doc-u", -1, "リンク1の名前") + d.ls.map((x, j) => row(x.t, x.u, "doc-lt", "doc-lu", j, "リンク" + (j + 2) + "の名前")).join("") + (1 + d.ls.length < 5 ? '<button class="btn sm" data-jact="doc-ladd" data-i="' + i + '">＋ リンクを足す</button>' : "") + "</div>" +
+        '<div class="wlset"><b class="small">資料リンク（最大8つ。名前は、押すボタンに出ます）</b>' + row(d.ut, d.u, "doc-ut", "doc-u", -1, "リンク1の名前") + d.ls.map((x, j) => row(x.t, x.u, "doc-lt", "doc-lu", j, "リンク" + (j + 2) + "の名前")).join("") + (1 + d.ls.length < 8 ? '<button class="btn sm" data-jact="doc-ladd" data-i="' + i + '">＋ リンクを足す</button>' : "") + "</div>" +
         '<label>本文（「# 」見出し・「- 」箇条書き・「1. 」番号・「|表|」・上のボタンで 太字・赤字・青字・下線、[名前](URL) が使えます）</label>' + A.rt.bar() + '<textarea rows="24" data-jf="doc-b" data-i="' + i + '">' + esc(d.b) + "</textarea>" +
         '<div class="btns"><button class="btn on" data-jact="doc-done">編集を終える</button><button class="btn danger" data-jact="doc-del" data-i="' + i + '">このメモを削除</button></div></div>';
     }
@@ -136,7 +136,7 @@
       case "doc-done": ui.dedit = null; A.render(); return;
       case "doc-star": { const d = S0.docs[i]; if (d) { d.tip = !d.tip; ui.det["d" + d.id] = true; save(); A.render(); } return; }
       case "doc-del": if (root.confirm("このメモを削除しますか？")) { S0.docs.splice(i, 1); ui.dedit = null; save(); A.render(); } return;
-      case "doc-ladd": { const d = S0.docs[i]; if (d && 1 + d.ls.length < 5) { d.ls.push({ t: "", u: "" }); save(); A.render(); } return; }
+      case "doc-ladd": { const d = S0.docs[i]; if (d && 1 + d.ls.length < 8) { d.ls.push({ t: "", u: "" }); save(); A.render(); } return; }
       case "doc-ldel": { const d = S0.docs[i]; if (d) { d.ls.splice(+t.dataset.j, 1); save(); A.render(); } return; }
       case "tag-add": { const n = ($("jm_tn").value || "").trim(); if (!n) return; S0.tags.push({ id: "g" + (uid++), n, c: +$("jm_tc").value || 0 }); ui.det.tagmgr = true; save(); A.render(); return; }
       case "tag-del": { const tg = S0.tags[i]; if (tg && root.confirm("タグ「" + tg.n + "」を消しますか？（メモは残り、タグだけ外れます）")) { S0.docs.forEach(d => { if (d.tag === tg.id) d.tag = ""; }); S0.tags.splice(i, 1); ui.det.tagmgr = true; save(); A.render(); } return; }
