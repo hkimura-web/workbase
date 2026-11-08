@@ -37,7 +37,7 @@
     if (now < gk) return "下校 " + hmm(gk) + " まで あと" + dur(gk - now);
     return "";
   };
-  const nl = s => esc(s).replace(/\n/g, "<br>");
+  const nl = s => A.rt.inl(esc(s)).replace(/\n/g, "<br>");
   const nfkc = s => String(s == null ? "" : s).normalize("NFKC").toLowerCase();
   const pad = n => String(n).padStart(2, "0");
 
@@ -291,6 +291,12 @@
     return tipList().map(d => ({ src: "work", id: d.id, t: d.t, cls: tagCls(d.tag), tag: tagName(d.tag), href: goLink(d) ? dlinks(d)[0].u : "", n: dlinks(d).length, sortable: true,
       detail: () => '<div style="margin-top:8px">' + nl(d.b) + "</div>" + (dlinks(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") + imgs(d) }));
   };
+  A.work.alldocs = function () {
+    if (!W.ready || !W.S) return [];
+    return W.S.docs.map(d => ({ src: "work", id: d.id, t: d.t, tag: tagName(d.tag), star: !!d.tip,
+      detail: () => '<div>' + nl(d.b) + "</div>" + (dlinks(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") + imgs(d) }));
+  };
+  A.work.openDoc = id => { ui.docOpen[id] = true; ui.tab = "docs"; };
   function tipsH() {
     const l = tipList(), used = TAGS.filter(t => l.some(d => d.tag === t[0])), sorting = ui.tipSort;
     const btn = d => (goLink(d) && !sorting) ? '<a class="wtp t-' + esc(d.tag || "none") + '" href="' + esc(dlinks(d)[0].u) + '" target="_blank" rel="noopener noreferrer" title="押すと資料がすぐ開きます">' + esc(d.t) + ' <span class="wgo">↗</span></a>' : '<button class="wtp t-' + esc(d.tag || "none") + '" data-wact="tip" data-id="' + d.id + '"' + (dlinks(d).length > 1 ? ' title="押すとリンクを選べます"' : "") + ">" + esc(d.t) + (dlinks(d).length > 1 ? ' <span class="wgo">▾' + dlinks(d).length + "</span>" : "") + "</button>";
@@ -360,7 +366,7 @@
   function docCard(d, i) {
     const open = ui.docOpen[d.id] ? " open" : "";
     return '<details class="wdet wdoc" data-id="' + d.id + '"' + open + '><summary><span class="wtag ' + esc(tagCls(d.tag)) + '">' + esc(tagName(d.tag) || "タグなし") + '</span> <b class="wdt">' + esc(d.t || "（無題）") + "</b>" + (d.tip ? ' <span class="wst">★</span>' : "") + "</summary>" +
-      '<div class="wcard" style="border:0;padding:4px 0 8px"><input type="text" value="' + esc(d.t) + '" data-wf="doc-t" data-i="' + i + '" aria-label="見出し"><button class="wstar" data-wact="doc-star" data-i="' + i + '" aria-pressed="' + !!d.tip + '" title="★を付けると、ホームの重要Tipsに出ます">' + (d.tip ? "★" : "☆") + '</button><label class="wck">タグ（ボタンの色）： <select data-wchg="doc-tag" data-i="' + i + '" style="width:auto"><option value="">なし</option>' + tagsOf().map(t => '<option value="' + esc(t.id) + '"' + (d.tag === t.id ? " selected" : "") + ">" + esc(t.n) + "</option>").join("") + '</select></label><label class="wck">重要Tipsのボタンを押したら： <select data-wchg="doc-go" data-i="' + i + '" style="width:auto"><option value="">自動（説明が空なら資料をすぐ開く／説明があれば説明を出す）</option><option value="link"' + (d.go === "link" ? " selected" : "") + '>いつも資料をすぐ開く</option><option value="detail"' + (d.go === "detail" ? " selected" : "") + '>いつも説明を出す</option></select></label><div class="wlset"><b class="small">資料リンク（最大5つ。名前は、押すボタンに出ます）</b>' + linkRows(d, i) + (1 + (d.ls || []).length < 5 ? '<button class="btn sm" data-wact="doc-ladd" data-i="' + i + '">＋ リンクを足す</button>' : "") + '</div><textarea style="min-height:110px" data-wf="doc-b" data-i="' + i + '">' + esc(d.b) + "</textarea>" + imgs(d) + '<button class="btn" data-wact="doc-del" data-i="' + i + '">削除</button></div></details>';
+      '<div class="wcard" style="border:0;padding:4px 0 8px"><input type="text" value="' + esc(d.t) + '" data-wf="doc-t" data-i="' + i + '" aria-label="見出し"><button class="wstar" data-wact="doc-star" data-i="' + i + '" aria-pressed="' + !!d.tip + '" title="★を付けると、ホームの重要Tipsに出ます">' + (d.tip ? "★" : "☆") + '</button><label class="wck">タグ（ボタンの色）： <select data-wchg="doc-tag" data-i="' + i + '" style="width:auto"><option value="">なし</option>' + tagsOf().map(t => '<option value="' + esc(t.id) + '"' + (d.tag === t.id ? " selected" : "") + ">" + esc(t.n) + "</option>").join("") + '</select></label><label class="wck">重要Tipsのボタンを押したら： <select data-wchg="doc-go" data-i="' + i + '" style="width:auto"><option value="">自動（説明が空なら資料をすぐ開く／説明があれば説明を出す）</option><option value="link"' + (d.go === "link" ? " selected" : "") + '>いつも資料をすぐ開く</option><option value="detail"' + (d.go === "detail" ? " selected" : "") + '>いつも説明を出す</option></select></label><div class="wlset"><b class="small">資料リンク（最大5つ。名前は、押すボタンに出ます）</b>' + linkRows(d, i) + (1 + (d.ls || []).length < 5 ? '<button class="btn sm" data-wact="doc-ladd" data-i="' + i + '">＋ リンクを足す</button>' : "") + '</div>' + A.rt.bar() + '<textarea style="min-height:110px" data-wf="doc-b" data-i="' + i + '">' + esc(d.b) + "</textarea>" + imgs(d) + '<button class="btn" data-wact="doc-del" data-i="' + i + '">削除</button></div></details>';
   }
   function docList() {
     const q = nfkc(ui.dq).split(/\s+/).filter(Boolean);
@@ -373,8 +379,8 @@
       '<div class="tstg"><input type="text" id="wtg_n" placeholder="新しいタグの名前"><select id="wtg_c">' + TGN.map((n, c) => '<option value="' + c + '">' + n + "</option>").join("") + '</select><button class="btn on" data-wact="tag-add">タグを足す</button></div></div></details>';
   }
   function viewDocs() {
-    return '<div class="wdocbar"><input type="search" id="wdq" data-wf="dq" placeholder="メモをさがす" value="' + esc(ui.dq) + '" autocomplete="off"><button class="btn on" data-wact="doc-add">＋ 新しいメモ</button></div>' +
-      '<p class="note">タスクの「手順」として紐づけられる共通メモです。1か所直せば全部に反映されます。</p>' + tagMgr() + '<div id="wdocs">' + docList() + '</div><button class="wfab" data-wact="doc-add" aria-label="新しいメモを足す" title="新しいメモを足す">＋</button>';
+    return A.memoHead("work") + '<div class="wdocbar"><input type="search" id="wdq" data-wf="dq" placeholder="メモをさがす" value="' + esc(ui.dq) + '" autocomplete="off"><button class="btn on" data-wact="doc-add">＋ 新しいメモ</button></div>' +
+      '<p class="note">タスクの「手順」として紐づけられる共通メモです。1か所直せば全部に反映されます。</p>' + tagMgr() + '<div id="wdocs">' + docList() + '</div>' + A.memoOthers("work") + '<button class="wfab" data-wact="doc-add" aria-label="新しいメモを足す" title="新しいメモを足す">＋</button>';
   }
   function icsText(o) {
     const yr = calYear, e = s => String(s).replace(/\\/g, "\\\\").replace(/[,;]/g, "\\$&").replace(/\n/g, "\\n"), s = W.S, ev = []; let n = 0;

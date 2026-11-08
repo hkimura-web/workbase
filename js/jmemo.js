@@ -81,6 +81,13 @@
     });
   };
 
+  A.jmemo.alldocs = function () {
+    if (!Q.ready || !Q.S) return [];
+    return Q.S.docs.map(d => { const t = tagOf(d.tag); return { src: "class", id: d.id, t: d.t, tag: t ? t.n : "", star: !!d.tip,
+      detail: () => '<div class="tsmv-in">' + (d.b.trim() ? md2h(d.b) : "") + "</div>" + (A.work && A.work.imgsH ? A.work.imgsH(d) : "") + (dl(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") }; });
+  };
+  A.jmemo.openDoc = id => { ui.det["d" + id] = true; A.ui.tab = "memo"; };
+
   /* ---------- 画面 ---------- */
   const docMatch = d => { const q = ui.dq.trim().toLowerCase(); return (!ui.dtag || d.tag === ui.dtag) && (!q || (d.t + " " + d.b).toLowerCase().includes(q)); };
   function docCard(d, i) {
@@ -96,7 +103,7 @@
         '<label class="tsimp"><input type="checkbox" data-jchg="doc-tip" data-i="' + i + '"' + (d.tip ? " checked" : "") + "> 重要（ホームの重要Tipsに出す）</label>" +
         '<label class="tsimp">重要Tipsのボタンを押したら： <select data-jchg="doc-go" data-i="' + i + '" style="width:auto"><option value="">自動（説明が空なら資料をすぐ開く／説明があれば説明を出す）</option><option value="link"' + (d.go === "link" ? " selected" : "") + '>いつも資料をすぐ開く</option><option value="detail"' + (d.go === "detail" ? " selected" : "") + ">いつも説明を出す</option></select></label>" +
         '<div class="wlset"><b class="small">資料リンク（最大5つ。名前は、押すボタンに出ます）</b>' + row(d.ut, d.u, "doc-ut", "doc-u", -1, "リンク1の名前") + d.ls.map((x, j) => row(x.t, x.u, "doc-lt", "doc-lu", j, "リンク" + (j + 2) + "の名前")).join("") + (1 + d.ls.length < 5 ? '<button class="btn sm" data-jact="doc-ladd" data-i="' + i + '">＋ リンクを足す</button>' : "") + "</div>" +
-        '<label>本文（「# 」見出し・「- 」箇条書き・「1. 」番号・「|表|」・**太字**・[名前](URL) が使えます）</label><textarea rows="12" data-jf="doc-b" data-i="' + i + '">' + esc(d.b) + "</textarea>" +
+        '<label>本文（「# 」見出し・「- 」箇条書き・「1. 」番号・「|表|」・上のボタンで 太字・赤字・青字・下線、[名前](URL) が使えます）</label>' + A.rt.bar() + '<textarea rows="12" data-jf="doc-b" data-i="' + i + '">' + esc(d.b) + "</textarea>" +
         '<div class="btns"><button class="btn on" data-jact="doc-done">編集を終える</button><button class="btn danger" data-jact="doc-del" data-i="' + i + '">このメモを削除</button></div></div>';
     }
     return '<details class="wdet wdoc" data-ph="' + k + '"' + (ui.det[k] || ed ? " open" : "") + ">" + sum + b + "</details>";
@@ -106,9 +113,10 @@
     if (!Q.ready) return '<p class="note">読み込み中…</p>';
     let h = askH();
     h += '<div class="pghd"><div><h2 class="pgt">MEMO</h2><p class="pgs">授業の手順やメモ。★を付けると、どのホームの「重要Tips」にも出ます。</p></div></div>';
+    h += A.memoHead("class");
     h += '<div class="tsbar"><input type="search" id="jm_q" placeholder="手順・メモをさがす" value="' + esc(ui.dq) + '" autocomplete="off"><button class="btn on" data-jact="doc-add" style="white-space:nowrap">＋ 新しいメモ</button></div>';
     h += '<div class="tsseg"><button class="btn' + (ui.dtag ? "" : " on") + '" data-jact="dtag" data-v="">すべて</button>' + Q.S.tags.map(t => '<button class="btn' + (ui.dtag === t.id ? " on" : "") + '" data-jact="dtag" data-v="' + t.id + '">' + esc(t.n) + "</button>").join("") + "</div>";
-    h += '<div id="jm_l">' + listH() + "</div>";
+    h += '<div id="jm_l">' + listH() + "</div>" + A.memoOthers("class");
     h += '<details class="wdet" data-ph="tagmgr"' + (ui.det.tagmgr ? " open" : "") + "><summary><b>タグを管理する（増やす・名前や色を変える）</b></summary><div class=\"tsadd\">" +
       Q.S.tags.map((t, i) => '<div class="tstg"><span class="tgchip tgx tg-' + t.c + '">' + esc(t.n) + '</span><input type="text" value="' + esc(t.n) + '" data-jf="tag-n" data-i="' + i + '" aria-label="タグの名前"><select data-jchg="tag-c" data-i="' + i + '" aria-label="色">' + TGN.map((n, c) => '<option value="' + c + '"' + (t.c === c ? " selected" : "") + ">" + n + "</option>").join("") + '</select><button class="btn sm danger" data-jact="tag-del" data-i="' + i + '">消す</button></div>').join("") +
       '<div class="tstg"><input type="text" id="jm_tn" placeholder="新しいタグの名前"><select id="jm_tc">' + TGN.map((n, c) => '<option value="' + c + '">' + n + "</option>").join("") + '</select><button class="btn on" data-jact="tag-add">タグを足す</button></div></div></details>';

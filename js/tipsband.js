@@ -53,6 +53,29 @@
     if (e.target.id !== "tp_q") return; ui.q = e.target.value;
     const band = e.target.closest(".tpband"), bd = $("tp_b"); if (band && bd) { bd.innerHTML = bodyH(band.dataset.scope); markHits(); }
   });
+
+  /* ---------- 手順・メモ：3つ（授業・校務・テスト成績）を、どこを開いても一覧で見えるようにする ---------- */
+  const NAME = { class: "授業", work: "校務", test: "テスト成績" }, MOD = { class: "jmemo", work: "work", test: "seiseki" };
+  const mo = { open: {} };
+  const allOf = src => { try { return (A[MOD[src]] && A[MOD[src]].alldocs && A[MOD[src]].alldocs()) || []; } catch (e) { return []; } };
+  const qNow = () => { const i = document.querySelector("#jm_q,#wdq,#ts_dq"); return i ? nf(i.value).split(/\s+/).filter(Boolean) : []; };
+  const moCard = it => '<details class="wdet mo-card mo-' + it.src + '" data-mk="' + it.src + ":" + esc(it.id) + '"' + (mo.open[it.src + ":" + it.id] ? " open" : "") + '><summary><span class="mo-src">' + (NAME[it.src]) + '</span><span class="wdt">' + esc(it.t || "（無題）") + "</span>" + (it.tag ? '<span class="mo-tag">' + esc(it.tag) + "</span>" : "") + (it.star ? '<span class="tsstar on tsmini">★</span>' : "") + "</summary>" +
+    '<div class="mo-body">' + it.detail() + '</div><div class="btns" style="margin-top:8px"><button class="btn" data-tbact="memo-go" data-k="' + it.src + ":" + esc(it.id) + '">' + NAME[it.src] + "のメモで開く（編集はそこで）</button></div></details>";
+  function moInner(scope) {
+    const q = qNow();
+    return ["class", "work", "test"].filter(s => s !== scope).map(s => {
+      const all = allOf(s), l = q.length ? all.filter(it => q.every(w => nf(it.t + " " + it.tag).indexOf(w) >= 0)) : all;
+      return '<div class="mo-sec mo-sec-' + s + '"><div class="mo-h"><span class="mo-lab mo-lab-' + s + '">' + NAME[s] + "</span><b>" + NAME[s] + "のメモ</b><span class=\"note\">" + (q.length ? l.length + " / " : "") + all.length + "件・読むだけ</span></div>" + (l.map(moCard).join("") || '<p class="note" style="margin:4px 0 0">' + (all.length ? "見つかりません。" : "まだありません。") + "</p>") + "</div>";
+    }).join("");
+  }
+  A.memoHead = scope => '<div class="mo-top">' + ["class", "work", "test"].map(s => '<span class="mo-chip mo-chip-' + s + (s === scope ? " here" : "") + '">' + NAME[s] + " " + allOf(s).length + "</span>").join("") + '<span class="note">いま開いているモード（' + NAME[scope] + '）のメモが上、ほかは下に出ます。</span></div>' +
+    '<div class="mo-h own"><span class="mo-lab mo-lab-' + scope + '">' + NAME[scope] + "</span><b>" + NAME[scope] + 'のメモ</b><span class="note">ここで編集できます</span></div>';
+  A.memoOthers = scope => '<div id="mo_in" data-scope="' + scope + '">' + moInner(scope) + "</div>";
+  document.addEventListener("input", e => {
+    if (!/^(jm_q|wdq|ts_dq)$/.test(e.target.id)) return;
+    const w = $("mo_in"); if (w) w.innerHTML = moInner(w.dataset.scope);
+  });
+  document.addEventListener("toggle", e => { const d = e.target; if (d && d.dataset && d.dataset.mk) mo.open[d.dataset.mk] = d.open; }, true);
   A.movedDoc = id => (A.jmemo && A.jmemo.getDoc && A.jmemo.getDoc(id)) || (A.seiseki && A.seiseki.getDoc && A.seiseki.getDoc(id)) || null;
   /* 校務の手順・メモで、タグが「授業」のものは授業へ、「テスト成績」のものはテスト成績へ、自動で移す（先に移し先へ入れてから、校務から外す） */
   const mv = setInterval(() => {
@@ -72,6 +95,13 @@
       const it = map[t.dataset.k]; if (!it) return;
       $("wbody").innerHTML = '<h2 style="margin:0">' + esc(it.t) + "</h2>" + it.detail() + '<div class="dlg-btns"><button class="btn" data-tbact="cl">閉じる</button></div>';
       if (!$("wdlg").open) $("wdlg").showModal(); return;
+    }
+    if (a === "memo-go") {
+      const k = t.dataset.k.split(":"), src = k[0], id = k.slice(1).join(":"), m = A[MOD[src]]; if (!m || !m.openDoc) return;
+      m.openDoc(id); A.ui.mode = src === "class" ? "class" : src;
+      try { root.JDStore.LS.set("jd.mode", A.ui.mode); } catch (x) { /* なくても動く */ }
+      A.render(); root.scrollTo(0, 0);
+      setTimeout(() => { const el = document.querySelector('[data-ph="d' + id + '"],.wdoc[data-id="' + id + '"]'); if (el) el.scrollIntoView({ block: "start" }); }, 60); return;
     }
     if (a === "goto") {
       const s = SRC.find(x => x[0] === t.dataset.k); if (!s) return;

@@ -1020,3 +1020,24 @@ body.testmode .tdp.p-now{border-top-color:var(--ts)}
 .tser>input[type=checkbox]{width:16px;height:16px;opacity:.5}
 .tser>input[type=checkbox]:hover,.tser>input[type=checkbox]:checked{opacity:1}
 .tdp .tdl{margin-top:9px}
+
+/* 文字の装飾（太字・赤字・青字・下線） */
+.rt-red{color:#c62828;font-weight:600}.rt-blue{color:#1558b0}.rt-u{text-decoration:underline;text-underline-offset:3px}
+.rtbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0 4px}
+.rtbar .btn.sm{padding:2px 10px;font-size:12px}
+.rtbar .rtb-red{color:#c62828}.rtbar .rtb-blue{color:#1558b0}.rtbar .rtb-u{text-decoration:underline;text-underline-offset:3px}
+@media (prefers-color-scheme:dark){.rt-red{color:#ff8a80}.rt-blue{color:#8ab4ff}.rtbar .rtb-red{color:#ff8a80}.rtbar .rtb-blue{color:#8ab4ff}}
+/* 手順・メモ：3つのメモをまとめて見る */
+.mo-top{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 10px}
+.mo-chip{font-size:12px;padding:2px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:var(--surface)}
+.mo-chip-class{border-color:#6b86b8}.mo-chip-work{border-color:#5aa574}.mo-chip-test{border-color:#d6458a}
+.mo-chip.here{font-weight:700;color:var(--ink)}
+.mo-h{display:flex;gap:8px;align-items:baseline;margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.mo-h.own{margin-top:6px}
+.mo-lab{font-size:11px;font-weight:700;letter-spacing:.04em;padding:1px 8px;border-radius:4px;color:#fff;align-self:center}
+.mo-lab-class{background:#6b86b8}.mo-lab-work{background:#5aa574}.mo-lab-test{background:#d6458a}
+.mo-card{border-left:3px solid var(--line);margin:4px 0}
+.mo-class.mo-card{border-left-color:#6b86b8}.mo-work.mo-card{border-left-color:#5aa574}.mo-test.mo-card{border-left-color:#d6458a}
+.mo-src{font-size:10px;font-weight:700;color:var(--muted);margin-right:8px;white-space:nowrap}
+.mo-tag{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:0 8px;margin-left:8px}
+.mo-body{padding:4px 2px 0}
