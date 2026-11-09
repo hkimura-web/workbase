@@ -5,7 +5,7 @@
 (function (root) {
   "use strict";
   const J = root.JD, S = root.JDStore, A = root.A, LS = S.LS, esc = J.esc;
-  const { SEED, IMG, RL, tgl, OLDN, DOCS } = root.WSEED;
+  const { SEED, IMG, RL, tgl, OLDN, DOCS, ONCE } = root.WSEED;
   const $ = id => document.getElementById(id);
   const ORDER = [4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3];
   const now = new Date(), FY = now.getMonth() + 1 >= 4 ? now.getFullYear() : now.getFullYear() - 1;
@@ -53,6 +53,9 @@
   }
   function mig(s) {
     s.tasks = s.tasks || []; s.docs = s.docs || [];
+    s.once = Array.isArray(s.once) ? s.once : [];
+    (ONCE || []).forEach(o => { if (s.y === o[0] && !s.once.includes(o[1]) && !s.tasks.find(t => t.id === "t" + o[1])) { const t = mkT([o[2], o[4], "", o[5], o[6]], o[1]); t.dd = o[3]; s.tasks.push(t); } if (s.y === o[0] && !s.once.includes(o[1])) s.once.push(o[1]); }); /* その年だけの仕事を、1回だけ入れる（消しても戻らない） */
+    if (!s.fx6) { const o2 = s.tasks.find(t => t.id === "to2"); if (o2) { o2.t = "授業見学：佐々木先生 J2-3（1時間目）"; o2.n = "11/12（木）1時間目。J2-3（中学2年3組）の佐々木先生の授業を見学する。毎年あるかは未定"; } s.fx6 = 1; } /* 11/12の授業見学の内容を直す（1回だけ） */
     if (s.sn == null) s.sn = 81; /* 以前の版の仕事は81件 */
     if (s.sn < SEED.length) { SEED.forEach((a, i) => { if (i >= s.sn && !s.tasks.find(t => t.id === "t" + i)) s.tasks.push(mkT(a, i)); }); s.sn = SEED.length; } /* あとから足した仕事を、いまのデータにも1回だけ入れる（消した仕事は戻らない） */
     if ((s.v || 0) < 2) {
