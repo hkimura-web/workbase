@@ -11,7 +11,7 @@
   const now = new Date(), FY = now.getMonth() + 1 >= 4 ? now.getFullYear() : now.getFullYear() - 1;
   const MAIL = "h.k1(サブ)のGmail";
   const EM = "\nClaudeアカウント: " + MAIL;
-  const DAYS = { "前年度の出金伝票": 11, "中間試験問題作成": 28, "面談調査用紙": 20, "六浦祭: 実行委員を決める": 12, "六浦祭: 何をやりたいかをLHRで話し合う": 30, "スポーツ安全保険": 31, "六浦祭: 文化部・試合のある生徒を確認する": 30, "六浦祭: 飲食・物販の方向性を実行委員と決める": 10, "六浦祭: 出展団体募集フォームを出す": 15, "六浦祭: 飲食・物販の仕入れを決める": 20, "六浦祭: 服装デザイン申請": 15, "六浦祭: 決済端末使用者登録届": 23, "六浦祭: 会計の連絡を確認し、決算報告書を用意": 1, "六浦祭: 収支決算報告書を提出": 6 };
+  const DAYS = { "前年度の出金伝票": 11, "中間試験問題作成": 28, "面談調査用紙": 20, "六浦祭: 実行委員を決める": 12, "六浦祭: 何をやりたいかをLHRで話し合う": 30, "スポーツ安全保険": 31, "六浦祭: 文化部・試合のある生徒を確認する": 30, "六浦祭: 飲食・物販の方向性を実行委員と決める": 10, "六浦祭: 出展団体募集フォームを出す": 15, "六浦祭: 飲食・物販の仕入れを決める": 20, "六浦祭: 服装デザイン申請": 15, "六浦祭: 決済端末使用者登録届": 23, "六浦祭: 会計の連絡を確認し、決算報告書を用意": 1, "六浦祭: 収支決算報告書を提出": 6, "年末調整の書類を準備する": 23, "3学期の授業計画を作る": 10, "1学期の授業計画を作る": 15, "2学期の授業計画を作る": 15 };
   const PAT = { "懇談会(S1)": "d11", "懇談会(S3)": "d12", "夏期面談の実施": "d13", "通知表プレビュー": "d7", "指導要録ほぼ完成": "d8", "指導要録の最終確認": "d8" };
   const PV = ["備考欄の「出停」「忌引」の数字が表と一致", "成績に抜けがない", "委員・係・検定の入力", "欠課時数の合算(遅刻3回=欠課1)"];
   const W = { S: null, links: null, sha: null, dirty: false, saving: false, timer: null, token: false, conflict: false, ask: false, needCreate: false, draftP: null, canSave: true, st: "読み込み中…", ready: false, ed: null };
@@ -53,6 +53,8 @@
   }
   function mig(s) {
     s.tasks = s.tasks || []; s.docs = s.docs || [];
+    if (s.sn == null) s.sn = 81; /* 以前の版の仕事は81件 */
+    if (s.sn < SEED.length) { SEED.forEach((a, i) => { if (i >= s.sn && !s.tasks.find(t => t.id === "t" + i)) s.tasks.push(mkT(a, i)); }); s.sn = SEED.length; } /* あとから足した仕事を、いまのデータにも1回だけ入れる（消した仕事は戻らない） */
     if ((s.v || 0) < 2) {
       DOCS.forEach(d => { if (!s.docs.find(x => x.id === d.id)) s.docs.push(JSON.parse(JSON.stringify(d))); });
       SEED.forEach((a, i) => { if (i >= OLDN && !s.tasks.find(t => t.id === "t" + i)) s.tasks.push(mkT(a, i)); });
@@ -70,6 +72,7 @@
     s.docs.forEach(d => { d.img = (DOCS.find(x => x.id === d.id) || {}).img || d.img || []; d.b = san(d.b); d.t = san(d.t); d.u = d.u || ""; d.ut = typeof d.ut === "string" ? d.ut : ""; d.ls = (Array.isArray(d.ls) ? d.ls : []).filter(x => x && typeof x === "object").slice(0, 7).map(x => ({ t: String(x.t || ""), u: String(x.u || "") })); });
     if (!s.fx1) { const FX = {"六浦祭: 実行委員を決める": [4, 12], "六浦祭: 何をやりたいかをLHRで話し合う": [6, 30], "六浦祭: 文化部・試合のある生徒を確認する": [6, 30], "六浦祭: 飲食・物販の方向性を実行委員と決める": [7, 10], "六浦祭: 飲食・物販の仕入れを決める": [9, 20], "六浦祭: 服装デザイン申請": [10, 15], "六浦祭: 会計の連絡を確認し、決算報告書を用意": [10, 1]}; s.tasks.forEach(t => { if (FX[t.t]) { t.m = FX[t.t][0]; t.dd = FX[t.t][1]; } }); s.fx1 = 1; } /* 六浦祭の日付を先生の指定に合わせる（1回だけ） */
     if (!s.fx2) { const md = s.docs.find(d => String(d.t).indexOf("六浦祭") >= 0); if (md) { s.tasks.forEach(t => { if (!t.p && String(t.t).startsWith("六浦祭:")) t.p = md.id; }); s.fx2 = 1; } } /* 六浦祭の仕事を、六浦祭の手順メモにつなぐ（メモがあるときに1回だけ） */
+    if (!s.fx4) { const md = s.docs.find(d => String(d.t).indexOf("年末調整") >= 0); if (md) { s.tasks.forEach(t => { if (!t.p && String(t.t).startsWith("年末調整")) t.p = md.id; }); s.fx4 = 1; } } /* 年末調整の仕事を、年末調整の手順メモにつなぐ（メモがあるときに1回だけ） */
     s.tasks.forEach(t => {
       if (t.dd == null) t.dd = 0;
       for (const k in DAYS) if (!t.dd && t.t.startsWith(k)) t.dd = DAYS[k];
@@ -85,11 +88,11 @@
     s.tags = s.tags.filter(t => t && t.id).map(t => ({ id: String(t.id), n: String(t.n || "タグ"), c: t.c >= 0 ? Math.min(7, +t.c) : -1 }));
     s.moved = s.moved && typeof s.moved === "object" ? s.moved : {}; s.d = s.d || {}; s.cd = s.cd || {}; s.tipOrder = Array.isArray(s.tipOrder) ? s.tipOrder : []; s.fav = Array.isArray(s.fav) ? s.fav : []; s.mine = Array.isArray(s.mine) ? s.mine : [];
     s.bell = bellMig(s.bell);
-    s.roles = s.roles || ["担", "教", "部"]; s.g = s.g || "3";
+    s.roles = s.roles || ["担", "教", "部", "全"]; if (!s.fx3) { if (!s.roles.includes("全")) s.roles.push("全"); s.fx3 = 1; } if (!s.fx5) { if (!s.roles.includes("授")) s.roles.push("授"); s.tasks.forEach(t => { if (/^[123]学期の授業計画を作る/.test(t.t)) t.r = "授"; }); s.fx5 = 1; } /* 「授業」の区分を足し、授業計画の仕事をそこへ（1回だけ） */ /* 「教員共通」の区分を足す（1回だけ） */ s.g = s.g || "3";
     if (!s.y || s.y < FY) s.y = FY; /* 年度が変わると自動で新しい年度になる（完了チェックは年度ごとに別なので、未完了に戻る） */
     return s;
   }
-  const fresh = () => mig({ v: 3, y: FY, g: "3", roles: ["担", "教", "部"], docs: JSON.parse(JSON.stringify(DOCS)), d: {}, cd: {}, tasks: SEED.map(mkT), fav: [], mine: [] });
+  const fresh = () => mig({ v: 3, y: FY, g: "3", roles: ["担", "教", "部", "全", "授"], docs: JSON.parse(JSON.stringify(DOCS)), d: {}, cd: {}, tasks: SEED.map(mkT), fav: [], mine: [], sn: SEED.length });
 
   /* ---------- 読み込み・保存 ---------- */
   const ghOn = () => { const s = S.getSettings(); return !!(s.token && s.owner && s.repo); };
@@ -503,7 +506,7 @@
     const t = W.ed, id = t._id, secs = {};
     allLinks().forEach(x => { (secs[x.sec] = secs[x.sec] || []).push(x); });
     modal('<h2 style="margin:0">' + (id ? "編集" : "タスク追加") + '</h2><label>タイトル</label><input type="text" id="we1" value="' + esc(t.t) + '"><label>月</label><select id="we2">' + ORDER.map(m => "<option " + (m === t.m ? "selected" : "") + ">" + m + "</option>").join("") + "</select>" +
-      '<label>役割</label><select id="we3">' + ["担", "教", "部"].map(r => '<option value="' + r + '" ' + (r === t.r ? "selected" : "") + ">" + RL[r] + "</option>").join("") + "</select>" +
+      '<label>役割</label><select id="we3">' + ["担", "教", "部", "全", "授"].map(r => '<option value="' + r + '" ' + (r === t.r ? "selected" : "") + ">" + RL[r] + "</option>").join("") + "</select>" +
       '<div>対象(未選択=全学年): ' + ["J", "1", "2", "3"].map(g => '<label class="wck" style="display:inline-block;margin-right:8px"><input type="checkbox" class="we4" value="' + g + '" ' + (t.tg.includes(g) ? "checked" : "") + "> " + (g === "J" ? "中学" : "高" + g) + "</label>").join("") + '<label class="wck" style="display:inline-block"><input type="checkbox" id="we8" ' + (t.rep ? "checked" : "") + "> 毎月繰り返す</label></div>" +
       '<label>日(任意・期限のお知らせとカレンダー用)</label><input type="number" id="we10" min="0" max="31" value="' + (t.dd || "") + '" style="width:90px"><label>注意事項(見落とし防止)</label><textarea id="we5">' + esc(t.n) + '</textarea><label>資料URL</label><input type="text" id="we6" value="' + esc(t.u) + '">' +
       '<label>手順メモ</label><select id="we7"><option value="">なし</option>' + W.S.docs.map(d => '<option value="' + d.id + '" ' + (d.id === t.p ? "selected" : "") + ">" + esc(d.t) + "</option>").join("") + A.work.movedIds().map(i => A.movedDoc && A.movedDoc(i)).filter(Boolean).map(d => '<option value="' + d.id + '" ' + (d.id === t.p ? "selected" : "") + ">" + esc(d.t) + "（移動済）</option>").join("") + "</select>" +
