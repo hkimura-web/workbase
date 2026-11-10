@@ -1053,3 +1053,12 @@ body.testmode .tdp.p-now{border-top-color:var(--ts)}
 .qrow .qlb{font-size:12px;color:var(--muted,#667);margin-right:2px}
 .qrow.qc{margin:4px 0}.qrow.qc .qlb{font-size:11px}
 .qbtn.on{background:var(--accent,#6b86b8);color:#fff}
+
+/* パソコン幅：タブが多いときも、右端（基準日・Aa・設定）が画面の外に出ないようにする */
+@media (min-width:900px){
+  .topbar .tabbar{flex:1 1 0;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+  .topbar .tabbar::-webkit-scrollbar{display:none}
+  .topbar .tabbar .tabs,.topbar .tabbar .wtabs{flex-wrap:nowrap;width:max-content}
+  .topbar .tabbar .tab{white-space:nowrap}
+  .topbar .tools{flex:none;margin-left:12px}
+}
