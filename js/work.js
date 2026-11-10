@@ -378,12 +378,13 @@
   }
   function docList() {
     const q = nfkc(ui.dq).split(/\s+/).filter(Boolean);
-    return W.S.docs.map((d, i) => [d, i]).filter(x => q.every(t => nfkc(x[0].t + " " + x[0].b).indexOf(t) >= 0)).map(x => docCard(x[0], x[1])).join("") || '<p class="note">見つかりません。</p>';
+    const l = W.S.docs.map((d, i) => [d, i]).filter(x => q.every(t => nfkc(x[0].t + " " + x[0].b).indexOf(t) >= 0));
+    return l.length ? A.rt.grp(W.S.tags, l, docCard, t => '<span class="wtag ' + esc(t ? tagCls(t.id) : "t-none") + '">' + esc(t ? t.n : "タグなし") + "</span>") : '<p class="note">見つかりません。</p>';
   }
   function tagMgr() {
     const t = W.S.tags;
-    return '<details class="wdet wtagmgr"' + (ui.tagOpen ? " open" : "") + "><summary><b>タグを管理する（増やす・名前や色を変える）</b></summary><div>" +
-      t.map((x, i) => '<div class="tstg"><span class="wtag ' + esc(tagCls(x.id)) + '">' + esc(x.n) + '</span><input type="text" value="' + esc(x.n) + '" data-wf="tag-n" data-i="' + i + '" aria-label="タグの名前">' + (x.c >= 0 ? '<select data-wchg="tag-c" data-i="' + i + '" aria-label="色">' + TGN.map((n, c) => '<option value="' + c + '"' + (x.c === c ? " selected" : "") + ">" + n + "</option>").join("") + "</select>" : '<span class="small" style="white-space:nowrap">元の色</span>') + '<button class="btn sm danger" data-wact="tag-del" data-i="' + i + '">消す</button></div>').join("") +
+    return '<details class="wdet wtagmgr"' + (ui.tagOpen ? " open" : "") + "><summary><b>タグを管理する（順番・名前・色を変える／増やす）</b></summary><div><p class=\"note\" style=\"margin:6px 0\">▲▼でタグの順番を変えると、メモの一覧もその順に並びます。</p>" +
+      t.map((x, i) => '<div class="tstg"><span class="wtag ' + esc(tagCls(x.id)) + '">' + esc(x.n) + '</span><input type="text" value="' + esc(x.n) + '" data-wf="tag-n" data-i="' + i + '" aria-label="タグの名前">' + (x.c >= 0 ? '<select data-wchg="tag-c" data-i="' + i + '" aria-label="色">' + TGN.map((n, c) => '<option value="' + c + '"' + (x.c === c ? " selected" : "") + ">" + n + "</option>").join("") + "</select>" : '<span class="small" style="white-space:nowrap">元の色</span>') + '' + A.rt.mvBtns(i, t.length, 'data-wact="tag-mv"') + '<button class="btn sm danger" data-wact="tag-del" data-i="' + i + '">消す</button></div>').join("") +
       '<div class="tstg"><input type="text" id="wtg_n" placeholder="新しいタグの名前"><select id="wtg_c">' + TGN.map((n, c) => '<option value="' + c + '">' + n + "</option>").join("") + '</select><button class="btn on" data-wact="tag-add">タグを足す</button></div></div></details>';
   }
   function viewDocs() {
@@ -581,6 +582,7 @@
       case "doc-ldel": { const d = W.S.docs[i]; d.ls.splice(+t.dataset.j, 1); ui.docOpen[d.id] = true; save(); A.render(); break; }
       case "doc-star": W.S.docs[i].tip = !W.S.docs[i].tip; save(); A.render(); break;
       case "tag-add": { const n = ($("wtg_n").value || "").trim(); if (!n) break; W.S.tags.push({ id: "g" + Date.now(), n, c: +$("wtg_c").value || 0 }); ui.tagOpen = true; save(); A.render(); break; }
+      case "tag-mv": if (A.rt.mv(W.S.tags, +t.dataset.i, +t.dataset.d)) { ui.tagOpen = true; save(); A.render(); } break;
       case "tag-del": { const tg = W.S.tags[+t.dataset.i]; if (tg && root.confirm("タグ「" + tg.n + "」を消しますか？（メモは残り、タグだけ外れます）")) { W.S.docs.forEach(d => { if (d.tag === tg.id) d.tag = ""; }); W.S.tags.splice(+t.dataset.i, 1); ui.tagOpen = true; save(); A.render(); } break; }
       case "tip-sort": ui.tipSort = !ui.tipSort; A.render(); break;
       case "tip-auto": if (A.tipsClearOrder) A.tipsClearOrder(); else { W.S.tipOrder = []; save(); } A.render(); break;

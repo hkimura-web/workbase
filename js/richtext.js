@@ -4,7 +4,21 @@
   "use strict";
   const A = root.A;
   const fmt = s => s.replace(/\{(red|blue|u):([^{}]*)\}/g, (m, k, t) => '<span class="rt-' + k + '">' + t + "</span>");
+  /* メモをタグ別にまとめて並べる。タグの並び順どおりに見出しを付け、タグなしは最後。
+   * items: [[doc, index], ...]  card(doc, index): 1件ぶんのHTML  chip(tag|null): 見出しの色つきタグ */
+  function grp(tags, items, card, chip) {
+    const known = {}; tags.forEach(t => { known[t.id] = 1; });
+    const out = [];
+    const sect = (t, l) => l.length ? '<div class="tgh">' + chip(t) + '<span class="tgn">' + l.length + "件</span></div>" + l.map(x => card(x[0], x[1])).join("") : "";
+    tags.forEach(t => { out.push(sect(t, items.filter(x => x[0].tag === t.id))); });
+    out.push(sect(null, items.filter(x => !known[x[0].tag])));
+    return out.join("");
+  }
+  /* タグの並べ替え（▲▼）。i番目を d(-1/+1) だけ動かす */
+  const mvBtns = (i, n, act) => '<span class="tmv"><button class="btn sm" ' + act + ' data-i="' + i + '" data-d="-1" aria-label="上へ"' + (i === 0 ? " disabled" : "") + '>▲</button><button class="btn sm" ' + act + ' data-i="' + i + '" data-d="1" aria-label="下へ"' + (i >= n - 1 ? " disabled" : "") + ">▼</button></span>";
+  function mv(tags, i, d) { const j = i + d; if (j < 0 || j >= tags.length) return false; const t = tags[i]; tags[i] = tags[j]; tags[j] = t; return true; }
   A.rt = {
+    grp, mvBtns, mv,
     fmt,
     /* すでにエスケープした文字に、太字と色・下線を当てる */
     inl: s => fmt(s.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")),

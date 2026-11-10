@@ -1062,3 +1062,11 @@ body.testmode .tdp.p-now{border-top-color:var(--ts)}
   .topbar .tabbar .tab{white-space:nowrap}
   .topbar .tools{flex:none;margin-left:12px}
 }
+
+/* 手順メモ：タグ別の見出しと、タグの並べ替え */
+.tgh{display:flex;align-items:center;gap:8px;margin:18px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.tgh .tgchip,.tgh .wtag{margin:0;font-size:13px}
+.tgh .tgn{font-size:12px;color:var(--muted,#667)}
+.tmv{display:inline-flex;gap:4px;white-space:nowrap}
+.tstg{grid-template-columns:auto 1fr auto auto auto}
+@media (max-width:640px){.tstg{grid-template-columns:1fr 1fr}}

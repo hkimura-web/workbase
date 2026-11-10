@@ -319,15 +319,15 @@
     }
     return '<details class="wdet wdoc" data-ph="' + k + '"' + (ui.det[k] || ed ? " open" : "") + ">" + sum + b + "</details>";
   }
-  const docListHtml = () => Q.S.docs.map((d, i) => docMatch(d) ? docCard(d, i) : "").join("") || empty("該当するメモがありません。");
+  const docListHtml = () => { const l = Q.S.docs.map((d, i) => [d, i]).filter(x => docMatch(x[0])); return l.length ? A.rt.grp(Q.S.tags, l, docCard, t => '<span class="tgchip tgx tg-' + (t ? t.c : "n") + '">' + esc(t ? t.n : "タグなし") + "</span>") : empty("該当するメモがありません。"); };
   function viewMan() {
     let h = askH();
     h += A.memoHead("test");
     h += '<div class="tsbar"><input type="search" id="ts_dq" placeholder="手順・メモをさがす" value="' + esc(ui.dq) + '" autocomplete="off"><button class="btn on" data-sact="doc-add" style="white-space:nowrap">＋ 新しいメモ</button></div>';
     h += '<div class="tsseg"><button class="btn' + (ui.dtag ? "" : " on") + '" data-sact="dtag" data-v="">すべて</button>' + Q.S.tags.map(t => '<button class="btn' + (ui.dtag === t.id ? " on" : "") + '" data-sact="dtag" data-v="' + t.id + '">' + esc(t.n) + "</button>").join("") + "</div>";
     h += '<div id="ts_dl">' + docListHtml() + "</div>" + A.memoOthers("test");
-    h += '<details class="wdet" data-ph="tagmgr"' + (ui.det.tagmgr ? " open" : "") + "><summary><b>タグを管理する（増やす・名前や色を変える）</b></summary><div class=\"tsadd\">" +
-      Q.S.tags.map((t, i) => '<div class="tstg"><span class="tgchip tgx tg-' + t.c + '">' + esc(t.n) + '</span><input type="text" value="' + esc(t.n) + '" data-sf="tag-n" data-i="' + i + '" aria-label="タグの名前"><select data-schg="tag-c" data-i="' + i + '" aria-label="色">' + TGN.map((n, c) => '<option value="' + c + '"' + (t.c === c ? " selected" : "") + ">" + n + "</option>").join("") + '</select><button class="btn sm danger" data-sact="tag-del" data-i="' + i + '">消す</button></div>').join("") +
+    h += '<details class="wdet" data-ph="tagmgr"' + (ui.det.tagmgr ? " open" : "") + "><summary><b>タグを管理する（順番・名前・色を変える／増やす）</b></summary><div class=\"tsadd\"><p class=\"note\" style=\"margin:6px 0\">▲▼でタグの順番を変えると、メモの一覧もその順に並びます。</p>" +
+      Q.S.tags.map((t, i) => '<div class="tstg"><span class="tgchip tgx tg-' + t.c + '">' + esc(t.n) + '</span><input type="text" value="' + esc(t.n) + '" data-sf="tag-n" data-i="' + i + '" aria-label="タグの名前"><select data-schg="tag-c" data-i="' + i + '" aria-label="色">' + TGN.map((n, c) => '<option value="' + c + '"' + (t.c === c ? " selected" : "") + ">" + n + "</option>").join("") + '</select>' + A.rt.mvBtns(i, Q.S.tags.length, 'data-sact="tag-mv"') + '<button class="btn sm danger" data-sact="tag-del" data-i="' + i + '">消す</button></div>').join("") +
       '<div class="tstg"><input type="text" id="tg_new" placeholder="新しいタグの名前"><select id="tg_col">' + TGN.map((n, c) => '<option value="' + c + '">' + n + "</option>").join("") + '</select><button class="btn on" data-sact="tag-add">タグを足す</button></div></div></details>';
     return h;
   }
@@ -380,6 +380,7 @@
       case "doc-lmv": { const d = S0.docs[+t.dataset.i]; if (!d) return; const all = [{ t: d.ut, u: d.u }].concat(d.ls), a = +t.dataset.j + 1, b = a + (+t.dataset.d); if (b < 0 || b >= all.length) return; const x = all[a]; all[a] = all[b]; all[b] = x; d.ut = all[0].t; d.u = all[0].u; d.ls = all.slice(1); save(); A.render(); return; }
       case "doc-ldel": { const d = S0.docs[+t.dataset.i]; if (d) { d.ls.splice(+t.dataset.j, 1); save(); A.render(); } return; }
       case "tag-add": { const n = V("tg_new").trim(); if (!n) { root.alert("タグの名前を入れてください。"); return; } S0.tags.push({ id: "g" + (uid++), n, c: +V("tg_col") || 0 }); ui.det.tagmgr = true; save(); A.render(); return; }
+      case "tag-mv": if (A.rt.mv(S0.tags, +t.dataset.i, +t.dataset.d)) { ui.det.tagmgr = true; save(); A.render(); } return;
       case "tag-del": { const tg = S0.tags[+t.dataset.i]; if (tg && root.confirm("タグ「" + tg.n + "」を消します。このタグが付いたメモは、タグなしになります。よろしいですか？")) { S0.docs.forEach(d => { if (d.tag === tg.id) d.tag = ""; }); S0.tags.splice(+t.dataset.i, 1); if (ui.dtag === tg.id) ui.dtag = ""; ui.det.tagmgr = true; save(); A.render(); } return; }
       case "ledit": ui.LE = !ui.LE; A.render(); return;
       case "ladd-open": ui.LA = !ui.LA; A.render(); return;
