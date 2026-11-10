@@ -4,14 +4,14 @@
   "use strict";
   const A = root.A;
   const fmt = s => s.replace(/\{(red|blue|u):([^{}]*)\}/g, (m, k, t) => '<span class="rt-' + k + '">' + t + "</span>");
-  /* メモをタグ別にまとめて並べる。タグの並び順どおりに見出しを付け、タグなしは最後。
+  /* メモをタグ別にまとめて並べる。タグの並び順どおりに見出しを付け、タグなしは一番上。
    * items: [[doc, index], ...]  card(doc, index): 1件ぶんのHTML  chip(tag|null): 見出しの色つきタグ */
   function grp(tags, items, card, chip) {
     const known = {}; tags.forEach(t => { known[t.id] = 1; });
     const out = [];
     const sect = (t, l) => l.length ? '<div class="tgh">' + chip(t) + '<span class="tgn">' + l.length + "件</span></div>" + l.map(x => card(x[0], x[1])).join("") : "";
+    out.push(sect(null, items.filter(x => !known[x[0].tag])));   /* タグなしは一番上（まだ整理していないメモに気づきやすい） */
     tags.forEach(t => { out.push(sect(t, items.filter(x => x[0].tag === t.id))); });
-    out.push(sect(null, items.filter(x => !known[x[0].tag])));
     return out.join("");
   }
   /* タグの並べ替え（▲▼）。i番目を d(-1/+1) だけ動かす */
