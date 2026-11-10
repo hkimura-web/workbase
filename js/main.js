@@ -534,6 +534,7 @@
       case "gedit": A.ui.gridEdit = t.dataset.v === "e"; LS.set("jd.gridEdit", A.ui.gridEdit ? "1" : "0"); render(); break;
       case "gsub": A.ui.gridSubj = t.dataset.v; render(); break;
       case "gridtoday": { const g = document.querySelector(".gridwrap"); if (g) scrollGridToToday(g); break; }
+      case "qfree": A.ui.cellRefresh = true; { const cur = A.st.rec[k] || {}; setRec(k, cur.s === "free" && cur.t === t.dataset.v ? { s: "plan" } : { s: "free", t: t.dataset.v }); break; }
       case "st": A.ui.cellRefresh = true; { const cur = (A.st.rec[k] || {}).s || "plan", v = t.dataset.v; setRec(k, { s: cur === v && v !== "plan" ? "plan" : v }); break; }
       case "offset": { A.ui.cellRefresh = true; const why = (A.evOf ? A.evOf(k.split("|")[1]) : A.st.events[k.split("|")[1]]) || "授業なし"; dayKeys(k).forEach(x => { A.st.off[x] = why; delete A.st.rec[x]; }); A.ui.open = null; commit(); break; }
       case "offclear": A.ui.cellRefresh = true; dayKeys(k).forEach(x => { delete A.st.off[x]; }); commit(); break;

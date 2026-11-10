@@ -1047,3 +1047,9 @@ body.testmode .tdp.p-now{border-top-color:var(--ts)}
 
 .wlbtn{display:inline-flex;gap:4px;align-items:center;white-space:nowrap}
 .wlbtn .btn[disabled]{opacity:.3;cursor:default}
+
+/* つぶれた理由のワンタップ行 */
+.qrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}
+.qrow .qlb{font-size:12px;color:var(--muted,#667);margin-right:2px}
+.qrow.qc{margin:4px 0}.qrow.qc .qlb{font-size:11px}
+.qbtn.on{background:var(--accent,#6b86b8);color:#fff}

@@ -34,6 +34,13 @@
     return (f.swapped ? "【" + f.swapped + "】" : "") + (body || (f.swapped ? "" : "別の内容"));
   }
   /* 別の内容の入力欄（科目・単元・内容）。idp は入力欄のid用 */
+  /* 時間がつぶれたとき、理由を1タップで選ぶ。押すと「別の内容」になり、以降の計画が自動で後ろへずれる */
+  const QR = ["テスト", "返却", "行事", "集会", "その他"];
+  function quickRow(r, compact) {
+    const cur = r.rec && r.rec.s === "free" ? (r.rec.t || "") : null;
+    return '<div class="qrow' + (compact ? " qc" : "") + '"><span class="qlb">' + (compact ? "つぶれた→" : "この時間が使えなくなった（計画は次の時間へずれます）") + "</span>" +
+      QR.map(x => '<button class="mini qbtn' + (cur === x ? " on" : "") + '" data-act="qfree" data-key="' + esc(r.key) + '" data-v="' + x + '">' + x + "</button>").join("") + "</div>";
+  }
   function freeForm(r, idp, compact) {
     const cid = r.key.split("|")[0], c = A.st.classes.find(x => x.id === cid), own = J.subjectOf(c), sj = (r.rec && r.rec.sj) || own, key = esc(r.key);
     const subs = subjectList(), us = Object.keys(A.st.units).filter(u => !A.st.units[u].subj || A.st.units[u].subj === sj);
@@ -95,9 +102,9 @@
     if (r.kind === "off") {
       return '<div class="ed"><div class="note">理由：' + esc(r.off) + '</div><div class="btns"><button class="btn" data-act="offclear" data-key="' + esc(r.key) + '">この日は授業を行う</button></div></div>';
     }
-    let h = '<div class="ed"><div class="btns">' + B("done", "実施した") + B("part", "途中まで") + B("cancel", "休講にする") + B("free", "別の内容にする") +
-      '<button class="btn" data-act="offset" data-key="' + esc(r.key) + '">行事で授業なし</button>' + B("plan", "予定に戻す") + "</div>";
-    if (s === "free") h += freeForm(r, id + "e", false);
+    let h = '<div class="ed"><div class="btns">' + B("done", "実施した") + B("part", "途中まで") + B("cancel", "休講（以降ずれる）") + B("free", "別の内容にする") +
+      '<button class="btn" data-act="offset" data-key="' + esc(r.key) + '">行事で授業なし</button>' + B("plan", "予定に戻す") + "</div>" + quickRow(r, false);
+    if (s === "free") h += '<div class="note">このコマは別の内容になり、以降の計画が自動で後ろへずれました。</div>' + freeForm(r, id + "e", false);
     r.blocks.forEach((b, i) => {
       h += '<label class="small" for="bt_' + id + i + '">授業内容（' + esc(unitName(b.u)) + '）実際にやった内容に書き換えられます</label><textarea id="bt_' + id + i + '" data-act="bt" data-id="' + esc(b.id) + '">' + esc(b.t) + "</textarea>";
     });
@@ -472,9 +479,9 @@
       '<button class="mini more" data-act="cell" data-key="' + key + '" title="順番の入れ替え・削除など">詳細</button></div>';
     if (r.ev) h += '<div class="gev">行事：' + esc(clip(r.ev, 40)) + "</div>";
     h += '<div class="gst">' + St("done", "実施") + St("part", "途中") + St("cancel", "休講") + St("free", "別") + St("plan", "予定") +
-      '<button class="mini" data-act="offset" data-key="' + key + '" title="行事などで授業なし（休校）にする">なし</button></div>';
+      '<button class="mini" data-act="offset" data-key="' + key + '" title="行事などで授業なし（休校）にする">なし</button></div>' + quickRow(r, true);
     if (s === "cancel") h += '<div class="gnote">休講（以降の計画が後ろへずれます）</div>';
-    else if (s === "free") h += freeForm(r, "g" + sid(r.key), true);
+    else if (s === "free") h += '<div class="gnote">別の内容（以降の計画が後ろへずれます）</div>' + freeForm(r, "g" + sid(r.key), true);
     else if (r.blocks.length) {
       r.blocks.forEach(b => {
         h += '<div class="gblk' + (r.cont ? " cont" : "") + '"><select class="gsel" aria-label="単元" data-act="blk-u" data-id="' + esc(b.id) + '">' + unitOptions(b.u, true, c.id) + "</select>" +
@@ -601,8 +608,8 @@
       return h + '<div class="dlg-btns"><button class="btn on" data-act="close-cell">閉じる</button></div>';
     }
     const B = (v, t) => '<button class="btn' + (s === v ? " on" : "") + '" data-act="st" data-key="' + k + '" data-v="' + v + '">' + t + "</button>";
-    h += '<div class="csec">このコマの状態</div><div class="btns">' + B("done", "実施した") + B("part", "途中まで") + B("cancel", "休講にする") + B("free", "別の内容にする") +
-      '<button class="btn" data-act="offset" data-key="' + k + '">行事で授業なし</button>' + B("plan", "予定に戻す") + "</div>";
+    h += '<div class="csec">このコマの状態</div><div class="btns">' + B("done", "実施した") + B("part", "途中まで") + B("cancel", "休講（以降ずれる）") + B("free", "別の内容にする") +
+      '<button class="btn" data-act="offset" data-key="' + k + '">行事で授業なし</button>' + B("plan", "予定に戻す") + "</div>" + quickRow(r, false);
     if (s === "free") h += '<p class="note" style="margin:8px 0 0">「別の内容」は、計画とは別のこと（学年集会・テスト返却など）をやった日用です。計画の授業内容として入れたいときは「予定に戻す」を押してください。</p>' +
       freeForm(r, id + "d", false);
     if (s === "cancel") h += '<p class="note" style="margin:8px 0 0">このコマは使わず、以降の計画が自動で後ろへずれました。</p>';
