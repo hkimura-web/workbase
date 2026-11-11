@@ -70,7 +70,7 @@
       const multi = hrs > 1;
       (multi ? pers : [null]).forEach(p => {
         const key = cls.id + "|" + d + (multi ? "|" + p : "");
-        out.push({ key, date: d, hrs: 1, periods: multi ? [p] : pers, off: (st.off && st.off[key]) || dayOff(st, d, (multi ? p : pers[0]), cls) || null, ev: (st.events && st.events[d]) || (api.evExtra ? api.evExtra(d) : "") || "" });
+        out.push({ key, date: d, hrs: 1, periods: multi ? [p] : pers, off: (st.off && st.off[key]) || ((st.on && st.on[key]) ? null : dayOff(st, d, (multi ? p : pers[0]), cls)) || null, ev: (st.events && st.events[d]) || (api.evExtra ? api.evExtra(d) : "") || "" });
       });
     }
     return out;
