@@ -50,7 +50,7 @@
   }
   /* 特別日課（短縮授業・模試・行事の日）：st.days = [{id, from, to, name, off:[時限…]|"all", why, bell:{s,len,brk}|null}] */
   function dayOf(st, d) { return ((st && st.days) || []).find(x => x && x.from && d >= x.from && d <= (x.to || x.from)) || null; }
-  function dayOff(st, d, p) { const e = dayOf(st, d); if (!e) return null; return e.off === "all" || (Array.isArray(e.off) && e.off.indexOf(p) >= 0) ? (e.why || e.name || "授業なし") : null; }
+  function dayOff(st, d, p, cls) { const e = dayOf(st, d); if (!e) return null; if (cls && Array.isArray(e.ex) && e.ex.some(x => x && String(cls.name || "").indexOf(x) === 0)) return null; /* 「通常どおり授業をするクラス」（例：模試を受けないGLE）は授業なしにしない */ return e.off === "all" || (Array.isArray(e.off) && e.off.indexOf(p) >= 0) ? (e.why || e.name || "授業なし") : null; }
   /* その日の授業時間表。日課に「時間を変える」があれば、1限の開始・1コマの長さ・休み時間から作る。なければ普通の時間表 */
   function bellFor(st, d, base) {
     const e = dayOf(st, d); if (!e || !e.bell || !(e.bell.len > 0)) return base;
@@ -70,7 +70,7 @@
       const multi = hrs > 1;
       (multi ? pers : [null]).forEach(p => {
         const key = cls.id + "|" + d + (multi ? "|" + p : "");
-        out.push({ key, date: d, hrs: 1, periods: multi ? [p] : pers, off: (st.off && st.off[key]) || dayOff(st, d, (multi ? p : pers[0])) || null, ev: (st.events && st.events[d]) || (api.evExtra ? api.evExtra(d) : "") || "" });
+        out.push({ key, date: d, hrs: 1, periods: multi ? [p] : pers, off: (st.off && st.off[key]) || dayOff(st, d, (multi ? p : pers[0]), cls) || null, ev: (st.events && st.events[d]) || (api.evExtra ? api.evExtra(d) : "") || "" });
       });
     }
     return out;

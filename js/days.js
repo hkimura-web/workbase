@@ -18,6 +18,7 @@
         '<div style="margin-top:8px"><b class="small">授業なしにする時限</b><div class="btns" style="margin-top:4px"><label class="tsimp"><input type="checkbox" data-dsc="all" data-i="' + i + '"' + (off ? " checked" : "") + '> 全部（模試など）</label>' +
         [1, 2, 3, 4, 5, 6, 7].map(p => '<label class="tsimp"><input type="checkbox" data-dsc="p" data-p="' + p + '" data-i="' + i + '"' + (off || set.has(p) ? " checked" : "") + (off ? " disabled" : "") + "> " + p + "限</label>").join("") + "</div>" +
         '<label class="small">理由（授業なしの表示に出ます。空なら名前）</label><input type="text" value="' + esc(e.why || "") + '" data-dsf="why" data-i="' + i + '" placeholder="例：面談"></div>' +
+        '<div style="margin-top:8px"><label class="small">この日も通常どおり授業をするクラス（クラス名の先頭を、「,」で区切って。例：S1-6）</label><input type="text" value="' + esc((e.ex || []).join(",")) + '" data-dsf="ex" data-i="' + i + '" placeholder="例：S1-6（模試を受けないGLE）"></div>' +
         '<div style="margin-top:8px"><label class="tsimp"><input type="checkbox" data-dsc="bell" data-i="' + i + '"' + (b ? " checked" : "") + '> 授業時間を変える（40分授業など）</label>' +
         (b ? '<div class="btns" style="margin-top:4px;align-items:center"><span class="small">1限の開始</span><input type="time" value="' + hm(b.s) + '" data-dsf="bs" data-i="' + i + '" style="width:auto"><span class="small">1コマ</span><input type="number" min="10" max="90" value="' + b.len + '" data-dsf="blen" data-i="' + i + '" style="width:64px"><span class="small">分　休み</span><input type="number" min="0" max="30" value="' + (b.brk || 0) + '" data-dsf="bbrk" data-i="' + i + '" style="width:64px"><span class="small">分</span></div><p class="note" style="margin:4px 0 0">1限〜7限が、この長さと休みで続けて並びます（昼休みは入りません）。</p>' : "") + "</div>" +
         '<div class="btns" style="margin-top:8px"><button class="btn danger" data-dsa="del" data-i="' + i + '">この特別日課を消す</button></div></div>';
@@ -46,7 +47,7 @@
     }
     const f = t.dataset && t.dataset.dsf; if (!f || !A.st) return;
     const x = A.st.days[+t.dataset.i]; if (!x) return;
-    if (f === "name") x.name = t.value; else if (f === "why") x.why = t.value;
+    if (f === "name") x.name = t.value; else if (f === "why") x.why = t.value; else if (f === "ex") { x.ex = t.value.split(/[,、，\s]+/).map(s => s.trim()).filter(Boolean); if (!x.ex.length) delete x.ex; }
     else if (f === "from") { x.from = t.value; if (!x.to || x.to < x.from) x.to = x.from; } else if (f === "to") x.to = t.value < x.from ? x.from : t.value;
     else if (f === "bs") { const m = mm(t.value); if (m != null) x.bell.s = m; } else if (f === "blen") x.bell.len = Math.max(10, +t.value || 40); else if (f === "bbrk") x.bell.brk = Math.max(0, +t.value || 0);
     save(); if (f === "from" || f === "to") redraw();

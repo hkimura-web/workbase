@@ -61,6 +61,7 @@ window.WB_SEED_3 = {
    "to": "2027-01-13",
    "name": "S1/S2総合学力模試",
    "off": "all",
+   "ex": ["S1-6"],
    "why": "総合学力模試",
    "bell": null
   },
