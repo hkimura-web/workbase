@@ -1070,3 +1070,16 @@ body.testmode .tdp.p-now{border-top-color:var(--ts)}
 .tmv{display:inline-flex;gap:4px;white-space:nowrap}
 .tstg{grid-template-columns:auto 1fr auto auto auto}
 @media (max-width:640px){.tstg{grid-template-columns:1fr 1fr}}
+
+/* 学校資料 */
+.shsec{font-size:15px;margin:22px 0 2px;color:var(--ink)}
+.shcat{display:inline-block;font-size:13px;font-weight:700}
+.shr{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;justify-content:space-between;padding:9px 2px;border-bottom:1px solid var(--line)}
+.shn{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;min-width:0;flex:1 1 280px}
+.shd{font-size:11px;color:var(--muted,#667);border:1px solid var(--line);border-radius:999px;padding:0 8px}
+.shb{font-size:11px;border-radius:999px;padding:0 8px;background:#e7f1fb;color:#2b5d8f}
+.shb.sh-m{background:#e9f6ee;color:#2f7a4c}.shb.sh-x{background:#eee;color:#777}
+.shnote{font-size:12px;color:var(--muted,#667)}
+.shbt{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.shl-p{opacity:.7}
+.shcats{margin-top:-2px}

@@ -7,10 +7,10 @@
 <meta name="description" content="授業の予定と記録を管理するアプリ。データはこのリポジトリのJSONに保存されます。">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
-<meta name="wb-build" content="20261111b">
+<meta name="wb-build" content="20261111c">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="css/style.css?v=60">
+<link rel="stylesheet" href="css/style.css?v=61">
 <script>
 /* 文字の大きさ（標準／大／特大）。この端末だけに覚える */
 (function () {
@@ -61,6 +61,7 @@
       <button class="tab" role="tab" data-wtab="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/><path d="M10 20v-6h4v6"/></svg><span>ホーム</span></button>
       <button class="tab" role="tab" data-wtab="year"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="16" rx="2"/><path d="M3.5 9h17M8 4.5v-2M16 4.5v-2"/><path d="M7.5 13h3M13.5 13h3M7.5 16.5h3"/></svg><span>年間</span></button>
       <button class="tab" role="tab" data-wtab="links"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg><span>リンク集</span></button>
+      <button class="tab" role="tab" data-wtab="shiryo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.5a1.5 1.5 0 0 1 1.5-1.5h4l2 2.2H19a1.5 1.5 0 0 1 1.5 1.5V18a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18z"/></svg><span>学校資料</span></button>
       <button class="tab" role="tab" data-wtab="docs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h9l4 4V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1z"/><path d="M14.5 3.5V8H19M8.5 12h7M8.5 15.5h7"/></svg><span>手順・メモ</span></button>
       <button class="tab" role="tab" data-wtab="repeat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8.5M20 4v4.5h-4.5"/><path d="M20 12a8 8 0 0 1-13.7 5.6L4 15.5M4 20v-4.5h4.5"/></svg><span>くり返し</span></button>
       <button class="tab" role="tab" data-wtab="cal"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M9 15l2 2 4-4"/></svg><span>カレンダー</span></button>
@@ -143,7 +144,8 @@
 <script src="js/richtext.js?v=3"></script>
 <script src="js/library.js?v=4"></script>
 <script src="js/workseed.js?v=10"></script>
-<script src="js/work.js?v=44"></script>
+<script src="js/work.js?v=45"></script>
+<script src="js/shiryo.js?v=1"></script>
 <script src="js/seisekiseed.js?v=1"></script>
 <script src="js/seiseki.js?v=17"></script>
 <script src="js/kintai.js?v=1"></script>
@@ -153,7 +155,7 @@
 <script src="js/jmemo.js?v=9"></script>
 <script src="js/tipsband.js?v=5"></script>
 <script src="js/seed2026_3.js?v=2"></script>
-<script src="js/main.js?v=16"></script>
+<script src="js/main.js?v=17"></script>
 <script>
 /* 古い版が残っていたら知らせる（スマホのホーム画面アプリなどで、前の画面のまま固まるのを防ぐ） */
 (function () {

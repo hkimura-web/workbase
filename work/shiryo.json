@@ -1,0 +1,1100 @@
+{
+ "built": "2026-11-11",
+ "year": 2026,
+ "sections": [
+  {
+   "id": "gen",
+   "title": "学校の資料",
+   "cats": [
+    {
+     "c": "全般",
+     "items": [
+      {
+       "t": "朝の打ち合わせ",
+       "dept": "総務部",
+       "note": "毎月更新",
+       "cur": {
+        "t": "11月の連絡（2026年)",
+        "u": "https://docs.google.com/document/d/177lLe-4pQgoQGwtdDyyoGSjrhukHgjRorD2-a6r5bd8/edit?usp=sharing"
+       },
+       "prev": {
+        "t": "1月の連絡（2026年)",
+        "u": "https://docs.google.com/document/d/1YB8s7foBddBMCEQZOG6hFHc9InilmsAAfRQfsQEGlMs/edit?usp=sharing"
+       }
+      },
+      {
+       "t": "朝の打ち合わせ（過去分）",
+       "dept": "総務部",
+       "note": "",
+       "cur": {
+        "t": "【過去】朝打ち合わせ連絡関係",
+        "u": "https://docs.google.com/document/d/15PWha4V3YMSVKmiKnihGv-fZJXIzcSdQ5P0SfsSK8A0/edit?usp=sharing"
+       },
+       "prev": {
+        "t": "【過去】朝打ち合わせ連絡関係",
+        "u": "https://docs.google.com/document/d/15PWha4V3YMSVKmiKnihGv-fZJXIzcSdQ5P0SfsSK8A0/edit?usp=sharing"
+       }
+      },
+      {
+       "t": "施設予約",
+       "dept": "総務部",
+       "note": "",
+       "cur": {
+        "t": "施設予約（2026年度)",
+        "u": "https://docs.google.com/spreadsheets/d/1L-IgXminW_cs8p7F9LmvbBjtcZ0Pea-0oaCml5jDaKY/edit?usp=sharing"
+       },
+       "prev": {
+        "t": "施設予約（2025年度)",
+        "u": "https://docs.google.com/spreadsheets/d/1L-IgXminW_cs8p7F9LmvbBjtcZ0Pea-0oaCml5jDaKY/edit?usp=sharing"
+       }
+      },
+      {
+       "t": "内規",
+       "dept": "総務部",
+       "note": "",
+       "cur": {
+        "t": "作成・確認中：作業終了次第、アップします",
+        "u": ""
+       }
+      },
+      {
+       "t": "BLENDマニュアル",
+       "dept": "BLEND委員会",
+       "note": "",
+       "cur": {
+        "t": "BLEND校内マニュアル2026",
+        "u": "https://docs.google.com/document/d/1MhzAPXMuukTu3ltO16vHZ9TejlG1m204zel4gQArdKY/edit?usp=sharing"
+       },
+       "prev": {
+        "t": "BLEND校内マニュアル2025",
+        "u": "https://docs.google.com/document/d/1MhzAPXMuukTu3ltO16vHZ9TejlG1m204zel4gQArdKY/edit?usp=sharing"
+       }
+      },
+      {
+       "t": "BLEND出欠等入力凡例",
+       "dept": "教務部",
+       "note": "2026新規",
+       "cur": {
+        "t": "【教務】BLEND出欠等入力凡例",
+        "u": "https://docs.google.com/spreadsheets/d/1jbh2E6XLkAdEntETwZWTAc3bN3djhN-4EJJomWJhIKw/edit?usp=sharing"
+       }
+      },
+      {
+       "t": "Students House 利用規則",
+       "dept": "寮務部",
+       "note": "2026新規",
+       "cur": {
+        "t": "2026年度版Students House利用規則.pdf",
+        "u": "https://drive.google.com/file/d/1oL7o9aBTEePZqG4J92_cXNm_yM27QsdQ/view?usp=drive_link"
+       }
+      }
+     ]
+    },
+    {
+     "c": "分掌",
+     "items": [
+      {
+       "t": "配置・分掌",
+       "dept": "執行部",
+       "note": "",
+       "cur": {
+        "t": "2026年度配置・校務分掌一覧 - 2026教員会議発表用.pdf",
+        "u": "https://drive.google.com/file/d/1tr9CGPsLezAjg_iHJ6r-o6N7PePbAsOp/view?usp=drive_link"
+       },
+       "prev": {
+        "t": "2025年度配置・校務分掌一覧(9月1日より).pdf",
+        "u": "https://drive.google.com/file/d/14i03UapRx9wTdEIzwRZv0eFOP7PYyxPP/view?usp=sharing"
+       }
+      },
+      {
+       "t": "委員会一覧",
+       "dept": "執行部",
+       "note": "",
+       "cur": {
+        "t": "2026委員会一覧 .pdf",
+        "u": "https://drive.google.com/file/d/1EvZunN6tuh3_PsFKS4R-DSVXjeVvW1A-/view?usp=drive_link"
+       },
+       "prev": {
+        "t": "2025年度委員会【改】.pdf",
+        "u": "https://drive.google.com/file/d/1bALCCfpbfrkEbUAOF3aRhWF4An4Kfrvt/view?usp=sharing"
+       }
+      },
+      {
+       "t": "クラブ顧問",
+       "dept": "執行部",
+       "note": "",
+       "cur": {
+        "t": "2026年度クラブ顧問 - 2026クラブ顧問発表用.pdf",
+        "u": "https://drive.google.com/file/d/1YV-uTqs0LaH8TWBp286q671mdYB0urH9/view?usp=drive_link"
+       },
+       "prev": {
+        "t": "2025年度部活動顧問(9月1日より).pdf",
+        "u": "https://drive.google.com/file/d/13cAJPZ8MLUCnNqpHX5WGH73P9XrfAuU4/view?usp=sharing"
+       }
+      }
+     ]
+    },
+    {
+     "c": "予定表",
+     "items": [
+      {
+       "t": "【生徒・保護者用】年間行事予定表",
+       "dept": "総務部",
+       "note": "",
+       "cur": {
+        "t": "2026年度年間行事予定表(生徒保護者).pdf",
+        "u": "https://drive.google.com/file/d/1c7Y_1ymbWEH3Xvfad4JVNWXpV_Ixv6Cc/view?usp=drive_link"
+       },
+       "prev": {
+        "t": "2025年度年間行事予定表(生徒・ 保護者)vol.2.pdf",
+        "u": "https://drive.google.com/file/d/1Si8VupruWa1CxtP2jvSehNC_RX9S8Xlu/view?usp=drive_link"
+       }
+      },
+      {
+       "t": "【保護者】学年懇談会年間案内",
+       "dept": "執行部",
+       "note": "2026新規",
+       "cur": {
+        "t": "学年懇談会年間案内2026.pdf",
+        "u": "https://drive.google.com/file/d/16qGeVuGpucQQ2-_uVCpiFvOFGp-AkRXi/view?usp=drive_link"
+       }
+      },
+      {
+       "t": "【教員用】年間行事予定表",
+       "dept": "総務部",
+       "note": "",
+       "cur": {
+        "t": "2026年度年間行事予定表(教職員用：第3版_最終版).pdf",
+        "u": "https://drive.google.com/file/d/1hPPKy0f596hFxZc2jfeWnB0bxDyZi6kc/view?usp=drive_link"
+       },
+       "prev": {
+        "t": "2025年度年間行事予定表(教員会議第2版:3月21日) .pdf",
+        "u": "https://drive.google.com/file/d/1RWVk-GiBWIlY5_OgWYRXKDOves_Jk3Hd/view?usp=sharing"
+       }
+      },
+      {
+       "t": "【教員用】月間行事予定表",
+       "dept": "総務部",
+       "note": "毎月更新",
+       "cur": {
+        "t": "PDF ← 月毎の予定表は左記フォルダ内に収納",
+        "u": "https://drive.google.com/drive/folders/1n7UrQZ3ynSUAL7k17Uci6_iLxjgpw1vR?usp=drive_link"
+       },
+       "prev": {
+        "t": "【配信用】2025年度月間予定表(教職員用)",
+        "u": "https://docs.google.com/spreadsheets/d/1Fdvc9cFgL0XtEBzymROOmCit48MmATBrZYtBtEVn6I0/edit?usp=sharing"
+       }
+      },
+      {
+       "t": "【教員用】長期休み 勤務予定表",
+       "dept": "総務部",
+       "note": "2026新規",
+       "cur": {
+        "t": "2026_長期休み_勤務予定表一覧(提出先)",
+        "u": "https://docs.google.com/spreadsheets/d/1Ek8dVTYv739yzjoYUWAyIldJ_-modHtxOYmbR5D4dGM/edit?usp=sharing"
+       }
+      },
+      {
+       "t": "【教員用】夏季休業中 施設利用一覧",
+       "dept": "総務部",
+       "note": "2026新規",
+       "cur": {
+        "t": "夏季休業中のHR教室を含めた施設利用",
+        "u": "https://docs.google.com/spreadsheets/d/1pCk7KDw8uQxQfdWpG2O7haiPgjp8GCCjrd3xhzy8fvI/edit?usp=sharing"
+       }
+      },
+      {
+       "t": "勤務カレンダー",
+       "dept": "執行部",
+       "note": "",
+       "cur": {
+        "t": "2026年度勤務カレンダー公表用.pdf",
+        "u": "https://drive.google.com/file/d/1bl2jEggzmUQnDTCPfxu3J2fcLcmgS2_j/view?usp=drive_link"
+       },
+       "prev": {
+        "t": "2025年度勤務カレンダー 2063.25時間 確定版.pdf",
+        "u": "https://drive.google.com/file/d/1NFnTmspYDMXiz1w53qxGF2dXuq2ZKXVO/view?usp=sharing"
+       }
+      }
+     ]
+    },
+    {
+     "c": "時間割",
+     "items": [
+      {
+       "t": "時間割",
+       "dept": "教務部",
+       "note": "",
+       "cur": {
+        "t": "【2026年度】時間割確定版〔26_6_1〕",
+        "u": "https://docs.google.com/spreadsheets/d/1x0m4PwAm1uXq4Fs_Fsi40UIDXKS1Hj4PuUHKfdf4yjM/edit?usp=sharing"
+       },
+       "prev": {
+        "t": "〔2026/1/23更新〕 【2025年度】時間割",
+        "u": "https://docs.google.com/spreadsheets/d/1mJseaHb5qU15qU02nlPdlLVrTttn3CVL5trMu3P6XQw/edit?usp=sharing"
+       }
+      }
+     ]
+    },
+    {
+     "c": "配置図・座席表",
+     "items": [
+      {
+       "t": "教室配置図",
+       "dept": "事務",
+       "note": "",
+       "cur": {
+        "t": "2026年度教室配置図.pdf",
+        "u": "https://drive.google.com/file/d/1LBU9sKHzG6F5R8MqEDBve0ZES2tyI_Z2/view?usp=drive_link"
+       },
+       "prev": {
+        "t": "2025年度教室配置.pdf",
+        "u": "https://drive.google.com/file/d/1sZTasH8crryXRWkz29BZ1-8BQ0PNRK6C/view?usp=sharing"
+       }
+      },
+      {
+       "t": "避難経路図",
+       "dept": "事務",
+       "note": "",
+       "cur": {
+        "t": "避難経路図_2026年度.pdf",
+        "u": "https://drive.google.com/file/d/1h6ZnJhxDWi_mR5T6tX5SwBQu7Y9mDJiG/view?usp=drive_link"
+       },
+       "prev": {
+        "t": "避難経路図_2025年度.pdf",
+        "u": "https://drive.google.com/file/d/1ZPu5Zts1xLDQirC1-EYzYONhzk1xW5SU/view?usp=sharing"
+       }
+      },
+      {
+       "t": "教員室配置図（生徒向けカウンター用）",
+       "dept": "総務部",
+       "note": "",
+       "cur": {
+        "t": "2026年度_教員室配置 - 2026生徒用.pdf_最終版",
+        "u": "https://drive.google.com/file/d/1L88EtxE3hNToiUvtZxlMxQU2acNEJIG9/view?usp=drive_link"
+       },
+       "prev": {
+        "t": "2025年度教員室配置 (ファイナル）.pdf",
+        "u": "https://drive.google.com/file/d/19xGCuFyWKTFL-EhpKuS9VVtNLThVMk77/view?usp=sharing"
+       }
+      },
+      {
+       "t": "教員室配置図（天地逆を含む/内線有）",
+       "dept": "総務部",
+       "note": "",
+       "cur": {
+        "t": "2026年度_教員室配置_天地逆を含む_内線有 - 2026教員用.pdf",
+        "u": "https://drive.google.com/file/d/1XnzDdy9AHTClqPqJx_wbvy7jg4JGXR1j/view?usp=drive_link"
+       },
+       "prev": {
+        "t": "2025年度教員室配置 (完成）.pdf",
+        "u": "https://drive.google.com/file/d/1426tMGtr82FoPfsiUNoNAOmJfBZ0h4kM/view?usp=sharing"
+       }
+      },
+      {
+       "t": "教員会議座席表",
+       "dept": "執行部",
+       "note": "",
+       "cur": {
+        "t": "教員会議座席表",
+        "u": "https://docs.google.com/spreadsheets/d/1DyctrIYn6AcTXlPKr9BpELPAq48Bg2O0-g5eg3ibLdI/edit?usp=sharing"
+       },
+       "prev": {
+        "t": "2025教員会議座席表 - 第一会議室.pdf",
+        "u": "https://drive.google.com/file/d/1zTkSKD5anTpzqE28eqI0HCBBb3BQ3H7e/view?usp=drive_link"
+       }
+      }
+     ]
+    },
+    {
+     "c": "防災",
+     "items": [
+      {
+       "t": "防災組織",
+       "dept": "事務",
+       "note": "",
+       "cur": {
+        "t": "2026年度防災組織.pdf",
+        "u": "https://drive.google.com/file/d/1P1seGWkD40ThViPnU4y78r5234wWIqbO/view?usp=drive_link"
+       },
+       "prev": {
+        "t": "防災組織_2025年度.pdf",
+        "u": "https://drive.google.com/file/d/1Y_nXaYq9LK1p8txYFPd3FzWhhQCJZUPO/view?usp=sharing"
+       }
+      },
+      {
+       "t": "自衛防災組織分担表",
+       "dept": "事務",
+       "note": "",
+       "cur": {
+        "t": "自衛防災組織分担表_2026年度.pdf",
+        "u": "https://drive.google.com/file/d/1OaCb2Akc3gNXrWBUfTd-R351o9h1IF7m/view?usp=drive_link"
+       },
+       "prev": {
+        "t": "自営防災組織分担表_2025年度.pdf",
+        "u": "https://drive.google.com/file/d/1XXFhDhGS927qOjVZeTPDeI-d2PXFQEiz/view?usp=sharing"
+       }
+      },
+      {
+       "t": "備蓄品一覧",
+       "dept": "事務",
+       "note": "2026新規",
+       "cur": {
+        "t": "2026備蓄品一覧.pdf",
+        "u": "https://drive.google.com/file/d/12ZLH2x5BkAOBqX84CDJb-3c2aHdNqOIu/view?usp=drive_link"
+       }
+      },
+      {
+       "t": "危機管理・安全管理マニュアル",
+       "dept": "総務部",
+       "note": "2026改訂",
+       "cur": {
+        "t": "2026_関東学院六浦中学校・高等学校 危機管理・安全管理ﾏﾆｭｱﾙ_第2版.pdf",
+        "u": "https://drive.google.com/file/d/1a0q8wbzHZGmo5Y_43EgUMTDfrJK_PhgM/view?usp=drive_link"
+       },
+       "prev": {
+        "t": "関東学院六浦中学校・高等学校 危機管理・安全管理マニュアル .pdf",
+        "u": "https://drive.google.com/file/d/1yZV6X5qaJj-nxhutIL7X-T9QlqtTFXyv/view?usp=sharing"
+       }
+      }
+     ]
+    },
+    {
+     "c": "教室掲示物",
+     "items": [
+      {
+       "t": "教室基本レイアウト",
+       "dept": "総務部",
+       "note": "2026改訂",
+       "cur": {
+        "t": "2026_教室基本レイアウト.pdf",
+        "u": "https://drive.google.com/file/d/1uXngcgS5aecyIDeJvUHPbTRE_Ea0XOJh/view?usp=drive_link"
+       },
+       "prev": {
+        "t": "教室基本レイアウト2025.pdf",
+        "u": "https://drive.google.com/file/d/1CCKntQg7UCLQDKHNynTJN1NDfKNosJFq/view?usp=drive_link"
+       }
+      },
+      {
+       "t": "50分授業時間表",
+       "dept": "教務部",
+       "note": "GCR教務連絡集計とLink",
+       "cur": {
+        "t": "５０分授業時間表.pdf",
+        "u": "https://drive.google.com/file/d/1ZiGxP9wMcOXZEZy1hp_NPcRYLHV4nqo0/view?usp=drive_link"
+       }
+      },
+      {
+       "t": "年度聖句",
+       "dept": "総務部",
+       "note": "",
+       "cur": {
+        "t": "年度聖句_2026.pdf",
+        "u": "https://drive.google.com/file/d/1hD7IBf3gAr47N32J-LyH9bs4qWDddaYd/view?usp=drive_link"
+       },
+       "prev": {
+        "t": "2025聖句.pdf",
+        "u": "https://drive.google.com/file/d/1_KHZGPQhOQadDaYy6myGUwQzdlmMTAo3/view?usp=drive_link"
+       }
+      },
+      {
+       "t": "礼拝堂座席表",
+       "dept": "総務部",
+       "note": "",
+       "cur": {
+        "t": "③2026年度_礼拝堂座席表 ←必ずコピーして使用してください",
+        "u": "https://docs.google.com/spreadsheets/d/1PCcz49SXOhpqr5PRArXrRUWAAmGVH6g4gbtSrvuq3K4/edit?usp=drive_link"
+       },
+       "prev": {
+        "t": "礼拝堂座席表 _2025.xlsx",
+        "u": "https://docs.google.com/spreadsheets/d/1WWQRiAWBCRCZCRP8h2NJL0Ad4BmypnNt/edit?usp=drive_link&ouid=100980926020585802417&rtpof=true&sd=true"
+       }
+      },
+      {
+       "t": "礼拝堂退場図（中学）",
+       "dept": "執行部",
+       "note": "",
+       "cur": {
+        "t": "2026年度_礼拝堂座席表 中学退場.pdf",
+        "u": "https://drive.google.com/file/d/1jvH2E4_JLraecsToJLUwVTRbmosqyjnE/view?usp=drive_link"
+       }
+      },
+      {
+       "t": "礼拝堂退場図（高校）",
+       "dept": "執行部",
+       "note": "",
+       "cur": {
+        "t": "2026年度_礼拝堂座席表 高校退場.pdf",
+        "u": "https://drive.google.com/file/d/1bcQC8fORo9ClVQTld1eeQvja-zX6_BIO/view?usp=drive_link"
+       }
+      },
+      {
+       "t": "授業時間表、座席表等",
+       "dept": "教務部",
+       "note": "",
+       "cur": {
+        "t": "作成・確認中：作業終了次第、アップします",
+        "u": ""
+       },
+       "prev": {
+        "t": "https://classroom.google.com/c/MzQ0NzQ4OTgwNTIw/p/NjcyMjU2NjgzMzg3/details",
+        "u": "https://classroom.google.com/c/MzQ0NzQ4OTgwNTIw/p/NjcyMjU2NjgzMzg3/details"
+       }
+      }
+     ]
+    },
+    {
+     "c": "HP各種届出",
+     "items": [
+      {
+       "t": "保護者向け各種届出一覧",
+       "dept": "総務部",
+       "note": "2026新規・更新",
+       "cur": {
+        "t": "01.HP保護者向け各種届出書式 ← 用紙は左記フォルダ内に収納",
+        "u": "https://drive.google.com/drive/folders/1RuTu0a5kl68GuTfRkOEUwOQFlXgmrNqG?usp=drive_link"
+       }
+      }
+     ]
+    },
+    {
+     "c": "保健室",
+     "items": [
+      {
+       "t": "学校管理下における負傷等発生報告",
+       "dept": "保健室",
+       "note": "",
+       "cur": {
+        "t": "学校管理下における負傷等発生報告_ﾌｫｰﾑ",
+        "u": "https://docs.google.com/forms/d/e/1FAIpQLSdu1J4Y9B7pUcTwNZTl6YizIPSU5ZLKnYhcCxa2jTXsdL2aGQ/viewform"
+       },
+       "prev": {
+        "t": "学校管理下における負傷等発生報告_ﾌｫｰﾑ",
+        "u": "https://docs.google.com/forms/d/e/1FAIpQLSdu1J4Y9B7pUcTwNZTl6YizIPSU5ZLKnYhcCxa2jTXsdL2aGQ/viewform"
+       }
+      }
+     ]
+    },
+    {
+     "c": "生活指導等",
+     "items": [
+      {
+       "t": "生活指導連絡form",
+       "dept": "生徒部",
+       "note": "",
+       "cur": {
+        "t": "生活指導連絡form 入力方法.pdf",
+        "u": "https://drive.google.com/file/d/1IJJmlJ0TEdQzwleasL2S8nAr-BlCqo47/view?usp=drive_link"
+       },
+       "prev": {
+        "t": "生活指導連絡form 入力方法.pdf",
+        "u": "https://drive.google.com/file/d/1DLXzBYVzUOaKXXjEsPrnXFypudG1YDyO/view?usp=sharing"
+       }
+      },
+      {
+       "t": "学校生活のガイドライン",
+       "dept": "生徒部",
+       "note": "",
+       "cur": {
+        "t": "学校生活のガイドライン .pdf",
+        "u": "https://drive.google.com/file/d/1FNCtgwR_LqLoIj6kC_4-_LJ9NdMEeEb5/view?usp=sharing"
+       },
+       "prev": {
+        "t": "学校生活のガイドライン .pdf",
+        "u": "https://drive.google.com/file/d/1FNCtgwR_LqLoIj6kC_4-_LJ9NdMEeEb5/view?usp=sharing"
+       }
+      },
+      {
+       "t": "部活動の休日の服装について",
+       "dept": "生徒部",
+       "note": "",
+       "cur": {
+        "t": "【チームウェア導入及び運用につきまして】.pdf",
+        "u": "https://drive.google.com/file/d/1XxXbgtEC3ik0JbcaF1jLSFqyBCXRFAnJ/view?usp=sharing"
+       },
+       "prev": {
+        "t": "【チームウェア導入及び運用につきまして】.pdf",
+        "u": "https://drive.google.com/file/d/1XxXbgtEC3ik0JbcaF1jLSFqyBCXRFAnJ/view?usp=sharing"
+       }
+      },
+      {
+       "t": "苦情受付票",
+       "dept": "生徒部",
+       "note": "",
+       "cur": {
+        "t": "苦情受付票2025年度～（コピーして）日付ごとに整理.xlsx",
+        "u": "https://docs.google.com/spreadsheets/d/1Q1MRBDXlnbsVxalagylRs0FKtM6SvkLm/edit?usp=sharing&ouid=100980926020585802417&rtpof=true&sd=true"
+       },
+       "prev": {
+        "t": "苦情受付票2025年度～（コピーして）日付ごとに整理.xlsx",
+        "u": "https://docs.google.com/spreadsheets/d/1Q1MRBDXlnbsVxalagylRs0FKtM6SvkLm/edit?usp=sharing&ouid=100980926020585802417&rtpof=true&sd=true"
+       }
+      },
+      {
+       "t": "遅刻報告カード",
+       "dept": "生徒部",
+       "note": "",
+       "cur": {
+        "t": "遅刻報告カード ver2.docx",
+        "u": "https://docs.google.com/document/d/1DCfcJ97lyFkhLCzezE7qb4EkpJVSI4Y3/edit?usp=sharing&ouid=100980926020585802417&rtpof=true&sd=true"
+       },
+       "prev": {
+        "t": "遅刻報告カード ver2.docx",
+        "u": "https://docs.google.com/document/d/1DCfcJ97lyFkhLCzezE7qb4EkpJVSI4Y3/edit?usp=sharing&ouid=100980926020585802417&rtpof=true&sd=true"
+       }
+      },
+      {
+       "t": "早退報告カード",
+       "dept": "生徒部",
+       "note": "",
+       "cur": {
+        "t": "早退報告カード.docx",
+        "u": "https://docs.google.com/document/d/14o8xf41-gLB4S4JswuG6_FWKNODHRKYy/edit?usp=drive_link&ouid=100980926020585802417&rtpof=true&sd=true"
+       },
+       "prev": {
+        "t": "早退報告カード.docx",
+        "u": "https://docs.google.com/document/d/14o8xf41-gLB4S4JswuG6_FWKNODHRKYy/edit?usp=drive_link&ouid=100980926020585802417&rtpof=true&sd=true"
+       }
+      },
+      {
+       "t": "頭髪指導キップ",
+       "dept": "生徒部",
+       "note": "",
+       "cur": {
+        "t": "作成・確認中：作業終了次第、アップします",
+        "u": ""
+       },
+       "prev": {
+        "t": "頭髪指導キップ.docx/頭髪指導キップ.pdf",
+        "u": "https://docs.google.com/document/d/1Ykw_y_kDcyontXglNzOeEyVJE5ZmmImD/edit?usp=drive_link&ouid=100980926020585802417&rtpof=true&sd=true"
+       }
+      },
+      {
+       "t": "服装違反キップ",
+       "dept": "生徒部",
+       "note": "",
+       "cur": {
+        "t": "服装違反キップ.docx/服装違反キップ.pdf",
+        "u": "https://docs.google.com/document/d/1F0jt8jDZO2Sh1aJvvgpSRd_mAUDN0-kI/edit?usp=drive_link&ouid=100980926020585802417&rtpof=true&sd=true"
+       },
+       "prev": {
+        "t": "服装違反キップ.docx/服装違反キップ.pdf",
+        "u": "https://docs.google.com/document/d/1F0jt8jDZO2Sh1aJvvgpSRd_mAUDN0-kI/edit?usp=drive_link&ouid=100980926020585802417&rtpof=true&sd=true"
+       }
+      },
+      {
+       "t": "KGM通信遅刻警告文",
+       "dept": "生徒部",
+       "note": "",
+       "cur": {
+        "t": "KGM通信遅刻警告文.docx",
+        "u": "https://docs.google.com/document/d/18HrBuHrqjesnqKss44QWX1pnHOKrxP_u/edit?usp=drive_link&ouid=100980926020585802417&rtpof=true&sd=true"
+       },
+       "prev": {
+        "t": "KGM通信遅刻警告文.docx",
+        "u": "https://docs.google.com/document/d/18HrBuHrqjesnqKss44QWX1pnHOKrxP_u/edit?usp=drive_link&ouid=100980926020585802417&rtpof=true&sd=true"
+       }
+      },
+      {
+       "t": "入部願",
+       "dept": "生徒部",
+       "note": "2026新規",
+       "cur": {
+        "t": "入部願.pdf",
+        "u": "https://drive.google.com/file/d/1Ik4x53kJZVb6QToJPSj9mmI67DMiFvgw/view?usp=drive_link"
+       }
+      }
+     ]
+    },
+    {
+     "c": "ｸﾞﾛｰﾊﾞﾙ研修",
+     "items": [
+      {
+       "t": "選択制グローバル研修 業務進行マニュアル",
+       "dept": "ｸﾞﾛｰﾊﾞﾙ事業部",
+       "note": "",
+       "cur": {
+        "t": "選択制グローバル研修 業務進行マニュアル_改訂版_",
+        "u": "https://docs.google.com/document/d/1t3YRW6P4qlFhRZNzouwHXhn7ZX1yV6cXeRXtQysWgqA/edit?usp=sharing"
+       },
+       "prev": {
+        "t": "選択制グローバル研修 業務進行マニュアル_改訂版_",
+        "u": "https://docs.google.com/document/d/1t3YRW6P4qlFhRZNzouwHXhn7ZX1yV6cXeRXtQysWgqA/edit?usp=sharing"
+       }
+      },
+      {
+       "t": "選択制グローバル研修 案内冊子",
+       "dept": "ｸﾞﾛｰﾊﾞﾙ事業部",
+       "note": "",
+       "cur": {
+        "t": "2026_選択制グローバル研修冊子.pdf",
+        "u": "https://drive.google.com/file/d/1tYA4rYZV9KbC0c9nc4yK933CJPLzBxno/view?usp=drive_link"
+       },
+       "prev": {
+        "t": "2025_選択制グローバル研修冊子【完成版】.pdf",
+        "u": "https://drive.google.com/file/d/1gQv4JxJrXg9bMpcKuATZ9BQTFZ540Hv5/view?usp=sharing"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "jimu",
+   "title": "事務・届出",
+   "cats": [
+    {
+     "c": "就業",
+     "items": [
+      {
+       "t": "就業システム",
+       "files": [
+        {
+         "t": "開く",
+         "u": "https://jinjisgsv02.kanto-gakuin.ac.jp/TimePro-VG/Page/Ovg00010t.aspx"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "就業管理について",
+       "files": [
+        {
+         "t": "PDF",
+         "u": "https://drive.google.com/file/d/1992-YYFBEt9mGFLJUFEUKp7oJF3lbseb/view?usp=drive_link"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "就業システム操作マニュアル",
+       "files": [
+        {
+         "t": "PDF",
+         "u": "https://drive.google.com/file/d/13GaMuG1qfxf9i1tNNBx03id-qzWeKyT9/view?usp=drive_link"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "欠勤・特別有給休暇等届出",
+       "files": [
+        {
+         "t": "Excel",
+         "u": "https://docs.google.com/spreadsheets/d/10EOCGYVS7W4s0gXYAuMI8RuIALOxwdbw/edit?usp=drive_link&ouid=100980926020585802417&rtpof=true&sd=true"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "【講師用】年次有給休暇届",
+       "files": [
+        {
+         "t": "PDF",
+         "u": "https://docs.google.com/document/d/1oCqm1zfdAUAfdEDelk5ID7RY4Mp1bT5L4g1YJziSeWM/edit?usp=sharing"
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    {
+     "c": "出張",
+     "items": [
+      {
+       "t": "旅費規定",
+       "files": [
+        {
+         "t": "PDF",
+         "u": "https://drive.google.com/file/d/1UluIvkCXs73TzkeWrkpo3UzDjHExwQPZ/view?usp=drive_link"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "出張旅費精算方法",
+       "files": [
+        {
+         "t": "PDF",
+         "u": "https://drive.google.com/file/d/1pNzDYeGkvPnttSu6TUvKQUCD9z5ByCIS/view?usp=drive_link"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "出張費精算書（１件）",
+       "files": [
+        {
+         "t": "Excel",
+         "u": "https://docs.google.com/spreadsheets/d/1QQgW4TIZ2BiysnLxKAJ6ky6TQEdlJ0KA/edit?usp=drive_link&ouid=100980926020585802417&rtpof=true&sd=true"
+        },
+        {
+         "t": "PDF",
+         "u": "https://drive.google.com/file/d/1wy_ba0UU9M3oTE72PHzECAacApJYcDay/view?usp=drive_link"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "出張費精算書（複数）",
+       "files": [
+        {
+         "t": "Excel",
+         "u": "https://docs.google.com/spreadsheets/d/1PbWicXGwvnI9f42AJvqSJRkoEXgMcgW0/edit?usp=drive_link&ouid=100980926020585802417&rtpof=true&sd=true"
+        },
+        {
+         "t": "PDF",
+         "u": "https://drive.google.com/file/d/1UKq_oOyG0LAZd9LjDGVZorUDgAvwNFfp/view?usp=drive_link"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "公用出張における自家用車使用願",
+       "files": [
+        {
+         "t": "【コピーして入力】公用出張-自家用…",
+         "u": "https://docs.google.com/document/d/1-sqxMqAjMNwQPGMLtet69B8I4xNxTT9Ioiz11l5sZ88/edit?usp=sharing"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "出張報告",
+       "files": [
+        {
+         "t": "Excel",
+         "u": "https://docs.google.com/spreadsheets/d/1CAzeMeepY3YELSU6tw17IPFgcrtWzDrk/edit?usp=drive_link&ouid=100980926020585802417&rtpof=true&sd=true"
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    {
+     "c": "会計",
+     "items": [
+      {
+       "t": "現金払い精算書",
+       "files": [
+        {
+         "t": "Excel",
+         "u": "https://docs.google.com/spreadsheets/d/1GN_gyD8rQ126VAlvvGsCxEziQ3Va0TxY/edit?usp=drive_link&ouid=100980926020585802417&rtpof=true&sd=true"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "個人所有クレジットカード支払理由書",
+       "files": [
+        {
+         "t": "Excel",
+         "u": "https://docs.google.com/spreadsheets/d/1Oif-MOYbDqW47I16-F9nlr-WupLyHVZM/edit?usp=drive_link&ouid=100980926020585802417&rtpof=true&sd=true"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "金種別表",
+       "files": [
+        {
+         "t": "Excel",
+         "u": "https://docs.google.com/spreadsheets/d/1vFeXbAdcOwrD77nMQh-EaW1eU3tR_GA4/edit?usp=drive_link&ouid=100980926020585802417&rtpof=true&sd=true"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "証紙券売機利用願",
+       "files": [
+        {
+         "t": "Excel",
+         "u": "https://docs.google.com/spreadsheets/d/1EOB-seKqgnxhO1yHjnPftT71l2tP3rhZ/edit?usp=drive_link&ouid=100980926020585802417&rtpof=true&sd=true"
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    {
+     "c": "給与等",
+     "items": [
+      {
+       "t": "異動報告",
+       "files": [
+        {
+         "t": "Excel",
+         "u": "https://docs.google.com/spreadsheets/d/1o2di6G9qO3GeKJy_pX5xWMiZ-_0gAWLN/edit?usp=drive_link&ouid=100980926020585802417&rtpof=true&sd=true"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "給与等振込送金申込書",
+       "files": [
+        {
+         "t": "Excel",
+         "u": "https://docs.google.com/spreadsheets/d/1hTNvIMvAwlmSNbb20NLTFoJGiZV8sOwj/edit?usp=drive_link&ouid=100980926020585802417&rtpof=true&sd=true"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "通勤費支給申請書",
+       "files": [
+        {
+         "t": "Excel",
+         "u": "https://docs.google.com/spreadsheets/d/1rZ0HLcWYDP5jdQlXeUp97MbEqxpSYwUW/edit?usp=drive_link&ouid=100980926020585802417&rtpof=true&sd=true"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "身分証明書(兼タイムカード)再発行",
+       "files": [
+        {
+         "t": "Word",
+         "u": "https://docs.google.com/document/d/1YV2_TOvhBXbQy3uE_quvl_BG2_1LcTUb/edit?usp=sharing&ouid=100980926020585802417&rtpof=true&sd=true"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "給与明細書照会",
+       "files": [
+        {
+         "t": "開く",
+         "u": "https://service.officestation.jp/d3rdg5/user-mypage/auth"
+        }
+       ],
+       "note": "オフィスステーションシステム"
+      },
+      {
+       "t": "教職員振込明細書",
+       "files": [
+        {
+         "t": "開く",
+         "u": "https://rsceramic.rakurakuseisan.jp/Xke7tQmfWZa/ssooff/"
+        }
+       ],
+       "note": "楽楽精算"
+      }
+     ]
+    },
+    {
+     "c": "六樹会",
+     "items": [
+      {
+       "t": "六樹会部活動活動報告書（１件）",
+       "files": [
+        {
+         "t": "Excel",
+         "u": "https://docs.google.com/spreadsheets/d/1a4u7h4siy8H7NL0WlMucUX9mQkNARWTB/edit?usp=drive_link&ouid=100980926020585802417&rtpof=true&sd=true"
+        },
+        {
+         "t": "PDF",
+         "u": "https://drive.google.com/file/d/1nt3CGf6LU7TPY7lyeW6Fe_DF_UddfCfx/view?usp=drive_link"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "六樹会部活動活動報告書（複数）",
+       "files": [
+        {
+         "t": "Excel",
+         "u": "https://docs.google.com/spreadsheets/d/14NP3_tqLt1-J8IL7ZwwWSt67IJ2hoROY/edit?usp=drive_link&ouid=100980926020585802417&rtpof=true&sd=true"
+        },
+        {
+         "t": "PDF",
+         "u": "https://drive.google.com/file/d/1eonxt3vhH84oSthkYqnPOcIP0gloaxO9/view?usp=drive_link"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "六樹会近距離旅費精算書",
+       "files": [
+        {
+         "t": "Excel",
+         "u": "https://docs.google.com/spreadsheets/d/1r28Tu0Mql4M8Tn_Wibg46uZ73xz42Ddc/edit?usp=drive_link&ouid=100980926020585802417&rtpof=true&sd=true"
+        },
+        {
+         "t": "PDF",
+         "u": "https://drive.google.com/file/d/13RuLC9yY_NI8BP0DG8Aq-FjOCSB8fR8o/view?usp=drive_link"
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    {
+     "c": "その他",
+     "items": [
+      {
+       "t": "学内施設許可願",
+       "files": [
+        {
+         "t": "Excel",
+         "u": "https://docs.google.com/spreadsheets/d/1wAbX0dPXqstklCUy-M4COBfHbJyBwBX0/edit?usp=drive_link&rtpof=true&sd=true"
+        }
+       ],
+       "note": ""
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "hp",
+   "title": "学内サイト",
+   "cats": [
+    {
+     "c": "サイト",
+     "items": [
+      {
+       "t": "関東学院六浦中学校・高等学校 HP",
+       "files": [
+        {
+         "t": "開く",
+         "u": "https://www.kgm.ed.jp/"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "BLEND",
+       "files": [
+        {
+         "t": "開く",
+         "u": "https://blend.school/login"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "KGM通信",
+       "files": [
+        {
+         "t": "開く",
+         "u": "https://wdsd.net/kgm-h"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "就業システム",
+       "files": [
+        {
+         "t": "開く",
+         "u": "https://jinjisgsv02.kanto-gakuin.ac.jp/TimePro-VG/Page/OVg00010t.aspx"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "Olive Portal",
+       "files": [
+        {
+         "t": "開く",
+         "u": "https://kantogakuinac.sharepoint.com/sites/jportal"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "採点ナビクラウド",
+       "files": [
+        {
+         "t": "開く",
+         "u": "https://saiten-navi.cloud/Login"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "宗教教育部サイト",
+       "files": [
+        {
+         "t": "開く",
+         "u": "https://sites.google.com/gs.kgm.ed.jp/religion/"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "芸術科サイト",
+       "files": [
+        {
+         "t": "開く",
+         "u": "https://sites.google.com/gs.kgm.ed.jp/music/"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "中学合唱コンクール",
+       "files": [
+        {
+         "t": "開く",
+         "u": "https://sites.google.com/gs.kgm.ed.jp/music/%E9%9F%B3%E6%A5%BD%E7%A7%91/2025%E5%B9%B4%E5%BA%A6%E4%B8%AD%E5%AD%A6%E5%90%88%E5%94%B1%E3%82%B3%E3%83%B3%E3%82%AF%E3%83%BC%E3%83%AB"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "Benesse High School Online",
+       "files": [
+        {
+         "t": "開く",
+         "u": "https://bhso.benesse.ne.jp/user/hsou010/hsou01003/"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "すらら 学習管理画面",
+       "files": [
+        {
+         "t": "開く",
+         "u": "https://lms.catchon.jp/teacher/Apl/surala.php?m=lo&e=t"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "すらら Bookmark",
+       "files": [
+        {
+         "t": "開く",
+         "u": "https://entry.surala.jp/bookmark/student.html"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "スタディサプリ for TEACHERS",
+       "files": [
+        {
+         "t": "開く",
+         "u": "https://link.studysapuri.jp/ja/login"
+        }
+       ],
+       "note": ""
+      },
+      {
+       "t": "スポーツ大会 教員用サイト",
+       "files": [
+        {
+         "t": "開く",
+         "u": "https://sites.google.com/gs.kgm.ed.jp/kgmsportsfestival/%E3%82%B9%E3%83%9D%E3%83%BC%E3%83%84%E5%A4%A7%E4%BC%9A"
+        }
+       ],
+       "note": ""
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
