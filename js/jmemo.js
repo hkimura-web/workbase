@@ -86,7 +86,7 @@
     return Q.S.docs.map(d => { const t = tagOf(d.tag); return { src: "class", id: d.id, t: d.t, tag: t ? t.n : "", star: !!d.tip,
       detail: () => '<div class="tsmv-in">' + (d.b.trim() ? md2h(d.b) : "") + "</div>" + (A.work && A.work.imgsH ? A.work.imgsH(d) : "") + (dl(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") }; });
   };
-  A.jmemo.openDoc = id => { ui.det["d" + id] = true; A.ui.tab = "memo"; };
+  A.jmemo.openDoc = (id, edit) => { ui.det["d" + id] = true; if (edit) ui.dedit = id; A.ui.tab = "memo"; };
 
   /* ---------- 画面 ---------- */
   const docMatch = d => { const q = ui.dq.trim().toLowerCase(); return (!ui.dtag || d.tag === ui.dtag) && (!q || (d.t + " " + d.b).toLowerCase().includes(q)); };

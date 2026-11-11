@@ -93,12 +93,12 @@
     if (a === "open") {
       if (A.ui.work && A.ui.work.tipSort) return;
       const it = map[t.dataset.k]; if (!it) return;
-      $("wbody").innerHTML = '<h2 style="margin:0">' + esc(it.t) + "</h2>" + it.detail() + '<div class="dlg-btns"><button class="btn" data-tbact="cl">閉じる</button></div>';
+      $("wbody").innerHTML = '<h2 style="margin:0">' + esc(it.t) + "</h2>" + it.detail() + '<div class="dlg-btns"><button class="btn on" data-tbact="memo-go" data-e="1" data-k="' + esc(it.src + ":" + it.id) + '">✎ このメモを編集する</button><button class="btn" data-tbact="cl">閉じる</button></div>';
       if (!$("wdlg").open) $("wdlg").showModal(); return;
     }
     if (a === "memo-go") {
       const k = t.dataset.k.split(":"), src = k[0], id = k.slice(1).join(":"), m = A[MOD[src]]; if (!m || !m.openDoc) return;
-      m.openDoc(id); A.ui.mode = src === "class" ? "class" : src;
+      m.openDoc(id, !!t.dataset.e); const dg = $("wdlg"); if (dg && dg.open) dg.close(); A.ui.mode = src === "class" ? "class" : src;
       try { root.JDStore.LS.set("jd.mode", A.ui.mode); } catch (x) { /* なくても動く */ }
       A.render(); root.scrollTo(0, 0);
       setTimeout(() => { const el = document.querySelector('[data-ph="d' + id + '"],.wdoc[data-id="' + id + '"]'); if (el) el.scrollIntoView({ block: "start" }); }, 60); return;

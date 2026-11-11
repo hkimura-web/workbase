@@ -300,7 +300,7 @@
     return Q.S.docs.map(d => { const t = tagOf(d.tag); return { src: "test", id: d.id, t: d.t, tag: t ? t.n : "", star: !!d.tip,
       detail: () => '<div class="tsmv-in">' + (d.b.trim() ? md2h(d.b) : "") + "</div>" + (A.work && A.work.imgsH ? A.work.imgsH(d) : "") + (dl(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") }; });
   };
-  A.seiseki.openDoc = id => { ui.det["d" + id] = true; ui.tab = "man"; };
+  A.seiseki.openDoc = (id, edit) => { ui.det["d" + id] = true; if (edit) ui.dedit = id; ui.tab = "man"; };
   const docMatch = d => { const q = ui.dq.trim().toLowerCase(); return (!ui.dtag || d.tag === ui.dtag) && (!q || (d.t + " " + d.b).toLowerCase().includes(q)); };
   function docCard(d, i) {
     const t = tagOf(d.tag), ed = ui.dedit === d.id, k = "d" + d.id;
