@@ -922,14 +922,14 @@
     "u": "https://docs.google.com/document/d/177lLe-4pQgoQGwtdDyyoGSjrhukHgjRorD2-a6r5bd8/edit?tab=t.0#heading=h.m14edq9d1idj"
    },
    {
-    "id": "m4",
-    "t": "学年打合せ",
-    "u": "https://docs.google.com/spreadsheets/d/1YB0F4Fjgtzjx_625AkLduB1tihdr1OW_eG2HRbkhePU/edit?gid=1563605580#gid=1563605580"
-   },
-   {
     "id": "m1794672194427",
     "t": "🐽朝の打ち合わせ自動まとめ",
     "u": "https://gemini.google.com/app/9c614689c6d2e529"
+   },
+   {
+    "id": "m4",
+    "t": "学年打合せ",
+    "u": "https://docs.google.com/spreadsheets/d/1YB0F4Fjgtzjx_625AkLduB1tihdr1OW_eG2HRbkhePU/edit?gid=1563605580#gid=1563605580"
    }
   ],
   "weekend": false
