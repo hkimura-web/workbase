@@ -573,6 +573,10 @@
     {
      "t": "GoogleNotebook",
      "u": "https://notebook.google.com/?original_referer=https:%2F%2Fwww.google.com%23&pli=1"
+    },
+    {
+     "t": "",
+     "u": ""
     }
    ],
    "t": "🧠AI",
@@ -843,10 +847,6 @@
  "mine": [],
  "morning": {
   "done": {
-   "2026-11-10:m1": true,
-   "2026-11-10:m2": true,
-   "2026-11-10:m3": true,
-   "2026-11-10:m4": true,
    "2026-11-11:m1": true,
    "2026-11-11:m2": true,
    "2026-11-11:m3": true,
