@@ -1086,3 +1086,27 @@ body.testmode .tdp.p-now{border-top-color:var(--ts)}
 .shbt{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .shl-p{opacity:.7}
 .shcats{margin-top:-2px}
+
+/* 今朝のまとめ（コンパクト） */
+.mb .mb-h{background:#fbf3e6;color:#7a5a1d;align-items:center;padding:7px 14px}
+.mb .mb-h h2{font-size:15px}
+.mb-t{margin-left:auto;border:1px solid #e3d3b0;background:#fff;color:#7a5a1d;border-radius:999px;font-size:11.5px;padding:1px 11px;cursor:pointer}
+.mb-b{padding:8px 14px 10px;font-size:13.5px;line-height:1.55}
+.mb-old{padding:5px 14px;font-size:12px;background:#fff4d6;color:#7a5a1d}.mb-old2{background:#fde8e8;color:#8a2323}
+.mb-top{list-style:none;margin:0 0 6px;padding:0}
+.mb-top li{display:flex;gap:8px;align-items:baseline;padding:3px 0 3px 9px;border-left:3px solid #d5a24a}
+.mb-top li.hi{border-left-color:#c44}
+.mb-lv{flex:none;font-size:10.5px;border-radius:999px;padding:0 7px;background:#e7f1fb;color:#2b5d8f}
+.mb-top li.hi .mb-lv{background:#fde8e8;color:#a33}
+.mb-none,.mb-nl{margin:2px 0;font-size:12px;color:var(--muted,#8a8f99)}
+.mb-sec{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:6px 18px;margin:4px 0}
+.mb-s{min-width:0}.mb-s b{font-size:12px;color:#7a5a1d}.mb-s p{margin:1px 0 3px;font-size:13px}
+.mb-wk{margin-top:6px;border-top:1px dashed var(--line);padding-top:5px}
+.mb-wk summary{cursor:pointer;font-size:12px;color:var(--muted,#667);list-style:none}
+.mb-wk summary::-webkit-details-marker{display:none}.mb-wk summary::before{content:"▸ ";}.mb-wk[open] summary::before{content:"▾ "}
+.mb-wk summary span{margin-left:8px;color:var(--ink)}
+.mb-wk[open] summary span{display:none}
+.mb-days{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:6px;margin-top:6px}
+.mb-d{font-size:12px;border:1px solid var(--line);border-radius:8px;padding:4px 7px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.mb-d b{font-size:12px}.mb-d small{color:var(--muted,#8a8f99)}
+.mb-d .me{background:#fff4d6;border-radius:4px;padding:0 3px}
