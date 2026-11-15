@@ -221,12 +221,12 @@
     if (isToday) h += liveHtml(today);
     const wkP = A.work ? A.work.todayPanel() : "";
     h += A.tipsBand ? A.tipsBand("class") : "";
+    h += (A.morning ? A.morning.band() : "");   /* 今朝のまとめ（重要Tipsと、今日の授業の間） */
     h += '<div class="tworow' + (wkP ? (wkP.indexOf("p-slim") >= 0 ? " slim" : "") : " one") + '">' + nowP + wkP + "</div>";
     h += A.seiseki ? A.seiseki.todayPanel() : "";
     h += panel("p-rem", "担当クラスの授業進度", "残りの授業時間（" + md(asof) + "から）", tiles);
     const lim = addDays(asof, 7);
     const soon = rows.filter(r => r.date > asof && r.date <= lim && r.kind !== "off");
-    h += (A.morning ? A.morning.band() : "");   /* 今朝のまとめ（担当クラスの授業進度と、これから1週間の間） */
     h += panel("p-soon", "これから1週間", soon.length ? soon.length + "コマ" : "", soon.length ? '<div class="list">' + soon.map(r => slotCard(r, true)).join("") + "</div>" : '<p class="note" style="margin:0">授業の予定はありません。</p>');
     const evs = A.evList ? A.evList(addDays(asof, 1), addDays(asof, 14)) : Object.keys(st.events).filter(d => d > asof && d <= addDays(asof, 14)).sort();
     if (evs.length) h += panel("p-ev", "これからの行事（2週間）", evs.length + "件", evs.map(d => '<div class="blk"><span><b class="num">' + md(d) + "（" + dw(d) + "）</b>　" + esc(clip(A.evOf ? A.evOf(d) : st.events[d], 80)) + "</span></div>").join(""));
