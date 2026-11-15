@@ -38,7 +38,7 @@
     const ag = demo ? 0 : age(d), open = on();
     const tops = (d.top || []).filter(x => x && x.t), secs = d.sec || [];
     const has = secs.filter(s => s.items && s.items.length), none = secs.filter(s => !s.items || !s.items.length).map(s => s.n);
-    let h = '<section class="panel mb" id="p-mb"><header class="panel-h mb-h"><h2>今朝のまとめ</h2><span class="panel-n">' + esc(mk(d)) + "　" + (d.mode === "rule" ? "AIなし（そのまま抜粋）" : "AIでまとめ") + '</span><button class="mb-t" data-mbact="tog" aria-expanded="' + open + '">' + (open ? "たたむ" : "ひらく") + "</button></header>";
+    let h = '<section class="panel mb" id="p-mb"><header class="panel-h mb-h"><h2>今朝のまとめ</h2><span class="panel-n">' + esc(mk(d)) + (mk(d) ? " 作成" : "") + '</span><button class="mb-t" data-mbact="tog" aria-expanded="' + open + '">' + (open ? "たたむ" : "ひらく") + "</button></header>";
     if (ag > 0) h += '<div class="mb-old' + (ag > 1 ? " mb-old2" : "") + '">' + (ag === 1 ? "昨日" : ag + "日前") + "（" + md(d.date) + "）のまとめです。今朝の分はまだ届いていません。</div>";
     if (open) {
       h += '<div class="mb-b">';
