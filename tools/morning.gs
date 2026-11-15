@@ -24,7 +24,7 @@ const CONF = {
   TZ: 'Asia/Tokyo',
   MAX_BODY: 30000,              // AIに渡す文字数の上限
   // 週の予定で、自分に関係するものに黄色の印を付ける言葉
-  MARK: /（S）|\(S\)|高校|高1|S1|各学年|主任会|国語|陸上|国際|職員会議|職員研修/,
+  MARK: /学校運営会議|教科主任|各学年会|職員会議|職員研修|国語|陸上|国際|高1|S1/,
 };
 
 /* 項目（アプリのホームに出る順） */
@@ -39,12 +39,14 @@ const SECS = [
 
 /* ============ 毎朝動く本体 ============ */
 function main() { run_(true); }
+/** 見本の連絡（平日の例）で、Geminiが実際にまとめるかを確かめる。GitHubには書かない */
+function dryRunSample() { run_(false, SAMPLE_LINES); }
 /** 試しに動かす（GitHubには書かず、ログに結果を出す） */
 function dryRun() { run_(false); }
 
-function run_(write) {
+function run_(write, sample) {
   try {
-    const lines = readLines_();
+    const lines = sample || readLines_();
     const res = build_(lines, new Date());
     Logger.log(JSON.stringify(res, null, 1));
     if (write) putGithub_(JSON.stringify(res, null, 1) + '\n', res.date);
@@ -69,8 +71,9 @@ function build_(lines, now) {
   const date = targetDate_(lines, now);
   const week = parseWeek_(sec[2] || [], date);
   const body = bodyText_(sec);
+  Logger.log('AIに渡す本文：' + body.length + '文字');
   let out = null, mode = 'ai';
-  if (body.replace(/\s/g, '').length < 20) { out = { top: [], sec: SECS.map(s => ({ id: s.id, n: s.n, items: [] })) }; mode = 'ai'; }
+  if (body.replace(/\s/g, '').length < 20) { Logger.log('本文が少ないので、AIは使わず、空のまとめにします'); out = { top: [], sec: SECS.map(s => ({ id: s.id, n: s.n, items: [] })) }; mode = 'ai'; }
   else {
     try { out = validate_(askGemini_(body, week, date)); } catch (e) { Logger.log('AIが使えませんでした → 抜粋に切り替え：' + e); }
     if (!out) { out = ruleSummarize_(body); mode = 'rule'; }
@@ -148,7 +151,7 @@ function bodyText_(sec) {
 /* ============ AI（Gemini・無料枠） ============ */
 const SYSTEM_ = [
   'あなたは、関東学院六浦中学校・高等学校の教員の、朝の連絡の整理係です。',
-  '読み手は、高校1年（S1）の担任で、国語科、陸上部の顧問、国際部の校務を担当し、生活指導にも関わる先生です。',
+  '読み手は、高校1年（S1）の担任で、国語科の主任（教科主任）、陸上部の顧問、国際部の校務を担当し、生活指導にも関わる先生です。高校主任・中学主任ではありません。',
   '渡される朝の連絡の文章から、この先生が今日知っておくべきことだけを、短く整理してJSONで返してください。',
   '',
   '【項目】 tannin=担任（高1）／kokugo=国語科／riku=陸上部／kokusai=国際部／seikatsu=生活指導／gyoji=行事・役割（学校全体の行事、入試、説明会、役割分担）',
@@ -158,6 +161,9 @@ const SYSTEM_ = [
   '・文章にないことは書かない。分からないときは書かない。推測しない。',
   '・生徒の氏名は書かない。先生の名前は名字だけにする。',
   '・高1に関係しない他学年（J1〜J3、S2、S3）だけの連絡は入れない。全員が対象のものは入れる。',
+  '・高校主任会、中学主任会、学年主任会は、この先生には関係ないので入れない。教科主任会議・学校運営会議・職員会議は入れる。',
+  '・複数の教科や部署の予定が並んでいる連絡は、この先生に関係する部分（国語科など）だけを書く。他教科の時刻や、他の人の集合場所・移動先は書かない。',
+  '・「今日これだけは（top）」に入れた内容は、項目（sec）には入れない（同じことを2回書かない）。',
   '・同じ内容は1つにまとめる。連絡がない項目は items を空の配列にする。',
   '・丁寧語にせず、体言止めか「〜。」で簡潔に。',
 ].join('\n');
@@ -175,13 +181,17 @@ function askGemini_(body, week, date) {
     },
   };
   let last = '';
+  const t00 = Date.now();
   for (const model of CONF.MODELS) {
     for (const withSchema of [true, false]) {
+      if (Date.now() - t00 > 200000) throw new Error('時間がかかりすぎたので、AIを諦めます：' + last);   // GASは6分で止まるため
       const gc = { temperature: 0.2, responseMimeType: 'application/json' }; if (withSchema) gc.responseSchema = schema;
       const payload = { systemInstruction: { parts: [{ text: SYSTEM_ + (withSchema ? '' : '\n\n返す形：{"top":[{"lv":"hi|md","t":"…"}],"sec":[{"id":"tannin|kokugo|riku|kokusai|seikatsu|gyoji","items":["…"]}]}') }] }, contents: [{ role: 'user', parts: [{ text: user }] }], generationConfig: gc };
       for (let t = 0; t < 2; t++) {
+        const t0 = Date.now();
         const r = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent', { method: 'post', contentType: 'application/json', headers: { 'x-goog-api-key': key }, payload: JSON.stringify(payload), muteHttpExceptions: true });
         const code = r.getResponseCode(), txt = r.getContentText();
+        Logger.log('Gemini ' + model + (withSchema ? '（形を指定）' : '（形の指定なし）') + ' → ' + code + '（' + Math.round((Date.now() - t0) / 1000) + '秒）');
         if (code === 200) {
           try { const j = JSON.parse(txt); const s = j.candidates[0].content.parts.map(p => p.text || '').join(''); return JSON.parse(s.replace(/^```json\s*|```$/g, '')); } catch (e) { last = model + ' 返事を読めません'; break; }
         }
@@ -247,3 +257,85 @@ function testKeys() {
   const r = askGemini_('【全体連絡】\n高1の学年集会は明日の朝8:30に講堂で行います。必ず出席してください。', [], Utilities.formatDate(new Date(), CONF.TZ, 'yyyy-MM-dd'));
   Logger.log('Geminiの返事：' + JSON.stringify(r));
 }
+
+/* 見本の連絡（平日の例。dryRunSample 用） */
+const SAMPLE_LINES = [
+ "最終同期日時: 2026/11/14 07:00",
+ "対象日: 11月14日（参照: x）",
+ "================ 【1. 前日（11月13日）の追記差分】 ================",
+ "（前日の連絡に新たな追記はありません）",
+ "================ 【2. 本日（11月14日）の全体連絡ドキュメント】 ================",
+ "日付",
+ "学校行事（総務部で更新します）",
+ "最終退勤時刻",
+ "14",
+ "土",
+ "英検対策講習（特2/特3），　【中】学校説明会・小学6年生の勉強会",
+ "【中-入試】院内入試　面接試験（PM，高校校舎）",
+ "六穂会委員会・常任委員会・次期役員選考委員会，　※教員室：土曜日❶の扱い",
+ "4時間勤務",
+ "15",
+ "日",
+ "ー",
+ "16",
+ "月",
+ "祈祷会（肥田信），Olive Junior",
+ "19：00",
+ "17",
+ "火",
+ "学校運営会議（16：00， 第一会議室），　Olive Junior，女子Cleaning Day（20：30～ 寮）",
+ "17：45",
+ "18",
+ "水",
+ "アドベント礼拝Ⅰ(S)　，高校主任会（7時限， 小会議室），　Olive Junior",
+ "19：00",
+ "19",
+ "木",
+ "各学年会，　Olive Junior",
+ "19：00",
+ "20",
+ "金",
+ "アドベント礼拝Ⅰ（J），　J3⇒学年懇談会（進学説明会），　第68回中高研究集会（8：00～15：30）",
+ "19：00",
+ "分掌・学年・部活・その他　　より",
+ "【本日のイベント】",
+ "〇＜入試関連＞",
+ "【中】学校説明会・小学6年生の勉強会　，【高】",
+ "〇   英検対策講習（特2/特3）",
+ "〇",
+ "11月より、『各種別のごとに』入力をまとめて記載して下さい。",
+ "【卒業式要項】　（小林晋）",
+ "〇〇月〇〇日までに確認願います。",
+ "【ホワイトボードマーカー】（肥田信）",
+ "・機能不全でマーカー本体を交換する場合は、事務室から受け取ってください。",
+ "【施設予約】（佐藤毅）",
+ "必ず入力して下さい。会議やKGM通信、朝の連絡で流したものでも必ず入力して下さい。施設予約（2026年度)",
+ "冬服への以降期間ですが、ネクタイやリボンタイ、スカート丈、校章など、声をかける生徒が多い気がします。各学年などで服装検査などしてくださっていると思いますが生活指導課も必要に応じて各学年の集会や検査時などに加わりますので声をかけてください。忍耐強く声をかけ続けて制服を格好よく着こなせるようにお願いします。スカート丈は膝にかかる長さでお願いします。もし、服装検査などして、なおすように言われた生徒が直せなかった場合など、服装違反切符を使ってください。",
+ "広報行事・学院内推薦入試のため、１６時頃まで中庭への自家用車の駐車はなし",
+ "【学校説明会・小学６年生の勉強会】",
+ "●実施要項　【中学入試】学校説明会＆小学６年生の勉強会（2026年11月14日）実施要項＜案＞.pdf",
+ "○＜案＞となっていますが、役割分担等の変更はありません。",
+ "○勉強会２科使用教室の表記が間違っていました。正しくは以下の通りです。",
+ "２科　C：J1-1　D：J1-2　E：J1-3　F：1-4",
+ "○勉強会の受付で、シャープペンシルもあわせて配付してください。",
+ "●受付用名簿　【中学入試】学校説明会＆小学６年生の勉強会（2026年11月14日）名簿",
+ "※説明会受付用、勉強会受付用、勉強会各教室用でシートが分かれています",
+ "【学院内推薦入試】",
+ "●実施要項　2027年度学院内推薦入試_面接試験実施要項＜案＞.pdf",
+ "【卒業アルバム　教科・部署写真】　（佐藤毅・古家・肥田信）",
+ "＜11月16日＞",
+ "・国語（ 12：45，図書室），社会（12:50，特2） ，家技情（ 12:55  被服）　終了後、事務室（本館前）",
+ "教科・部署写真＋未撮影（2026）",
+ "＜教員の授業風景＞11月16，17, 19,  20, 24日に、フォトスタジオAIKAWA様が撮影します",
+ "【Micorosoft 365 障害】",
+ "Microsoft のクラウド系サービスや障害が、ほぼ復旧です。",
+ "現状で、接続時間がかかる場合は『輻輳状態』が起きています。",
+ "①　Micorosoft 365 のweb版,　onedrive,  outlookなどのメールサービス",
+ "②　Micorosoftのメールアドレスでログインする、シングルサインインでの利用。",
+ "一般的にコネクト機能。",
+ "③　クラウドサービス『Azure』を使用しているサービス。",
+ "稼働が遅くなっているのは②の問題のようです。",
+ "================ 【3. 本日（11月14日）のS1学年スプレッドシート】 ================",
+ "【学年】教員連絡事項",
+ "高1：来週の三者面談の日程表を今日中に確認してください。"
+];
