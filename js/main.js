@@ -66,6 +66,17 @@
     $("banner").innerHTML = b ? '<div class="banner' + (b.err ? " err" : "") + '"><div>' + J.esc(b.msg) + '</div><div class="btns">' +
       (b.btns || []).map(x => '<button class="btn" data-act="' + x[0] + '">' + J.esc(x[1]) + "</button>").join("") + "</div></div>" : "";
   }
+  /* 一覧の表を、画面にぴったり収める（ページ全体が動いて、上のバーが隠れるのを防ぐ） */
+  function fitGrid() {
+    const g = document.querySelector(".gridwrap"); if (!g) return;
+    if (window.innerWidth < 900) { g.style.maxHeight = ""; g.style.minHeight = ""; return; }
+    const st = g.scrollTop, sl = g.scrollLeft;
+    g.style.maxHeight = "none"; g.style.minHeight = "0";
+    const top = g.getBoundingClientRect().top + window.scrollY;
+    g.style.maxHeight = Math.max(260, window.innerHeight - top - 14) + "px";
+    g.scrollTop = st; g.scrollLeft = sl;
+  }
+  window.addEventListener("resize", fitGrid);
   function scrollGridToToday(g) {
     const go = () => {
       const row = g.querySelector("tr.gr-today"), th = g.querySelector("thead");
@@ -250,7 +261,7 @@
     const keep = old && !A.ui.gridReset ? { t: old.scrollTop, l: old.scrollLeft } : null;
     $("app").innerHTML = A.views[A.ui.tab]();
     const g = document.querySelector(".gridwrap");
-    if (g) { if (keep) { g.scrollTop = keep.t; g.scrollLeft = keep.l; } else scrollGridToToday(g); }
+    if (g) { fitGrid(); setTimeout(fitGrid, 400); if (keep) { g.scrollTop = keep.t; g.scrollLeft = keep.l; } else scrollGridToToday(g); }
     A.ui.gridReset = false;
     if (A.ui.cell && A.ui.cellRefresh) fillCell();
     A.ui.cellRefresh = false;

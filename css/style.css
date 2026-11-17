@@ -1110,3 +1110,9 @@ body.testmode .tdp.p-now{border-top-color:var(--ts)}
 .mb-d{font-size:12px;border:1px solid var(--line);border-radius:8px;padding:4px 7px;display:flex;flex-direction:column;gap:1px;min-width:0}
 .mb-d b{font-size:12px}.mb-d small{color:var(--muted,#8a8f99)}
 .mb-d .me{background:#fff4d6;border-radius:4px;padding:0 3px}
+
+/* 一覧の上のバー（見るだけ・今日の位置へ…）は、ページが動いても画面の上に残す */
+@media (min-width:900px){
+  body:has(.wrap.wide){padding-bottom:0}   /* 一覧のページは、下の余白でページが動かないように */
+  .gridbar{position:sticky;top:64px;z-index:6;padding:6px 0;margin:0 0 4px;background:linear-gradient(var(--bg) 85%,transparent)}
+}
