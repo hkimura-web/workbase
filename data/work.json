@@ -971,14 +971,14 @@
     "u": "https://blend.school/admin/dashboard"
    },
    {
-    "id": "m1794672194427",
-    "t": "🐽朝の打ち合わせ自動まとめ",
-    "u": "https://gemini.google.com/app/9c614689c6d2e529"
-   },
-   {
     "id": "m1795041083756",
     "t": "Googleクラスルーム(S1-1)",
     "u": "https://classroom.google.com/c/ODU4NzQ0MTQzNTUy"
+   },
+   {
+    "id": "m1794672194427",
+    "t": "🐽朝の打ち合わせ自動まとめ",
+    "u": "https://gemini.google.com/app/9c614689c6d2e529"
    }
   ],
   "weekend": false
