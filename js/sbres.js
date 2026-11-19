@@ -16,4 +16,17 @@
   const end = e => { if (!drag) return; drag = false; h.classList.remove("on"); document.body.style.userSelect = ""; const v = w(e); set(v); try { localStorage.setItem(KEY, String(v)); } catch (x) { /* 覚えられなくても動く */ } };
   h.addEventListener("pointerup", end); h.addEventListener("pointercancel", () => { drag = false; h.classList.remove("on"); document.body.style.userSelect = ""; });
   h.addEventListener("dblclick", () => { set(DEF); try { localStorage.removeItem(KEY); } catch (e) { /* 何もしない */ } });
+  /* 左のメニューの上にマウスがあるときは、ホイールで左のメニューだけを動かす（ページ全体は動かさない）。
+   * 幅を変えるつまみ（細い帯）の上でも同じ。メニューが画面に収まっているときは、今までどおりページが動く */
+  const side = document.getElementById("sidenav");
+  const fwd = e => {
+    if (!side || e.ctrlKey || e.deltaY === 0 || window.innerWidth < 900) return;
+    if (side.scrollHeight <= side.clientHeight + 1) return;
+    const d = e.deltaMode === 1 ? e.deltaY * 32 : e.deltaMode === 2 ? e.deltaY * side.clientHeight : e.deltaY;
+    const top = side.scrollTop, max = side.scrollHeight - side.clientHeight;
+    if ((d < 0 && top <= 0) || (d > 0 && top >= max)) { e.preventDefault(); return; }   /* 端まで来ても、ページは動かさない */
+    side.scrollTop = Math.max(0, Math.min(max, top + d)); e.preventDefault();
+  };
+  if (side) side.addEventListener("wheel", fwd, { passive: false });
+  h.addEventListener("wheel", fwd, { passive: false });
 })();
