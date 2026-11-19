@@ -300,6 +300,7 @@
     return Q.S.docs.map(d => { const t = tagOf(d.tag); return { src: "test", id: d.id, t: d.t, tag: t ? t.n : "", star: !!d.tip,
       detail: () => '<div class="tsmv-in">' + (d.b.trim() ? md2h(d.b) : "") + "</div>" + (A.work && A.work.imgsH ? A.work.imgsH(d) : "") + (dl(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") }; });
   };
+  A.seiseki.mm = { S: () => Q.S, save }; A.seiseki.banner = askH;   /* 共通の「手順・メモ」画面（memo.js）から使う */
   A.seiseki.openDoc = (id, edit) => { ui.det["d" + id] = true; if (edit) ui.dedit = id; ui.tab = "man"; };
   const docMatch = d => { const q = ui.dq.trim().toLowerCase(); return (!ui.dtag || d.tag === ui.dtag) && (!q || (d.t + " " + d.b).toLowerCase().includes(q)); };
   function docCard(d, i) {
@@ -321,6 +322,7 @@
   }
   const docListHtml = () => { const l = Q.S.docs.map((d, i) => [d, i]).filter(x => docMatch(x[0])); return l.length ? A.rt.grp(Q.S.tags, l, docCard, t => '<span class="tgchip tgx tg-' + (t ? t.c : "n") + '">' + esc(t ? t.n : "タグなし") + "</span>") : empty("該当するメモがありません。"); };
   function viewMan() {
+    if (A.memo) return A.memo.view("test");   /* 手順・メモは、授業・校務と同じ共通の画面 */
     let h = askH();
     h += A.memoHead("test");
     h += '<div class="tsbar"><input type="search" id="ts_dq" placeholder="手順・メモをさがす" value="' + esc(ui.dq) + '" autocomplete="off"><button class="btn on" data-sact="doc-add" style="white-space:nowrap">＋ 新しいメモ</button></div>';

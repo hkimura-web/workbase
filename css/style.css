@@ -1116,3 +1116,15 @@ body.testmode .tdp.p-now{border-top-color:var(--ts)}
   body:has(.wrap.wide){padding-bottom:0}   /* 一覧のページは、下の余白でページが動かないように */
   .gridbar{position:sticky;top:64px;z-index:6;padding:6px 0;margin:0 0 4px;background:linear-gradient(var(--bg) 85%,transparent)}
 }
+
+/* 共通の「手順・メモ」（授業・校務・テスト成績で同じ画面） */
+.mmseg .btn.on{background:#44506b;border-color:#44506b;color:#fff}
+.mmseg.mm-cat .btn.mm-c-class.on{background:#6b86b8;border-color:#6b86b8}
+.mmseg.mm-cat .btn.mm-c-work.on{background:#5aa574;border-color:#5aa574}
+.mmseg.mm-cat .btn.mm-c-test.on{background:#d6458a;border-color:#d6458a}
+.mmseg.mm-cat .btn.mm-c-class{border-left:4px solid #6b86b8}.mmseg.mm-cat .btn.mm-c-work{border-left:4px solid #5aa574}.mmseg.mm-cat .btn.mm-c-test{border-left:4px solid #d6458a}
+.tsbar .btn.on[data-ma="add"]{background:#44506b;border-color:#44506b}
+.mm-pick{display:flex;flex-wrap:wrap;gap:4px 18px}
+.wdoc.mo-card summary .mo-lab{margin-right:8px}
+.mo-card .wcard>label,.mo-card .wcard>label.tsimp{display:block;margin:8px 0 4px}
+.mo-card .wcard>label.tsimp{margin:6px 0}

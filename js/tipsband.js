@@ -77,14 +77,6 @@
   });
   document.addEventListener("toggle", e => { const d = e.target; if (d && d.dataset && d.dataset.mk) mo.open[d.dataset.mk] = d.open; }, true);
   A.movedDoc = id => (A.jmemo && A.jmemo.getDoc && A.jmemo.getDoc(id)) || (A.seiseki && A.seiseki.getDoc && A.seiseki.getDoc(id)) || null;
-  /* 校務の手順・メモで、タグが「授業」のものは授業へ、「テスト成績」のものはテスト成績へ、自動で移す（先に移し先へ入れてから、校務から外す） */
-  const mv = setInterval(() => {
-    const w = A.work, j = A.jmemo, s = A.seiseki; if (!w || !j || !s || !w.ready() || !j.ready() || !s.ready()) return;
-    clearInterval(mv);
-    const a = w.peekDocs(["jugyo"]), b = w.peekDocs(["seiseki"]);
-    if (a.length && j.addDocs(JSON.parse(JSON.stringify(a)))) w.takeDocs(["jugyo"]);
-    if (b.length && s.addDocs(JSON.parse(JSON.stringify(b)))) w.takeDocs(["seiseki"]);
-  }, 1000);
   document.addEventListener("toggle", e => { const d = e.target; if (d && d.classList && d.classList.contains("tpmore")) { ui.more = d.open; try { localStorage.setItem("jd.tpmore", d.open ? "1" : "0"); } catch (x) { /* 保存できなくても動く */ } } }, true);
   document.addEventListener("click", e => {
     const t = e.target.closest && e.target.closest("[data-tbact]"); if (!t) return;
@@ -97,11 +89,10 @@
       if (!$("wdlg").open) $("wdlg").showModal(); return;
     }
     if (a === "memo-go") {
-      const k = t.dataset.k.split(":"), src = k[0], id = k.slice(1).join(":"), m = A[MOD[src]]; if (!m || !m.openDoc) return;
-      m.openDoc(id, !!t.dataset.e); const dg = $("wdlg"); if (dg && dg.open) dg.close(); A.ui.mode = src === "class" ? "class" : src;
-      try { root.JDStore.LS.set("jd.mode", A.ui.mode); } catch (x) { /* なくても動く */ }
+      const k = t.dataset.k.split(":"), src = k[0], id = k.slice(1).join(":"); if (!A.memo) return;
+      A.memo.openDoc(src, id, !!t.dataset.e); const dg = $("wdlg"); if (dg && dg.open) dg.close();   /* いまのモードのまま、共通の「手順・メモ」で開く */
       A.render(); root.scrollTo(0, 0);
-      setTimeout(() => { const el = document.querySelector('[data-ph="d' + id + '"],.wdoc[data-id="' + id + '"]'); if (el) el.scrollIntoView({ block: "start" }); }, 60); return;
+      setTimeout(() => { const el = document.querySelector('[data-ph="d' + id + '"]'); if (el) el.scrollIntoView({ block: "start" }); }, 60); return;
     }
     if (a === "goto") {
       const s = SRC.find(x => x[0] === t.dataset.k); if (!s) return;

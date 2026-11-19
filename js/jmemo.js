@@ -170,7 +170,8 @@
     mig({ docs: docs }).docs.forEach(d => { if (!Q.S.docs.some(x => x.id === d.id)) Q.S.docs.push(d); });
     save(); A.render(); return true;
   };
-  A.views.memo = () => A.jmemo.view();
+  A.jmemo.mm = { S: () => Q.S, save }; A.jmemo.banner = askH;   /* 共通の「手順・メモ」画面（memo.js）から使う */
+  A.views.memo = () => (A.memo ? A.memo.view("class") : A.jmemo.view());
   A.jmemo.load = load;
   load();
 })(window);

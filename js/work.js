@@ -278,6 +278,7 @@
   A.work.movedIds = () => Object.keys((W.S && W.S.moved) || {});
   document.addEventListener("toggle", e => { const d = e.target; if (d && d.classList && d.classList.contains("wtagmgr")) ui.tagOpen = d.open; }, true);
   A.work.imgsH = d => imgs(d);
+  A.work.mm = { S: () => W.S, save }; A.work.banner = askH; A.work.usedByH = d => usedBy(d);   /* 共通の「手順・メモ」画面（memo.js）から使う */
   /* 校務・テスト共通の「やること・見通し」に出す行（校務の分） */
   A.work.todo = function () {
     const o = { late: [], now: [], soon: [] }; if (!W.ready || !W.S) return o;
@@ -388,6 +389,7 @@
       '<div class="tstg"><input type="text" id="wtg_n" placeholder="新しいタグの名前"><select id="wtg_c">' + TGN.map((n, c) => '<option value="' + c + '">' + n + "</option>").join("") + '</select><button class="btn on" data-wact="tag-add">タグを足す</button></div></div></details>';
   }
   function viewDocs() {
+    if (A.memo) return A.memo.view("work");   /* 手順・メモは、授業・テスト成績と同じ共通の画面 */
     return A.memoHead("work") + '<div class="wdocbar"><input type="search" id="wdq" data-wf="dq" placeholder="メモをさがす" value="' + esc(ui.dq) + '" autocomplete="off"><button class="btn on" data-wact="doc-add">＋ 新しいメモ</button></div>' +
       '<p class="note">タスクの「手順」として紐づけられる共通メモです。1か所直せば全部に反映されます。</p>' + tagMgr() + '<div id="wdocs">' + docList() + '</div>' + A.memoOthers("work") + '<button class="wfab" data-wact="doc-add" aria-label="新しいメモを足す" title="新しいメモを足す">＋</button>';
   }
@@ -513,7 +515,7 @@
       '<label>役割</label><select id="we3">' + ["担", "教", "部", "全", "授"].map(r => '<option value="' + r + '" ' + (r === t.r ? "selected" : "") + ">" + RL[r] + "</option>").join("") + "</select>" +
       '<div>対象(未選択=全学年): ' + ["J", "1", "2", "3"].map(g => '<label class="wck" style="display:inline-block;margin-right:8px"><input type="checkbox" class="we4" value="' + g + '" ' + (t.tg.includes(g) ? "checked" : "") + "> " + (g === "J" ? "中学" : "高" + g) + "</label>").join("") + '<label class="wck" style="display:inline-block"><input type="checkbox" id="we8" ' + (t.rep ? "checked" : "") + "> 毎月繰り返す</label></div>" +
       '<label>日(任意・期限のお知らせとカレンダー用)</label><input type="number" id="we10" min="0" max="31" value="' + (t.dd || "") + '" style="width:90px"><label>注意事項(見落とし防止)</label><textarea id="we5">' + esc(t.n) + '</textarea><label>資料URL</label><input type="text" id="we6" value="' + esc(t.u) + '">' +
-      '<label>手順メモ</label><select id="we7"><option value="">なし</option>' + W.S.docs.map(d => '<option value="' + d.id + '" ' + (d.id === t.p ? "selected" : "") + ">" + esc(d.t) + "</option>").join("") + A.work.movedIds().map(i => A.movedDoc && A.movedDoc(i)).filter(Boolean).map(d => '<option value="' + d.id + '" ' + (d.id === t.p ? "selected" : "") + ">" + esc(d.t) + "（移動済）</option>").join("") + "</select>" +
+      '<label>手順メモ</label><select id="we7"><option value="">なし</option>' + W.S.docs.map(d => '<option value="' + d.id + '" ' + (d.id === t.p ? "selected" : "") + ">" + esc(d.t) + "</option>").join("") + (A.memo ? A.memo.otherDocs() : []).map(d => '<option value="' + esc(d.id) + '" ' + (d.id === t.p ? "selected" : "") + ">" + esc(d.t) + "（" + d.cat + "）</option>").join("") + "</select>" +
       '<label>リンク集のリンク（タスクを開いたときに出ます）</label>' + (t.lk.length ? t.lk.map((u, i) => '<div class="wlink"><span class="ml">' + esc(linkTitle(u)) + '</span><button class="btn sm danger" data-wact="lk-del" data-i="' + i + '">外す</button></div>').join("") : "") +
       '<div class="wlink"><select id="we_lk"><option value="">リンク集から選ぶ…</option>' + Object.keys(secs).map(k => '<optgroup label="' + esc(k) + '">' + secs[k].map(x => '<option value="' + esc(x.u) + '">' + esc(x.t) + "</option>").join("") + "</optgroup>").join("") + '</select><button class="btn sm" data-wact="lk-add">追加</button></div>' +
       '<label>完了前チェック(1行1項目)</label><textarea id="we9">' + esc(t.c.join("\n")) + '</textarea><div class="dlg-btns" style="justify-content:flex-start"><button class="btn on" data-wact="es">保存</button>' + (id ? '<button class="btn danger" data-wact="task-del" data-id="' + id + '">削除</button>' : "") + '<button class="btn" data-wact="cl">キャンセル</button></div>');
