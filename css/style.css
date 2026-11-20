@@ -1128,3 +1128,8 @@ body.testmode .tdp.p-now{border-top-color:var(--ts)}
 .wdoc.mo-card summary .mo-lab{margin-right:8px}
 .mo-card .wcard>label,.mo-card .wcard>label.tsimp{display:block;margin:8px 0 4px}
 .mo-card .wcard>label.tsimp{margin:6px 0}
+
+/* 分類「クラス」（授業=青・クラス=橙・校務=緑・テスト成績=ピンク） */
+.mo-lab-hr{background:#d08a3c}.mo-hr.mo-card{border-left-color:#d08a3c}
+.tpband .tb-hr{background:#d08a3c}
+.mmseg.mm-cat .btn.mm-c-hr.on{background:#d08a3c;border-color:#d08a3c}.mmseg.mm-cat .btn.mm-c-hr{border-left:4px solid #d08a3c}

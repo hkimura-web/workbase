@@ -4,7 +4,7 @@
 (function (root) {
   "use strict";
   const A = root.A, esc = root.JD.esc, $ = id => document.getElementById(id);
-  const SRC = [["class", "授業", "jmemo", "memo"], ["work", "校務", "work", "docs"], ["test", "テスト", "seiseki", "man"]];
+  const SRC = [["class", "授業", "jmemo", "memo"], ["hr", "クラス", "work", "docs", "tipsHr"], ["work", "校務", "work", "docs"], ["test", "テスト", "seiseki", "man"]];   /* 5つ目: Tipsを返す関数の名前（省略は tips）。クラスは校務のデータの中にある */
   const ui = { more: (function () { try { return localStorage.getItem("jd.tpmore") !== "0"; } catch (e) { return true; } })(), q: "" }; let map = {};
   const nf = x => String(x || "").normalize("NFKC").toLowerCase();
   const chip = (it, sorting) => {
@@ -16,7 +16,7 @@
   const sortOn = () => !!(A.ui.work && A.ui.work.tipSort);
   function rowsOf() {
     map = {};
-    return SRC.map(([k, n, m]) => { let l = []; try { l = (A[m] && A[m].tips && A[m].tips()) || []; } catch (e) { l = []; } l.forEach(it => { map[it.src + ":" + it.id] = it; }); return { k, n, l }; });
+    return SRC.map(([k, n, m, tb, fn]) => { let l = []; try { l = (A[m] && A[m][fn || "tips"] && A[m][fn || "tips"]()) || []; } catch (e) { l = []; } l.forEach(it => { map[it.src + ":" + it.id] = it; }); return { k, n, l }; });
   }
   function bodyH(scope) {
     const sorting = sortOn(), q = nf(ui.q).split(/\s+/).filter(Boolean);

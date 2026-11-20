@@ -256,10 +256,10 @@
   const TGN = ["ピンク", "ブルー", "グリーン", "オレンジ", "パープル", "ティール", "レッド", "グレー"];
   const TO = ["d5", "d3", "d15", "d4", "d16", "d17"];
   /* 重要Tipsの並び: はじめは「公務全般→クラス→授業→部活動」の順。手で動かしたら、その順番を覚える */
-  function tipList() {
+  function tipList(hr) {   /* hr=true: 分類「クラス」のTips ／ それ以外: 校務のTips */
     const tr = x => { const k = tagsOf().findIndex(t => t.id === x.tag); return k < 0 ? 99 : k; }, f = x => { const i = TO.indexOf(x.id); return tr(x) * 100 + (i < 0 ? 99 : i); };
     const ord = W.S.tipOrder || [], pos = x => { const i = ord.indexOf(x.id); return i < 0 ? 1e6 : i; };
-    return W.S.docs.filter(d => d.tip).sort((a, b) => ord.length ? (pos(a) - pos(b) || f(a) - f(b)) : f(a) - f(b));
+    return W.S.docs.filter(d => d.tip && (d.cat === "hr") === !!hr).sort((a, b) => ord.length ? (pos(a) - pos(b) || f(a) - f(b)) : f(a) - f(b));
   }
   /* 重要Tipsのボタンを押したとき: 自動＝説明が空でURLがあればすぐ開く／説明があれば説明を出す。手で「すぐ開く」「説明を出す」に固定もできる */
   /* 資料リンク: 1つ目（d.u と名前 d.ut）と、2つ目以降（d.ls）。URLが空のものは数えない */
@@ -293,12 +293,13 @@
     if (nx) inM(nx).filter(t => !t.rep && !isD(t, nx)).forEach(t => add("soon", t, nx));
     return o;
   };
-  A.work.setTipOrder = ids => { W.S.tipOrder = ids; save(); };
-  A.work.tips = function () {
+  A.work.setTipOrder = ids => { const old = W.S.tipOrder || []; W.S.tipOrder = ids.length ? ids.concat(old.filter(x => ids.indexOf(x) < 0)) : []; save(); };   /* 校務とクラスは同じ並び順の入れものを使うので、動かした段の分だけ入れかえる */
+  function tipsOf(hr) {
     if (!W.ready || !W.S) return [];
-    return tipList().map(d => ({ src: "work", id: d.id, t: d.t, cls: tagCls(d.tag), tag: tagName(d.tag), href: goLink(d) ? dlinks(d)[0].u : "", n: dlinks(d).length, sortable: true,
+    return tipList(hr).map(d => ({ src: hr ? "hr" : "work", id: d.id, t: d.t, cls: tagCls(d.tag), tag: tagName(d.tag), href: goLink(d) ? dlinks(d)[0].u : "", n: dlinks(d).length, sortable: true,
       detail: () => '<div style="margin-top:8px">' + nl(d.b) + "</div>" + (dlinks(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") + imgs(d) }));
-  };
+  }
+  A.work.tips = () => tipsOf(false); A.work.tipsHr = () => tipsOf(true);
   A.work.alldocs = function () {
     if (!W.ready || !W.S) return [];
     return W.S.docs.map(d => ({ src: "work", id: d.id, t: d.t, tag: tagName(d.tag), star: !!d.tip,
@@ -590,7 +591,7 @@
       case "tip-auto": if (A.tipsClearOrder) A.tipsClearOrder(); else { W.S.tipOrder = []; save(); } A.render(); break;
       case "tip-mv": {
         const ids = tipList().map(d => d.id), k = ids.indexOf(id), to = k + (+t.dataset.d);
-        if (k >= 0 && to >= 0 && to < ids.length) { ids.splice(to, 0, ids.splice(k, 1)[0]); W.S.tipOrder = ids; save(); A.render(); }
+        if (k >= 0 && to >= 0 && to < ids.length) { ids.splice(to, 0, ids.splice(k, 1)[0]); A.work.setTipOrder(ids); A.render(); }
         break;
       }
       case "m-toggle": { const k = J.ds(new Date()) + ":" + id; if (W.S.morning.done[k]) delete W.S.morning.done[k]; else W.S.morning.done[k] = true; save(); A.render(); break; }

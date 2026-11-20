@@ -6,12 +6,13 @@
 (function (root) {
   "use strict";
   const J = root.JD, A = root.A, esc = J.esc, $ = id => document.getElementById(id);
-  const CATS = [["class", "授業", "jmemo"], ["work", "校務", "work"], ["test", "テスト成績", "seiseki"]];
-  const NAME = { class: "授業", work: "校務", test: "テスト成績" };
+  const CATS = [["class", "授業", "jmemo"], ["hr", "クラス", "work"], ["work", "校務", "work"], ["test", "テスト成績", "seiseki"]];   /* 4つの分類。「クラス」は、校務のデータ(work.json)の中で、cat:"hr" の印を付けて分けている */
+  const STORES = ["class", "work", "test"];   /* データの入れもの（ファイル）は3つ */
+  const NAME = { class: "授業", hr: "クラス", work: "校務", test: "テスト成績" };
   const TGN = ["ピンク", "ブルー", "グリーン", "オレンジ", "パープル", "ティール", "レッド", "グレー"];
   /* 共通のジャンル（はじめの並び）。左は今までのタグの id。同じ意味のものは1つにまとめた */
   const GEN = [
-    { id: "komu", n: "全般", c: 7 }, { id: "class", n: "クラス", c: 2 }, { id: "jugyo", n: "授業", c: 1 }, { id: "kokugo", n: "国語科", c: 4 },
+    { id: "komu", n: "全般", c: 7 }, { id: "jugyo", n: "授業", c: 1 }, { id: "kokugo", n: "国語科", c: 4 },
     { id: "kyozai", n: "教材・プリント", c: 3 }, { id: "jimu", n: "事務・提出", c: 6 }, { id: "jyunbi", n: "試験準備", c: 5 }, { id: "seiseki", n: "成績処理", c: 0 },
     { id: "hokoku", n: "報告・会議", c: 1 }, { id: "ryu", n: "留学・欠席", c: 3 }, { id: "bukatsu", n: "部活動", c: 2 }
   ];
@@ -27,6 +28,7 @@
   const clone = x => JSON.parse(JSON.stringify(x));
   const mod = c => A[CATS.find(x => x[0] === c)[2]];
   const st = c => { const m = mod(c); return m && m.mm ? m.mm.S() : null; };
+  const inCat = (c, d) => (c === "hr" ? d.cat === "hr" : c === "work" ? d.cat !== "hr" : true);   /* 校務のデータの中で、クラスと校務を見分ける */
   const touch = c => { const m = mod(c); if (m && m.mm) m.mm.save(); };
   const isReady = c => { const m = mod(c); return !!(m && m.mm && m.mm.S() && m.ready && m.ready()); };
   const md2h = x => (A.seiseki && A.seiseki.md2h ? A.seiseki.md2h(x) : "<p>" + esc(x) + "</p>");
@@ -38,7 +40,7 @@
   /* ---------- ジャンル（3つに同じ一覧を持たせる） ---------- */
   function tagsNow() {   /* いちばん新しく直したものを使う */
     let best = null;
-    CATS.forEach(([c]) => { const s = st(c); if (s && Array.isArray(s.tags) && s.tags.length && (!best || (s.gen === 1 && (best.gen !== 1 || (s.tagsUpd || 0) > (best.tagsUpd || 0))))) best = s; });
+    STORES.forEach(c => { const s = st(c); if (s && Array.isArray(s.tags) && s.tags.length && (!best || (s.gen === 1 && (best.gen !== 1 || (s.tagsUpd || 0) > (best.tagsUpd || 0))))) best = s; });
     return best ? best.tags : GEN;
   }
   function remapDocs(s, master, oldTags) {
@@ -47,9 +49,8 @@
     const nm = {}; (oldTags || []).forEach(t => { nm[t.id] = byName[t.n] || ""; });
     s.docs.forEach(d => { const o = d.tag || ""; d.tag = !o ? "" : ids[o] ? o : (nm[o] || ""); });
   }
-  function reconcile() {
-    if (!CATS.every(([c]) => isReady(c))) return;   /* 3つとも読みこめてから */
-    const S = CATS.map(([c]) => st(c)), key = s => JSON.stringify(s.tags);
+  function reconcileTags() {
+    const S = STORES.map(c => st(c)), key = s => JSON.stringify(s.tags);
     if (S.every(s => s.gen === 1 && key(s) === key(S[0]))) return;
     let master, done = S.filter(s => s.gen === 1);
     if (done.length) {   /* 3つのうち、どれかが新しい ＝ いちばん新しいものにそろえる */
@@ -75,39 +76,61 @@
       remapDocs(s, master, old);
       s.tags = clone(master); s.gen = 1; s.tagsUpd = done.length ? (s.tagsUpd || now) : now;
     });
-    CATS.forEach(([c]) => touch(c));
+    STORES.forEach(c => touch(c));
     A.render && A.render();
   }
-  const rec = setInterval(() => { reconcile(); if (CATS.every(([c]) => isReady(c)) && CATS.every(([c]) => st(c).gen === 1)) { /* 以後も、別の端末での変更を拾うため、ゆっくり見張る */ clearInterval(rec); setInterval(reconcile, 30000); } }, 1000);
+  /* 「クラス」を、ジャンルから大きな分類へ格上げ（1回だけ）: 校務のメモのうち、ジャンルが「クラス」のものを、分類「クラス」へ移す */
+  function hrMig() {
+    const W = st("work"); if (!W || W.hr === 1 || !STORES.every(c => st(c).gen === 1)) return;
+    W.docs.forEach(d => { if (d.tag === "class") { d.cat = "hr"; d.tag = ""; } });
+    STORES.forEach(c => st(c).docs.forEach(d => { if (d.tag === "class") d.tag = ""; }));
+    W.hr = 1;
+    const list = clone(tagsNow()).filter(t => t.id !== "class");
+    setTags(list);   /* ジャンルの「クラス」は、もう要らない（3つとも保存される） */
+    A.render && A.render();
+  }
+  function reconcile() {
+    if (!STORES.every(isReady)) return;   /* 3つとも読みこめてから */
+    reconcileTags(); hrMig();
+  }
+  const rec = setInterval(() => { reconcile(); if (STORES.every(isReady) && STORES.every(c => st(c).gen === 1) && st("work").hr === 1) { /* 以後も、別の端末での変更を拾うため、ゆっくり見張る */ clearInterval(rec); setInterval(reconcile, 30000); } }, 1000);
 
   function setTags(list) {   /* ここで直したら、3つとも同じにする */
     const now = Date.now();
-    CATS.forEach(([c]) => { const s = st(c); if (!s) return; s.tags = clone(list); s.tagsUpd = now; s.gen = 1; touch(c); });
+    STORES.forEach(c => { const s = st(c); if (!s) return; s.tags = clone(list); s.tagsUpd = now; s.gen = 1; touch(c); });
   }
 
   /* ---------- メモの集め方 ---------- */
-  const all = () => { const o = []; CATS.forEach(([c]) => { const s = st(c); if (s) s.docs.forEach(d => o.push({ c, d })); }); return o; };
-  const find = k => { const i = k.indexOf(":"), c = k.slice(0, i), id = k.slice(i + 1), s = st(c), d = s && s.docs.find(x => x.id === id); return d ? { c, d, s } : null; };
+  const all = () => { const o = []; CATS.forEach(([c]) => { const s = st(c); if (s) s.docs.forEach(d => { if (inCat(c, d)) o.push({ c, d }); }); }); return o; };
+  const find = k => {
+    const i = k.indexOf(":"), c = k.slice(0, i), id = k.slice(i + 1), s = st(c), d = s && s.docs.find(x => x.id === id && inCat(c, x));
+    if (d) return { c, d, s };
+    const f = all().find(x => x.d.id === id); return f ? { c: f.c, d: f.d, s: st(f.c) } : null;   /* 古い印（クラスに移す前の work:…）でも見つかるように */
+  };
   A.memo.otherDocs = () => [["class", "授業"], ["test", "テスト成績"]].flatMap(([c, n]) => { const s = st(c); return s ? s.docs.map(d => ({ id: d.id, t: d.t, cat: n })) : []; });
 
   function move(it, to) {
     const dst = st(to); if (!dst || it.c === to) return;
     const from = it.s, d = it.d;
-    from.docs.splice(from.docs.indexOf(d), 1); from.tipOrder = (from.tipOrder || []).filter(x => x !== d.id);
-    if (it.c === "work") { from.moved = from.moved || {}; from.moved[d.id] = to; }   /* 校務のタスクの「手順メモ」リンクが、移したあとも開けるように */
-    if (to === "work" && dst.moved) delete dst.moved[d.id];
-    if (dst.docs.some(x => x.id === d.id)) {   /* 同じ番号のメモが移し先にあるときは、番号を付け替える（タスクの手順リンクも合わせる） */
-      const old = d.id; d.id = old + "_" + (uid++);
-      if (it.c === "work" && from.tasks) from.tasks.forEach(x => { if (x.p === old) x.p = d.id; });
-      if (from.moved) delete from.moved[old];
+    if (from !== dst) {   /* ファイルをまたぐ移動 */
+      from.docs.splice(from.docs.indexOf(d), 1); from.tipOrder = (from.tipOrder || []).filter(x => x !== d.id);
+      if (it.c === "work" || it.c === "hr") { from.moved = from.moved || {}; from.moved[d.id] = to === "test" ? "test" : "class"; }   /* 校務のタスクの「手順メモ」リンクが、移したあとも開けるように */
+      if ((to === "work" || to === "hr") && dst.moved) delete dst.moved[d.id];
+      if (dst.docs.some(x => x.id === d.id)) {   /* 同じ番号のメモが移し先にあるときは、番号を付け替える（タスクの手順リンクも合わせる） */
+        const old = d.id; d.id = old + "_" + (uid++);
+        if ((it.c === "work" || it.c === "hr") && from.tasks) from.tasks.forEach(x => { if (x.p === old) x.p = d.id; });
+        if (from.moved) delete from.moved[old];
+      }
+      d.ls = d.ls || []; d.img = d.img || []; d.kw = d.kw || ""; d.go = d.go || ""; d.u = d.u || ""; d.ut = d.ut || ""; d.b = d.b || ""; d.tag = d.tag || "";
+      dst.docs.unshift(d);
     }
-    d.ls = d.ls || []; d.img = d.img || []; d.kw = d.kw || ""; d.go = d.go || ""; d.u = d.u || ""; d.ut = d.ut || ""; d.b = d.b || ""; d.tag = d.tag || "";
-    dst.docs.unshift(d); touch(it.c); touch(to);
+    if (to === "hr") d.cat = "hr"; else delete d.cat;   /* クラス ⇔ 校務 は、印を付けかえるだけ */
+    touch(it.c); touch(to);
     ui.edit = to + ":" + d.id; ui.open[to + ":" + d.id] = true;
   }
 
   /* ---------- 画面 ---------- */
-  function banners() { return CATS.map(([c]) => { const m = mod(c); return m && m.banner ? m.banner() : ""; }).join(""); }
+  function banners() { return STORES.map(c => { const m = mod(c); return m && m.banner ? m.banner() : ""; }).join(""); }
   const chip = t => '<span class="tgchip tgx tg-' + (t ? t.c : "n") + '">' + esc(t ? t.n : "ジャンルなし") + "</span>";
   function match(it, scope) {
     const cf = ui.cat[scope], q = nf(ui.q).split(/\s+/).filter(Boolean), tg = tagsNow().find(x => x.id === it.d.tag);
@@ -136,7 +159,7 @@
         (it.c === "class" ? '<label>今日の授業で目立たせる言葉（空でもOK。例：古文，漢文。授業の単元名やクラス名に含まれると、授業の「今日」でこのTipsが目立ちます）</label><input type="text" value="' + esc(d.kw || "") + '" data-mf="kw" data-k="' + esc(k) + '" placeholder="例：古文，言語文化">' : "") +
         '<div class="wlset"><b class="small">資料リンク（最大8つ。名前は、押すボタンに出ます）</b>' + row(d.ut || "", d.u || "", "ut", "u", -1, "リンク1の名前") + ls.map((x, j) => row(x.t, x.u, "lt", "lu", j, "リンク" + (j + 2) + "の名前")).join("") + (1 + ls.length < 8 ? '<button class="btn sm" data-ma="ladd" data-k="' + esc(k) + '">＋ リンクを足す</button>' : "") + "</div>" +
         '<label>本文（「# 」見出し・「- 」箇条書き・「1. 」番号・「|表|」・上のボタンで 太字・赤字・青字・下線、[名前](URL) が使えます）</label>' + A.rt.bar() + '<textarea rows="24" data-mf="b" data-k="' + esc(k) + '">' + esc(d.b || "") + "</textarea>" + imgs(d) +
-        (it.c === "work" && A.work && A.work.usedByH ? A.work.usedByH(d) : "") +
+        ((it.c === "work" || it.c === "hr") && A.work && A.work.usedByH ? A.work.usedByH(d) : "") +
         '<div class="btns"><button class="btn on" data-ma="done">編集を終える</button><button class="btn danger" data-ma="del" data-k="' + esc(k) + '">このメモを削除</button></div></div>';
     }
     return '<details class="wdet wdoc mo-card mo-' + it.c + '" data-mk="' + esc(k) + '" data-id="' + esc(d.id) + '" data-ph="d' + esc(d.id) + '"' + (ui.open[k] || ed ? " open" : "") + ">" + sum + b + "</details>";
@@ -157,14 +180,14 @@
       '<div class="tstg"><input type="text" id="mm_tn" placeholder="新しいジャンルの名前"><select id="mm_tc">' + TGN.map((n, c) => '<option value="' + c + '">' + n + '</option>').join("") + '</select><button class="btn on" data-ma="tag-add">ジャンルを足す</button></div></div></details>';
   }
   A.memo.view = function (scope) {
-    const loaded = CATS.some(([c]) => st(c));
+    const loaded = STORES.some(c => st(c));
     if (!loaded) return '<p class="note">読み込み中…</p>';
     if (!ui.cat[scope]) ui.cat[scope] = scope;
     const cnt = {}; all().forEach(it => { cnt[it.c] = (cnt[it.c] || 0) + 1; });
     const total = all().length, cf = ui.cat[scope];
     const inCat = all().filter(it => cf === "all" || it.c === cf), used = {}; inCat.forEach(it => { used[it.d.tag] = (used[it.d.tag] || 0) + 1; });
     let h = banners();
-    h += '<div class="pghd"><div><h2 class="pgt">MEMO</h2><p class="pgs">授業・校務・テスト成績の手順やメモ。★を付けると、どのホームの「重要Tips」にも出ます。</p></div></div>';
+    h += '<div class="pghd"><div><h2 class="pgt">MEMO</h2><p class="pgs">授業・クラス・校務・テスト成績の手順やメモ。★を付けると、どのホームの「重要Tips」にも出ます。</p></div></div>';
     h += '<div class="tsbar"><input type="search" id="mm_q" placeholder="手順・メモをさがす（全部のメモから）" value="' + esc(ui.q) + '" autocomplete="off"><button class="btn on" data-ma="add" data-s="' + scope + '" style="white-space:nowrap">＋ 新しいメモ</button></div>';
     h += '<div class="tsseg mmseg mm-cat"><button class="btn' + (cf === "all" ? " on" : "") + '" data-ma="cat" data-s="' + scope + '" data-v="all">すべて ' + total + "</button>" +
       CATS.map(([c, n]) => '<button class="btn mm-c-' + c + (cf === c ? " on" : "") + '" data-ma="cat" data-s="' + scope + '" data-v="' + c + '">' + n + " " + (cnt[c] || 0) + "</button>").join("") + "</div>";
@@ -194,6 +217,7 @@
       case "add": {
         const cf = ui.cat[s], c = cf === "all" ? s : cf, dst = st(c); if (!dst) return;
         const d = { id: "d" + (uid++), t: "新しいメモ", b: "", u: "", ut: "", ls: [], tip: false, kw: "", img: [], tag: ui.g || "", go: "" };
+        if (c === "hr") d.cat = "hr";
         dst.docs.unshift(d); ui.open[c + ":" + d.id] = true; ui.edit = c + ":" + d.id; touch(c); A.render(); return;
       }
       case "edit": ui.edit = k; ui.open[k] = true; A.render(); return;
