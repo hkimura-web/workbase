@@ -256,10 +256,10 @@
   const TGN = ["ピンク", "ブルー", "グリーン", "オレンジ", "パープル", "ティール", "レッド", "グレー"];
   const TO = ["d5", "d3", "d15", "d4", "d16", "d17"];
   /* 重要Tipsの並び: はじめは「公務全般→クラス→授業→部活動」の順。手で動かしたら、その順番を覚える */
-  function tipList(hr) {   /* hr=true: 分類「クラス」のTips ／ それ以外: 校務のTips */
+  function tipList() {
     const tr = x => { const k = tagsOf().findIndex(t => t.id === x.tag); return k < 0 ? 99 : k; }, f = x => { const i = TO.indexOf(x.id); return tr(x) * 100 + (i < 0 ? 99 : i); };
     const ord = W.S.tipOrder || [], pos = x => { const i = ord.indexOf(x.id); return i < 0 ? 1e6 : i; };
-    return W.S.docs.filter(d => d.tip && (d.cat === "hr") === !!hr).sort((a, b) => ord.length ? (pos(a) - pos(b) || f(a) - f(b)) : f(a) - f(b));
+    return W.S.docs.filter(d => d.tip).sort((a, b) => ord.length ? (pos(a) - pos(b) || f(a) - f(b)) : f(a) - f(b));
   }
   /* 重要Tipsのボタンを押したとき: 自動＝説明が空でURLがあればすぐ開く／説明があれば説明を出す。手で「すぐ開く」「説明を出す」に固定もできる */
   /* 資料リンク: 1つ目（d.u と名前 d.ut）と、2つ目以降（d.ls）。URLが空のものは数えない */
@@ -294,12 +294,12 @@
     return o;
   };
   A.work.setTipOrder = ids => { const old = W.S.tipOrder || []; W.S.tipOrder = ids.length ? ids.concat(old.filter(x => ids.indexOf(x) < 0)) : []; save(); };   /* 校務とクラスは同じ並び順の入れものを使うので、動かした段の分だけ入れかえる */
-  function tipsOf(hr) {
+  function tipsOf() {   /* 校務の入れもの（work.json）のTips全部。分類ごとの段分けは、重要Tipsの帯のほうでする */
     if (!W.ready || !W.S) return [];
-    return tipList(hr).map(d => ({ src: hr ? "hr" : "work", id: d.id, t: d.t, cls: tagCls(d.tag), tag: tagName(d.tag), href: goLink(d) ? dlinks(d)[0].u : "", n: dlinks(d).length, sortable: true,
+    return tipList().map(d => ({ src: "work", id: d.id, t: d.t, cls: tagCls(d.tag), tag: tagName(d.tag), href: goLink(d) ? dlinks(d)[0].u : "", n: dlinks(d).length, sortable: true,
       detail: () => '<div style="margin-top:8px">' + nl(d.b) + "</div>" + (dlinks(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") + imgs(d) }));
   }
-  A.work.tips = () => tipsOf(false); A.work.tipsHr = () => tipsOf(true);
+  A.work.tips = () => tipsOf();
   A.work.alldocs = function () {
     if (!W.ready || !W.S) return [];
     return W.S.docs.map(d => ({ src: "work", id: d.id, t: d.t, tag: tagName(d.tag), star: !!d.tip,

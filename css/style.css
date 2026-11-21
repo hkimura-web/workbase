@@ -1133,3 +1133,9 @@ body.testmode .tdp.p-now{border-top-color:var(--ts)}
 .mo-lab-hr{background:#d08a3c}.mo-hr.mo-card{border-left-color:#d08a3c}
 .tpband .tb-hr{background:#d08a3c}
 .mmseg.mm-cat .btn.mm-c-hr.on{background:#d08a3c;border-color:#d08a3c}.mmseg.mm-cat .btn.mm-c-hr{border-left:4px solid #d08a3c}
+
+/* 分類ボタン（色は分類ごとに自分で決められる。うすい色の上は、濃い文字） */
+.mmseg.mm-cat .btn.mm-cb{border-left:4px solid var(--cc,#a3acba)}
+.mmseg.mm-cat .btn.mm-cb.on{background:var(--cc,#a3acba);border-color:var(--cc,#a3acba);color:#1f2a44;font-weight:700}
+.mo-card{border-left-width:4px}
+.tpband .tplab{color:#1f2a44}

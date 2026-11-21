@@ -4,7 +4,7 @@
 (function (root) {
   "use strict";
   const A = root.A, esc = root.JD.esc, $ = id => document.getElementById(id);
-  const SRC = [["class", "授業", "jmemo", "memo"], ["hr", "クラス", "work", "docs", "tipsHr"], ["work", "校務", "work", "docs"], ["test", "テスト", "seiseki", "man"]];   /* 5つ目: Tipsを返す関数の名前（省略は tips）。クラスは校務のデータの中にある */
+  const SRC = [["class", "授業", "jmemo", "memo"], ["work", "校務", "work", "docs"], ["test", "テスト", "seiseki", "man"]];   /* Tipsを持っている入れもの3つ。段（分類）は、手順・メモ側の分類の一覧（A.memo.cats）で分ける */
   const ui = { more: (function () { try { return localStorage.getItem("jd.tpmore") !== "0"; } catch (e) { return true; } })(), q: "" }; let map = {};
   const nf = x => String(x || "").normalize("NFKC").toLowerCase();
   const chip = (it, sorting) => {
@@ -15,22 +15,24 @@
   };
   const sortOn = () => !!(A.ui.work && A.ui.work.tipSort);
   function rowsOf() {
-    map = {};
-    return SRC.map(([k, n, m, tb, fn]) => { let l = []; try { l = (A[m] && A[m][fn || "tips"] && A[m][fn || "tips"]()) || []; } catch (e) { l = []; } l.forEach(it => { map[it.src + ":" + it.id] = it; }); return { k, n, l }; });
+    map = {}; const items = [];
+    SRC.forEach(([k, n, m]) => { let l = []; try { l = (A[m] && A[m].tips && A[m].tips()) || []; } catch (e) { l = []; } l.forEach(it => { map[it.src + ":" + it.id] = it; items.push(it); }); });
+    const cats = (A.memo && A.memo.cats && A.memo.cats()) || SRC.map(x => ({ id: x[0], n: x[1], col: "" }));
+    return cats.map(c => ({ k: c.id, n: c.n, col: c.col, l: items.filter(it => (A.memo && A.memo.catOfItem ? A.memo.catOfItem(it) : it.src) === c.id) }));
   }
   function bodyH(scope) {
     const sorting = sortOn(), q = nf(ui.q).split(/\s+/).filter(Boolean);
     const rows = rowsOf().map(r => ({ k: r.k, n: r.n, all: r.l, l: q.length ? r.l.filter(it => q.every(w => nf(it.t + " " + it.tag + " " + (it.kw || "")).indexOf(w) >= 0)) : r.l }));
     const me = rows.find(r => r.k === scope), others = rows.filter(r => r.k !== scope && r.l.length);
-    const row = r => '<div class="tprow"><span class="tplab tb-' + r.k + '">' + r.n + '</span><span class="tpchips">' + r.l.map(it => chip(it, sorting)).join("") + "</span></div>";
+    const row = r => '<div class="tprow"><span class="tplab" style="' + (r.col ? "background:" + r.col + ";color:" + ((A.memo && A.memo.ink) || "#222") : "") + '">' + esc(r.n) + '</span><span class="tpchips">' + r.l.map(it => chip(it, sorting)).join("") + "</span></div>";
     const cnt = others.reduce((a, r) => a + r.l.length, 0), openMore = ui.more || q.length > 0;
     let b = "";
     if (sorting) b += '<p class="note" style="margin:0 0 6px">ボタンをつかんで、同じ段の中で動かしたい場所にドラッグして離してください。 <button class="btn sm" data-wact="tip-auto">自動の並びに戻す</button></p>';
-    if (me.l.length) b += row(me);
-    else if (q.length) b += '<p class="note" style="margin:0">' + me.n + "のTipsには、見つかりません。</p>";
-    else b += '<p class="note" style="margin:0">' + me.n + "の「手順・メモ」で ☆ を押すと、ここに並びます。</p>";
-    if (others.length) b += '<details class="tpmore"' + (openMore ? " open" : "") + "><summary>ほかのTips（" + others.map(r => r.n + " " + r.l.length).join("・") + "）</summary>" + others.map(row).join("") + "</details>";
-    else if (q.length && !me.l.length) b = '<p class="note" style="margin:0">見つかりません。</p>';
+    if (me && me.l.length) b += row(me);
+    else if (me && q.length) b += '<p class="note" style="margin:0">' + esc(me.n) + "のTipsには、見つかりません。</p>";
+    else if (me) b += '<p class="note" style="margin:0">' + esc(me.n) + "の「手順・メモ」で ☆ を押すと、ここに並びます。</p>";
+    if (others.length) b += '<details class="tpmore"' + (openMore ? " open" : "") + "><summary>ほかのTips（" + others.map(r => esc(r.n) + " " + r.l.length).join("・") + "）</summary>" + others.map(row).join("") + "</details>";
+    else if (q.length && !(me && me.l.length)) b = '<p class="note" style="margin:0">見つかりません。</p>';
     return b;
   }
   function markHits() {
