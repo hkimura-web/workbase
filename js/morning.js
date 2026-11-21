@@ -43,7 +43,7 @@
     if (open) {
       h += '<div class="mb-b">';
       if (tops.length) h += '<ul class="mb-top">' + tops.map(x => '<li class="' + (x.lv === "hi" ? "hi" : "md") + '"><span class="mb-lv">' + (x.lv === "hi" ? "要対応" : "確認") + "</span>" + esc(x.t) + "</li>").join("") + "</ul>";
-      else h += '<p class="mb-none">今日これだけは、というものはありません。</p>';
+      else h += '<p class="mb-none">今日、特別な連絡はありません。</p>';
       if (has.length) h += '<div class="mb-sec">' + has.map(s => '<div class="mb-s"><b>' + esc(s.n) + "</b>" + s.items.map(t => "<p>" + esc(t) + "</p>").join("") + "</div>").join("") + "</div>";
       if (none.length) h += '<p class="mb-nl">連絡なし：' + esc(none.join("・")) + "</p>";
       const w = (d.week || []).filter(x => x && x.d);
