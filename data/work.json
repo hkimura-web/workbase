@@ -170,7 +170,7 @@
     }
    ],
    "t": "👉HR連絡自動作成ｼｽﾃﾑ",
-   "tag": "class",
+   "tag": "",
    "tip": true,
    "u": "https://docs.google.com/spreadsheets/d/1-K95oexVrut9rXfYiC2Fg6n2sw4pWr6jL8lVyt5yxYY/edit?gid=0#gid=0",
    "ut": "設定ｽﾌﾟﾚｯﾄﾞｼｰﾄ"
@@ -373,7 +373,7 @@
     }
    ],
    "t": "📋指導要録",
-   "tag": "class",
+   "tag": "",
    "tip": true,
    "u": "https://docs.google.com/spreadsheets/d/1nunck2Sur7n2negbkOGUqZXK9B2xQYhLNumqkaakokU/edit?gid=1272719994#gid=1272719994",
    "ut": "S1-1指導要録資料"
@@ -438,7 +438,7 @@
     }
    ],
    "t": "🔥個人面談(科目選択)",
-   "tag": "class",
+   "tag": "",
    "tip": true,
    "u": "https://docs.google.com/document/d/1vWaba5FgTkuGDipEFjhQsgW7g947dzzsMJMNqu-am1Q/edit?tab=t.xebqij5zu684",
    "ut": "☝️S1科目選択　注意事項"
@@ -474,7 +474,7 @@
     }
    ],
    "t": "六浦祭",
-   "tag": "class",
+   "tag": "",
    "tip": true,
    "u": "https://docs.google.com/spreadsheets/d/1OLxyFJEGY3aCCo81Qz2aC3mOIQ-zNj2_IaBJu6_HW7c/edit?gid=88422250#gid=88422250",
    "ut": "収支決算用紙"
@@ -521,7 +521,7 @@
    "img": [],
    "ls": [],
    "t": "Compass",
-   "tag": "class",
+   "tag": "",
    "tip": true,
    "u": "https://bhso.benesse.ne.jp/user/hsou010/hsou01003/",
    "ut": ""
@@ -581,7 +581,7 @@
     }
    ],
    "t": "📍クラス",
-   "tag": "class",
+   "tag": "",
    "tip": true,
    "u": "https://docs.google.com/spreadsheets/d/1kYnR1ZaBomfJ7rg_qhjw6IFN0Z6_ydjUqKBo1-43ISs/edit?gid=804370955#gid=804370955",
    "ut": "名簿・提出物"
@@ -612,7 +612,7 @@
     }
    ],
    "t": "📍S1-1生徒情報",
-   "tag": "class",
+   "tag": "",
    "tip": true,
    "u": "https://docs.google.com/spreadsheets/d/1LlrvW2Q69NHbk2mr7MJWbL-try9C9gAuyY9_VXKFDBA/edit?pli=1&gid=1111864744#gid=1111864744",
    "ut": "クラス関係データ"
@@ -727,7 +727,7 @@
    ],
    "ls": [],
    "t": "通知表準備(BLEND)の手順",
-   "tag": "class",
+   "tag": "",
    "tip": false,
    "u": "",
    "ut": ""
@@ -738,7 +738,7 @@
    "img": [],
    "ls": [],
    "t": "忌引・公欠・出席停止",
-   "tag": "class",
+   "tag": "",
    "tip": true,
    "u": "",
    "ut": ""
@@ -749,7 +749,7 @@
    "img": [],
    "ls": [],
    "t": "推薦の規定(公募・指定校)",
-   "tag": "class",
+   "tag": "",
    "tip": true,
    "u": "",
    "ut": ""
@@ -760,7 +760,7 @@
    "img": [],
    "ls": [],
    "t": "年度途中の住所変更など",
-   "tag": "class",
+   "tag": "",
    "tip": true,
    "u": "",
    "ut": ""
@@ -771,7 +771,7 @@
    "img": [],
    "ls": [],
    "t": "座席表・連絡先",
-   "tag": "class",
+   "tag": "",
    "tip": false,
    "u": "",
    "ut": ""
@@ -784,7 +784,7 @@
    ],
    "ls": [],
    "t": "通知表ﾌﾟﾚﾋﾞｭｰﾁｪｯｸの注意",
-   "tag": "class",
+   "tag": "",
    "tip": false,
    "u": "",
    "ut": ""
@@ -801,7 +801,7 @@
    ],
    "ls": [],
    "t": "指導要録の手順メモ",
-   "tag": "class",
+   "tag": "",
    "tip": false,
    "u": "",
    "ut": ""
@@ -816,7 +816,7 @@
    ],
    "ls": [],
    "t": "教室寸法・机の配置",
-   "tag": "class",
+   "tag": "",
    "tip": false,
    "u": "",
    "ut": ""
@@ -827,7 +827,7 @@
    "img": [],
    "ls": [],
    "t": "最初の話(第1回懇談会でも話す)",
-   "tag": "class",
+   "tag": "",
    "tip": false,
    "u": "",
    "ut": ""
@@ -838,7 +838,7 @@
    "img": [],
    "ls": [],
    "t": "ｸﾗｽ目標の例",
-   "tag": "class",
+   "tag": "",
    "tip": false,
    "u": "",
    "ut": ""
@@ -849,7 +849,7 @@
    "img": [],
    "ls": [],
    "t": "9月懇談会の話(S1)",
-   "tag": "class",
+   "tag": "",
    "tip": false,
    "u": "",
    "ut": ""
@@ -860,7 +860,7 @@
    "img": [],
    "ls": [],
    "t": "9月懇談会の話(S3)",
-   "tag": "class",
+   "tag": "",
    "tip": false,
    "u": "",
    "ut": ""
@@ -871,7 +871,7 @@
    "img": [],
    "ls": [],
    "t": "夏期面談の話す内容",
-   "tag": "class",
+   "tag": "",
    "tip": false,
    "u": "",
    "ut": ""
@@ -882,7 +882,7 @@
    "img": [],
    "ls": [],
    "t": "ﾏｲｺﾌﾟﾗｽﾞﾏ肺炎の出席停止",
-   "tag": "class",
+   "tag": "",
    "tip": true,
    "u": "",
    "ut": ""
@@ -893,7 +893,7 @@
    "img": [],
    "ls": [],
    "t": "ｱﾙﾊﾞｲﾄ申請書",
-   "tag": "class",
+   "tag": "",
    "tip": true,
    "u": "https://docs.google.com/document/d/17IQLJloZ9bM2Bgo6XsXszsnSWANjQPvXZ6Lx27IC9IE/edit",
    "ut": ""
@@ -1030,6 +1030,7 @@
    "d9": "class"
   }
  },
+ "hr": 1,
  "mine": [],
  "morning": {
   "done": {
@@ -1098,11 +1099,6 @@
    "n": "全般"
   },
   {
-   "c": 2,
-   "id": "class",
-   "n": "クラス"
-  },
-  {
    "c": 1,
    "id": "jugyo",
    "n": "授業"
@@ -1158,7 +1154,7 @@
    "n": "校務"
   }
  ],
- "tagsUpd": 1795047956221,
+ "tagsUpd": 1795232662548,
  "tasks": [
   {
    "c": [],
