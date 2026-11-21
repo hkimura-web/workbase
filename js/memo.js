@@ -102,10 +102,17 @@
     const W = st("work"); if (!W || W.hr === 1 || !STORES.every(c => st(c).gen === 1)) return;
     W.docs.forEach(d => { if (d.tag === "class") { d.cat = "hr"; d.tag = ""; } });
     STORES.forEach(c => st(c).docs.forEach(d => { if (d.tag === "class") d.tag = ""; }));
-    W.hr = 1;
+    W.hr = 1; W.hr2 = 1;
     const list = clone(tagsNow()).filter(t => t.id !== "class");
     setTags(list);   /* ジャンルの「クラス」は、もう要らない（3つとも保存される） */
     A.render && A.render();
+  }
+  /* 前の版で「クラス」の印が消えてしまった人のための、1回だけの直し: 最初のジャンルを控えた記録(genBak)を見て、もとクラスだったメモを分類「クラス」へ戻す */
+  function hrFix() {
+    const W = st("work"); if (!W || W.hr !== 1 || W.hr2 === 1) return;
+    const tg = (W.genBak && W.genBak.tg) || {}; let n = 0;
+    W.docs.forEach(d => { if (tg[d.id] === "class" && !d.cat) { d.cat = "hr"; n++; } });
+    W.hr2 = 1; touch("work"); if (n) A.render && A.render();
   }
   function reconcileCats() {   /* 分類の一覧を、3つの入れものでそろえる */
     const S = STORES.map(c => st(c)), key = s => JSON.stringify(s.cats || null), have = S.filter(s => Array.isArray(s.cats) && s.cats.length);
@@ -117,9 +124,9 @@
   }
   function reconcile() {
     if (!STORES.every(isReady)) return;   /* 3つとも読みこめてから */
-    reconcileTags(); hrMig(); reconcileCats();
+    reconcileTags(); hrMig(); hrFix(); reconcileCats();
   }
-  const rec = setInterval(() => { reconcile(); if (STORES.every(isReady) && STORES.every(c => st(c).gen === 1 && Array.isArray(st(c).cats)) && st("work").hr === 1) { /* 以後も、別の端末での変更を拾うため、ゆっくり見張る */ clearInterval(rec); setInterval(reconcile, 30000); } }, 1000);
+  const rec = setInterval(() => { reconcile(); if (STORES.every(isReady) && STORES.every(c => st(c).gen === 1 && Array.isArray(st(c).cats)) && st("work").hr === 1 && st("work").hr2 === 1) { /* 以後も、別の端末での変更を拾うため、ゆっくり見張る */ clearInterval(rec); setInterval(reconcile, 30000); } }, 1000);
 
   function setCats(list) {   /* ここで直したら、3つとも同じにする */
     const now = Date.now();
