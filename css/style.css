@@ -660,7 +660,8 @@ body.workmode .p-now{border-top-color:var(--wk)}
   .tools{order:4;margin-left:auto;align-items:center;gap:10px}
   .asof{flex-direction:row;align-items:center;gap:8px;color:#aebbdc;font-size:12px}
   .hero input,.hero select{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.25);padding:3px 9px;font-size:13px;color-scheme:dark}
-  #btn-settings{display:none}
+  #btn-settings{display:inline-block;font-size:11px;font-weight:600;line-height:1;padding:4px 8px;border-radius:6px;background:transparent;color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.22)}
+  #btn-settings:hover{color:#fff;border-color:rgba(255,255,255,.5);background:transparent}
 
   .shell{display:grid;grid-template-columns:var(--sbw,244px) 1fr;align-items:start;position:relative}
   #sbres{display:block;position:absolute;top:0;bottom:0;left:calc(var(--sbw,244px) - 4px);width:8px;cursor:col-resize;z-index:30;touch-action:none}
