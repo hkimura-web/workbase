@@ -390,6 +390,17 @@
         const it = { id: "c" + Date.now().toString(36), when: $("ck_new_w").value, text: tx, done: {} }; if (u) it.u = u;
         A.portal.checklist.push(it); pcommit(); A.render(); break;
       }
+      case "mat-mv": {
+        const MF = A.matSlots, un = A.st.units[t.dataset.u], m = un && un.mats && un.mats[Number(t.dataset.i)]; if (!m) break;
+        const vis = MF.filter((f, k) => k < 6 || m[f[0]] || (m.lb && m.lb[f[0]]) || (A.ui.matMore && A.ui.matMore[t.dataset.u + ":" + t.dataset.i]));
+        const vi = vis.findIndex(f => f[0] === t.dataset.f), wj = vi + Number(t.dataset.d); if (vi < 0 || wj < 0 || wj >= vis.length) break;
+        const a = vis[vi], b = vis[wj], eff = f => ((m.lb && m.lb[f[0]]) || "").trim() || f[1];
+        const ua = m[a[0]], ub = m[b[0]], la = eff(a), lb2 = eff(b);
+        const put = (f, url, lab) => { if (url) m[f[0]] = url; else delete m[f[0]]; m.lb = m.lb || {}; if (url && lab !== f[1]) m.lb[f[0]] = lab; else delete m.lb[f[0]]; };
+        put(a, ub, lb2); put(b, ua, la);
+        if (!Object.keys(m.lb).length) delete m.lb;
+        A.ui.matOpen = A.ui.matOpen || {}; A.ui.matOpen[t.dataset.u] = true; A.commit(); A.render(); break;
+      }
       case "mat-more": { A.ui.matOpen = A.ui.matOpen || {}; A.ui.matOpen[t.dataset.u] = true; (A.ui.matMore = A.ui.matMore || {})[t.dataset.u + ":" + t.dataset.i] = true; A.render(); break; }
       case "mat-xdel": { const m = ensureMat(t.dataset.u, Number(t.dataset.i)); if (m && m.x) { m.x.splice(Number(t.dataset.j), 1); if (!m.x.length) delete m.x; trimMats(t.dataset.u); A.commit(); } break; }
       case "mat-xadd": {
