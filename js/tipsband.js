@@ -7,11 +7,12 @@
   const SRC = [["class", "授業", "jmemo", "memo"], ["work", "校務", "work", "docs"], ["test", "テスト", "seiseki", "man"]];   /* Tipsを持っている入れもの3つ。段（分類）は、手順・メモ側の分類の一覧（A.memo.cats）で分ける */
   const ui = { more: (function () { try { return localStorage.getItem("jd.tpmore") !== "0"; } catch (e) { return true; } })(), q: "" }; let map = {};
   const nf = x => String(x || "").normalize("NFKC").toLowerCase();
-  const chip = (it, sorting) => {
+  const chip = (it, sorting, col) => {
+    const sty = col && /t-none/.test(it.cls || "") ? ' style="background:color-mix(in srgb,' + col + ' 28%,#fff);border-color:color-mix(in srgb,' + col + ' 55%,#fff);color:#1f2a44"' : "";
     const wrap = h => sorting ? '<span class="wtpw" data-src="' + it.src + '" data-id="' + esc(it.id) + '"><span class="wgrip" aria-hidden="true">⠿</span>' + h + "</span>" : h;
     const tt = it.tag ? ' title="' + esc(it.tag) + '"' : "", kw = it.kw ? ' data-kw="' + esc(it.kw) + '"' : "";
-    if (it.href && !sorting) return '<a class="wtp ' + it.cls + '"' + kw + ' href="' + esc(it.href) + '" target="_blank" rel="noopener noreferrer"' + tt + ">" + esc(it.t) + ' <span class="wgo">↗</span></a>';
-    return wrap('<button class="wtp ' + it.cls + '"' + kw + ' data-tbact="open" data-k="' + it.src + ":" + esc(it.id) + '"' + tt + ">" + esc(it.t) + (it.n > 1 ? ' <span class="wgo">▾' + it.n + "</span>" : "") + "</button>");
+    if (it.href && !sorting) return '<a class="wtp ' + it.cls + '"' + sty + kw + ' href="' + esc(it.href) + '" target="_blank" rel="noopener noreferrer"' + tt + ">" + esc(it.t) + ' <span class="wgo">↗</span></a>';
+    return wrap('<button class="wtp ' + it.cls + '"' + sty + kw + ' data-tbact="open" data-k="' + it.src + ":" + esc(it.id) + '"' + tt + ">" + esc(it.t) + (it.n > 1 ? ' <span class="wgo">▾' + it.n + "</span>" : "") + "</button>");
   };
   const sortOn = () => !!(A.ui.work && A.ui.work.tipSort);
   function rowsOf() {
@@ -22,9 +23,9 @@
   }
   function bodyH(scope) {
     const sorting = sortOn(), q = nf(ui.q).split(/\s+/).filter(Boolean);
-    const rows = rowsOf().map(r => ({ k: r.k, n: r.n, all: r.l, l: q.length ? r.l.filter(it => q.every(w => nf(it.t + " " + it.tag + " " + (it.kw || "")).indexOf(w) >= 0)) : r.l }));
+    const rows = rowsOf().map(r => ({ k: r.k, n: r.n, col: r.col, all: r.l, l: q.length ? r.l.filter(it => q.every(w => nf(it.t + " " + it.tag + " " + (it.kw || "")).indexOf(w) >= 0)) : r.l }));
     const me = rows.find(r => r.k === scope), others = rows.filter(r => r.k !== scope && r.l.length);
-    const row = r => '<div class="tprow"><span class="tplab" style="' + (r.col ? "background:" + r.col + ";color:" + ((A.memo && A.memo.ink) || "#222") : "") + '">' + esc(r.n) + '</span><span class="tpchips">' + r.l.map(it => chip(it, sorting)).join("") + "</span></div>";
+    const row = r => '<div class="tprow"><span class="tplab" style="' + (r.col ? "background:" + r.col + ";color:" + ((A.memo && A.memo.ink) || "#222") : "") + '">' + esc(r.n) + '</span><span class="tpchips">' + r.l.map(it => chip(it, sorting, r.col)).join("") + "</span></div>";
     const cnt = others.reduce((a, r) => a + r.l.length, 0), openMore = ui.more || q.length > 0;
     let b = "";
     if (sorting) b += '<p class="note" style="margin:0 0 6px">ボタンをつかんで、同じ段の中で動かしたい場所にドラッグして離してください。 <button class="btn sm" data-wact="tip-auto">自動の並びに戻す</button></p>';
