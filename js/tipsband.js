@@ -25,7 +25,7 @@
     const sorting = sortOn(), q = nf(ui.q).split(/\s+/).filter(Boolean);
     const rows = rowsOf().map(r => ({ k: r.k, n: r.n, col: r.col, all: r.l, l: q.length ? r.l.filter(it => q.every(w => nf(it.t + " " + it.tag + " " + (it.kw || "")).indexOf(w) >= 0)) : r.l }));
     const me = rows.find(r => r.k === scope), others = rows.filter(r => r.k !== scope && r.l.length);
-    const row = r => '<div class="tprow"><span class="tplab" style="' + (r.col ? "background:" + r.col + ";color:" + ((A.memo && A.memo.ink) || "#222") : "") + '">' + esc(r.n) + '</span><span class="tpchips">' + r.l.map(it => chip(it, sorting, r.col)).join("") + "</span></div>";
+    const row = r => '<div class="tprow"><span class="tplab" style="' + (r.col ? "background:" + r.col + ";color:" + ((A.memo && A.memo.ink) || "#222") : "") + '">' + esc(r.n) + '</span><span class="tpchips">' + r.l.map(it => chip(it, sorting, r.k === "work" ? "" : r.col)).join("") + "</span></div>";
     const cnt = others.reduce((a, r) => a + r.l.length, 0), openMore = ui.more || q.length > 0;
     let b = "";
     if (sorting) b += '<p class="note" style="margin:0 0 6px">ボタンをつかんで、同じ段の中で動かしたい場所にドラッグして離してください。 <button class="btn sm" data-wact="tip-auto">自動の並びに戻す</button></p>';
