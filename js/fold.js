@@ -15,7 +15,7 @@
       const k = keyOf(p); if (!/:p-/.test(k)) return;
       let t = h.querySelector(".fold-t");
       if (!t) { t = document.createElement("button"); t.type = "button"; t.className = "fold-t"; t.dataset.foldk = k; h.appendChild(t); }
-      const f = !!st[k]; p.classList.toggle("folded", f); t.dataset.foldk = k; t.textContent = f ? "ひらく" : "たたむ"; t.setAttribute("aria-expanded", String(!f));
+      const f = !!st[k]; p.classList.toggle("folded", f); t.dataset.foldk = k; t.textContent = f ? "Open" : "Close"; t.setAttribute("aria-expanded", String(!f));
     });
   }
   document.addEventListener("click", e => {
