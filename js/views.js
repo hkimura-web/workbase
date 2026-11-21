@@ -139,22 +139,23 @@
 
 
   /* 単元の教材（最大6つ）と、教科書本文・指導書・プリント1・プリント2へのリンク */
-  const MATF = [["d", "Googleドライブ"], ["t", "教科書"], ["g", "指導書"], ["p1", "ワークシート1"], ["p2", "ワークシート2"], ["p3", "ワークシート3"]];
+  const MATF = [["d", "Googleドライブ"], ["t", "教科書"], ["g", "指導書"], ["p1", "ワークシート1"], ["p2", "ワークシート2"], ["p3", "ワークシート3"], ["p4", "ワークシート4"], ["p5", "ワークシート5"], ["p6", "ワークシート6"], ["p7", "ワークシート7"]];   /* リンクは全部で10個。名前は教材ごとに自分で付け直せる（x.lb） */
+  const lbl = (x, f) => ((x.lb && x.lb[f[0]]) || "").trim() || f[1];
   function matHtml(u) {
     const m = ((A.st.units[u] || {}).mats || []).filter(x => x && (x.n || (x.x && x.x.length) || MATF.some(f => x[f[0]])));
     if (!m.length) return "";
     return '<div class="gmat">' + m.map(x => '<div class="gm1">' + (x.n ? "<b>" + esc(x.n) + "</b>" : "") +
-      MATF.filter(f => x[f[0]]).map(f => ' <a class="ml" href="' + esc(x[f[0]]) + '" target="_blank" rel="noopener noreferrer">' + f[1] + "</a>").join("") +
+      MATF.filter(f => x[f[0]]).map(f => ' <a class="ml" href="' + esc(x[f[0]]) + '" target="_blank" rel="noopener noreferrer">' + esc(lbl(x, f)) + "</a>").join("") +
       (x.x || []).map(e => ' <a class="ml" href="' + esc(e.u) + '" target="_blank" rel="noopener noreferrer" title="' + esc(e.l) + '">' + esc(A.shortLabel ? A.shortLabel(e.l) : e.l) + "</a>").join("") + "</div>").join("") + "</div>";
   }
   function matForm(u) {
     const un = A.st.units[u], m = un.mats || [], used = m.filter(x => x && Object.keys(x).length).length, nb = Math.max(4, m.length);
-    let h = '<details class="matdet" data-mat="' + u + '"' + (A.ui.matOpen && A.ui.matOpen[u] ? " open" : "") + '><summary>教材とリンク（最大4つ）<span class="note">' + (used ? "　登録 " + used + "件" : "　未登録") + '</span></summary><p class="note" style="margin:6px 0 0">教科書の教材を、最大4つまで。リンクは一覧からも開けます。</p>';
+    let h = '<details class="matdet" data-mat="' + u + '"' + (A.ui.matOpen && A.ui.matOpen[u] ? " open" : "") + '><summary>教材とリンク（最大4つ・リンクは1教材に10個まで）<span class="note">' + (used ? "　登録 " + used + "件" : "　未登録") + '</span></summary><p class="note" style="margin:6px 0 0">教科書の教材を、最大4つまで。リンクは一覧からも開けます。</p>';
     for (let i = 0; i < nb; i++) {
       const x = m[i] || {};
       h += '<div class="matbox"><label class="small" for="mn_' + u + i + '">教材' + (i + 1) + "の名前</label>" +
         '<input type="text" id="mn_' + u + i + '" data-act="mat" data-u="' + u + '" data-i="' + i + '" data-f="n" value="' + esc(x.n || "") + '" placeholder="' + (i === 0 ? "例：羅生門" : "") + '">' +
-        '<div class="matlinks">' + MATF.map(f => '<div><label class="small" for="m_' + u + i + f[0] + '">' + f[1] + '</label><input type="url" id="m_' + u + i + f[0] + '" data-act="mat" data-u="' + u + '" data-i="' + i + '" data-f="' + f[0] + '" value="' + esc(x[f[0]] || "") + '" placeholder="https://…" autocomplete="off"></div>').join("") + "</div>" + (A.views.matPicker ? A.views.matPicker(u, i) : "") + (A.views.matExtra ? A.views.matExtra(u, i) : "") + "</div>";
+        '<div class="matlinks">' + MATF.filter((f, k) => k < 6 || x[f[0]] || (x.lb && x.lb[f[0]]) || (A.ui.matMore && A.ui.matMore[u + ":" + i])).map(f => '<div class="matlk"><input type="text" class="matlb" id="ml_' + u + i + f[0] + '" data-act="mat" data-u="' + u + '" data-i="' + i + '" data-f="lb:' + f[0] + '" value="' + esc((x.lb && x.lb[f[0]]) || "") + '" placeholder="' + esc(f[1]) + '" title="リンクの名前（空にすると「' + esc(f[1]) + '」に戻ります）" aria-label="リンクの名前"><input type="url" id="m_' + u + i + f[0] + '" data-act="mat" data-u="' + u + '" data-i="' + i + '" data-f="' + f[0] + '" value="' + esc(x[f[0]] || "") + '" placeholder="https://…" autocomplete="off" aria-label="' + esc(lbl(x, f)) + 'のアドレス"></div>').join("") + "</div>" + (A.ui.matMore && A.ui.matMore[u + ":" + i] ? "" : '<button type="button" class="btn sm" data-act="mat-more" data-u="' + u + '" data-i="' + i + '">＋ リンクを増やす（10個まで）</button>') + (A.views.matPicker ? A.views.matPicker(u, i) : "") + (A.views.matExtra ? A.views.matExtra(u, i) : "") + "</div>";
     }
     return h + "</details>";
   }

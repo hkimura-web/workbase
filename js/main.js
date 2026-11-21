@@ -636,6 +636,14 @@
     if (a === "mat") {
       const u = A.st.units[t.dataset.u]; if (!u) return;
       const f = t.dataset.f, i = Number(t.dataset.i), val = v.trim();
+      if (f.indexOf("lb:") === 0) {
+        const k = f.slice(3), m0 = u.mats = u.mats || []; while (m0.length <= i) m0.push({});
+        const o = m0[i].lb = m0[i].lb || {}; if (val) o[k] = val; else delete o[k];
+        if (!Object.keys(o).length) delete m0[i].lb;
+        while (m0.length && !Object.keys(m0[m0.length - 1]).length) m0.pop();
+        if (!m0.length) delete u.mats;
+        quiet(); return;
+      }
       if (f !== "n" && val && !/^https?:\/\//i.test(val)) { toast("https:// から始まるアドレスを入れてください"); return; }
       const m = u.mats = u.mats || [];
       while (m.length <= i) m.push({});

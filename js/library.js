@@ -390,6 +390,7 @@
         const it = { id: "c" + Date.now().toString(36), when: $("ck_new_w").value, text: tx, done: {} }; if (u) it.u = u;
         A.portal.checklist.push(it); pcommit(); A.render(); break;
       }
+      case "mat-more": { A.ui.matOpen = A.ui.matOpen || {}; A.ui.matOpen[t.dataset.u] = true; (A.ui.matMore = A.ui.matMore || {})[t.dataset.u + ":" + t.dataset.i] = true; A.render(); break; }
       case "mat-xdel": { const m = ensureMat(t.dataset.u, Number(t.dataset.i)); if (m && m.x) { m.x.splice(Number(t.dataset.j), 1); if (!m.x.length) delete m.x; trimMats(t.dataset.u); A.commit(); } break; }
       case "mat-xadd": {
         const u = t.dataset.u, i = Number(t.dataset.i), l = $("xl_" + u + i).value.trim(), url = $("xu_" + u + i).value.trim();
@@ -413,7 +414,7 @@
       const L = A.lib, card = L && L.materials[Number(v)]; if (!card || v === "") return;
       const u = t.dataset.u, i = Number(t.dataset.i), m = ensureMat(u, i); if (!m) return;
       if (!m.n) m.n = card.title.replace(/^\d+\s*/, "");
-      const have = {}; ["d", "t", "g", "p1", "p2", "p3"].forEach(k => { if (m[k]) have[m[k]] = 1; }); (m.x || []).forEach(e2 => { have[e2.u] = 1; });
+      const have = {}; ["d", "t", "g", "p1", "p2", "p3", "p4", "p5", "p6", "p7"].forEach(k => { if (m[k]) have[m[k]] = 1; }); (m.x || []).forEach(e2 => { have[e2.u] = 1; });
       m.x = m.x || [];
       if (card.url && !have[card.url]) { m.x.push({ l: "教材フォルダ", u: card.url }); have[card.url] = 1; }
       card.links.forEach(l => { if (!have[l.u]) { m.x.push({ l: l.l, u: l.u }); have[l.u] = 1; } });

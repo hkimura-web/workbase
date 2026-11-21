@@ -1152,3 +1152,9 @@ body.testmode .tdp.p-now{border-top-color:var(--ts)}
 .panel.folded>.panel-b{display:none}
 .panel.folded>.panel-h{border-bottom:0}
 .tstg input.mm-colpick{flex:none;width:38px;min-width:38px;max-width:38px;height:32px;padding:2px;box-sizing:border-box}
+/* 教材のリンク: 名前（自分で付けられる）とアドレスを1行に */
+.matlinks{display:block}
+.matlk{display:grid;grid-template-columns:minmax(110px,170px) 1fr;gap:6px;margin:0 0 4px}
+.matlk input{min-width:0;width:100%;box-sizing:border-box}
+.matlk .matlb{font-size:12.5px;font-weight:600}
+@media (max-width:560px){.matlk{grid-template-columns:1fr}}
