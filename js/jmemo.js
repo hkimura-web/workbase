@@ -21,7 +21,7 @@
   function mig(s) {
     s = s && typeof s === "object" ? s : {}; s.v = 1;
     if (!Array.isArray(s.tags) || !s.tags.length) s.tags = DEFTAGS();
-    s.tags = s.tags.filter(t => t && t.id).map(t => ({ id: String(t.id), n: String(t.n || "タグ"), c: Math.max(0, Math.min(7, +t.c || 0)) }));
+    s.tags = s.tags.filter(t => t && t.id).map(t => ({ id: String(t.id), n: String(t.n || "タグ"), c: A.rt.nc(t.c) }));
     s.docs = (Array.isArray(s.docs) ? s.docs : []).filter(d => d && d.id).map(d => ({ id: String(d.id), t: String(d.t || "無題"), b: String(d.b || ""), u: String(d.u || ""), ut: String(d.ut || ""), ls: (Array.isArray(d.ls) ? d.ls : []).filter(x => x && typeof x === "object").slice(0, 7).map(x => ({ t: String(x.t || ""), u: String(x.u || "") })), tip: !!d.tip, kw: String(d.kw || ""), img: Array.isArray(d.img) ? d.img.map(String) : [], tag: String(d.tag || ""), go: d.go === "link" || d.go === "detail" ? d.go : "" }));
     s.tipOrder = Array.isArray(s.tipOrder) ? s.tipOrder.map(String) : []; s.upd = s.upd || 0; return s;
   }
@@ -92,7 +92,7 @@
   const docMatch = d => { const q = ui.dq.trim().toLowerCase(); return (!ui.dtag || d.tag === ui.dtag) && (!q || (d.t + " " + d.b).toLowerCase().includes(q)); };
   function docCard(d, i) {
     const t = tagOf(d.tag), ed = ui.dedit === d.id, k = "d" + d.id;
-    const sum = '<summary><span class="wdt">' + esc(d.t || "（無題）") + "</span>" + (t ? '<span class="tgchip tgx tg-' + t.c + '">' + esc(t.n) + "</span>" : "") + (d.tip ? '<span class="tsstar on tsmini">★</span>' : "") + "</summary>";
+    const sum = '<summary><span class="wdt">' + esc(d.t || "（無題）") + "</span>" + (t ? '<span class="tgchip tgx tg-' + A.rt.tgk(t.c) + '">' + esc(t.n) + "</span>" : "") + (d.tip ? '<span class="tsstar on tsmini">★</span>' : "") + "</summary>";
     let b;
     if (!ed) b = '<div class="tsmv">' + md2h(d.b) + "</div>" + (A.work && A.work.imgsH ? A.work.imgsH(d) : "") + (dl(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") + '<div class="btns" style="margin-top:8px"><button class="btn" data-jact="doc-edit" data-id="' + d.id + '">編集する</button><button class="btn" data-jact="doc-star" data-i="' + i + '">' + (d.tip ? "★ 重要から外す" : "☆ 重要にする（ホームに出す）") + "</button></div>";
     else {
@@ -108,7 +108,7 @@
     }
     return '<details class="wdet wdoc" data-ph="' + k + '"' + (ui.det[k] || ed ? " open" : "") + ">" + sum + b + "</details>";
   }
-  const listH = () => { const l = Q.S.docs.map((d, i) => [d, i]).filter(x => docMatch(x[0])); return l.length ? A.rt.grp(Q.S.tags, l, docCard, t => '<span class="tgchip tgx tg-' + (t ? t.c : "n") + '">' + esc(t ? t.n : "タグなし") + "</span>") : '<p class="note" style="margin:0">該当するメモがありません。</p>'; };
+  const listH = () => { const l = Q.S.docs.map((d, i) => [d, i]).filter(x => docMatch(x[0])); return l.length ? A.rt.grp(Q.S.tags, l, docCard, t => '<span class="tgchip tgx tg-' + (t ? A.rt.tgk(t.c) : "n") + '">' + esc(t ? t.n : "タグなし") + "</span>") : '<p class="note" style="margin:0">該当するメモがありません。</p>'; };
   A.jmemo.view = function () {
     if (!Q.ready) return '<p class="note">読み込み中…</p>';
     let h = askH();
@@ -118,7 +118,7 @@
     h += '<div class="tsseg"><button class="btn' + (ui.dtag ? "" : " on") + '" data-jact="dtag" data-v="">すべて</button>' + Q.S.tags.map(t => '<button class="btn' + (ui.dtag === t.id ? " on" : "") + '" data-jact="dtag" data-v="' + t.id + '">' + esc(t.n) + "</button>").join("") + "</div>";
     h += '<div id="jm_l">' + listH() + "</div>" + A.memoOthers("class");
     h += '<details class="wdet" data-ph="tagmgr"' + (ui.det.tagmgr ? " open" : "") + "><summary><b>タグを管理する（順番・名前・色を変える／増やす）</b></summary><div class=\"tsadd\"><p class=\"note\" style=\"margin:6px 0\">▲▼でタグの順番を変えると、メモの一覧もその順に並びます。</p>" +
-      Q.S.tags.map((t, i) => '<div class="tstg"><span class="tgchip tgx tg-' + t.c + '">' + esc(t.n) + '</span><input type="text" value="' + esc(t.n) + '" data-jf="tag-n" data-i="' + i + '" aria-label="タグの名前"><select data-jchg="tag-c" data-i="' + i + '" aria-label="色">' + TGN.map((n, c) => '<option value="' + c + '"' + (t.c === c ? " selected" : "") + ">" + n + "</option>").join("") + '</select>' + A.rt.mvBtns(i, Q.S.tags.length, 'data-jact="tag-mv"') + '<button class="btn sm danger" data-jact="tag-del" data-i="' + i + '">消す</button></div>').join("") +
+      Q.S.tags.map((t, i) => '<div class="tstg"><span class="tgchip tgx tg-' + A.rt.tgk(t.c) + '">' + esc(t.n) + '</span><input type="text" value="' + esc(t.n) + '" data-jf="tag-n" data-i="' + i + '" aria-label="タグの名前"><select data-jchg="tag-c" data-i="' + i + '" aria-label="色">' + TGN.map((n, c) => '<option value="' + c + '"' + (t.c === c ? " selected" : "") + ">" + n + "</option>").join("") + '</select>' + A.rt.mvBtns(i, Q.S.tags.length, 'data-jact="tag-mv"') + '<button class="btn sm danger" data-jact="tag-del" data-i="' + i + '">消す</button></div>').join("") +
       '<div class="tstg"><input type="text" id="jm_tn" placeholder="新しいタグの名前"><select id="jm_tc">' + TGN.map((n, c) => '<option value="' + c + '">' + n + "</option>").join("") + '</select><button class="btn on" data-jact="tag-add">タグを足す</button></div></div></details>';
     return h;
   };

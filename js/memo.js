@@ -11,11 +11,11 @@
    * 「授業」「テスト成績」の分類のメモは、それぞれの入れものに入る。それ以外の分類は、校務の入れもの(work.json)の中に、cat:"分類のid" の印を付けて入れる */
   const STORES = ["class", "work", "test"];
   const MODN = { class: "jmemo", work: "work", test: "seiseki" };
-  const CPAL = ["#8fa8d6", "#7dbb92", "#e6a95f", "#e48ab3", "#a994d6", "#6fbfbf", "#e58b86", "#a3acba"];   /* 分類の色（うすめ） */
-  const CNAME = ["ブルー", "グリーン", "オレンジ", "ピンク", "パープル", "ティール", "レッド", "グレー"];
+  const CPAL = ["#8fa8d6", "#7dbb92", "#e6a95f", "#e48ab3", "#a994d6", "#6fbfbf", "#e58b86", "#a3acba", "#ffffff"];   /* 分類の色（うすめ） */
+  const CNAME = ["ブルー", "グリーン", "オレンジ", "ピンク", "パープル", "ティール", "レッド", "グレー", "ホワイト"];
   const DEFCATS = [{ id: "class", n: "授業", c: 0 }, { id: "hr", n: "クラス", c: 1 }, { id: "work", n: "校務", c: 2 }, { id: "test", n: "テスト成績", c: 3 }];
   const INK = "#1f2a44";
-  const TGN = ["ピンク", "ブルー", "グリーン", "オレンジ", "パープル", "ティール", "レッド", "グレー"];
+  const TGN = ["ピンク", "ブルー", "グリーン", "オレンジ", "パープル", "ティール", "レッド", "グレー", "ホワイト"];
   /* 共通のジャンル（はじめの並び）。左は今までのタグの id。同じ意味のものは1つにまとめた */
   const GEN = [
     { id: "komu", n: "全般", c: 7 }, { id: "jugyo", n: "授業", c: 1 }, { id: "kokugo", n: "国語科", c: 4 },
@@ -44,8 +44,9 @@
   }
   const catOf = (storeKey, d) => { const l = catsNow(), id = d.cat || storeKey; return l.some(x => x.id === id) ? id : l[0].id; };   /* 持ち主の分類が消えているときは、いちばん上の分類に出す */
   const cinfo = id => catsNow().find(x => x.id === id) || { id, n: id, c: 7 };
-  const ccol = id => CPAL[cinfo(id).c] || CPAL[7];
-  A.memo.cats = () => catsNow().map(x => ({ id: x.id, n: x.n, col: CPAL[x.c] || CPAL[7] }));
+  const COL = c => (A.rt.isHex(c) ? c : (CPAL[c] || CPAL[7])), TGH = ["#d6458a", "#3b78c4", "#2f9a5a", "#d98a1f", "#7a52c9", "#1b9a90", "#cf4a3a", "#6b7686", "#ffffff"];
+  const ccol = id => COL(cinfo(id).c);
+  A.memo.cats = () => catsNow().map(x => ({ id: x.id, n: x.n, col: COL(x.c) }));
   A.memo.catOfItem = it => { const s = st(it.src), d = s && s.docs.find(x => x.id === it.id); return d ? catOf(it.src, d) : it.src; };
   A.memo.ink = INK;
   const isReady = c => { const m = mod(c); return !!(m && m.mm && m.mm.S() && m.ready && m.ready()); };
@@ -167,7 +168,7 @@
 
   /* ---------- 画面 ---------- */
   function banners() { return STORES.map(c => { const m = mod(c); return m && m.banner ? m.banner() : ""; }).join(""); }
-  const chip = t => '<span class="tgchip tgx tg-' + (t ? t.c : "n") + '">' + esc(t ? t.n : "ジャンルなし") + "</span>";
+  const chip = t => '<span class="tgchip tgx tg-' + (t ? A.rt.tgk(t.c) : "n") + '">' + esc(t ? t.n : "ジャンルなし") + "</span>";
   function match(it, scope) {
     const cf = ui.cat[scope], q = nf(ui.q).split(/\s+/).filter(Boolean), tg = tagsNow().find(x => x.id === it.d.tag);
     if (cf !== "all" && it.c !== cf) return false;
@@ -210,15 +211,16 @@
   }
   function mgrH() {
     const tags = tagsNow(), cs = catsNow();
-    const swatch = (c, f, i) => '<select data-mg="' + f + '" data-i="' + i + '" aria-label="色" style="border-left:6px solid ' + (CPAL[c] || CPAL[7]) + '">' + CNAME.map((n, k) => '<option value="' + k + '"' + (c === k ? " selected" : "") + ">" + n + "</option>").join("") + "</select>";
+    const pick = (c, f, i, names, hexs) => '<select data-mg="' + f + '" data-i="' + i + '" aria-label="色">' + names.map((n, k) => '<option value="' + k + '"' + (c === k ? " selected" : "") + ">" + n + "</option>").join("") + (A.rt.isHex(c) ? '<option value="x" selected>自分の色</option>' : "") + '</select><input type="color" class="mm-colpick" data-mg="' + f + 'h" data-i="' + i + '" value="' + (A.rt.isHex(c) ? c : hexs[c] || hexs[7]) + '" title="色を自分で作る" aria-label="色を自分で作る">';
+    const swatch = (c, f, i) => pick(c, f, i, CNAME, CPAL);
     return '<details class="wdet" data-ph="mgr"' + (ui.mgr ? " open" : "") + "><summary><b>分類とジャンルを管理する（増やす・減らす・名前・色・順番）</b></summary><div class=\"tsadd\">" +
       '<p class="note" style="margin:6px 0"><b>① 大きな分類</b>（今は ' + cs.map(x => esc(x.n)).join("・") + '）。メモは、ひとつの分類に入ります。▲▼で、ボタンやTipsの並びも変わります。</p>' +
-      cs.map((c, i) => '<div class="tstg"><span class="mo-lab" style="background:' + (CPAL[c.c] || CPAL[7]) + ';color:' + INK + '">' + esc(c.n) + '</span><input type="text" value="' + esc(c.n) + '" data-mg="cn" data-i="' + i + '" aria-label="分類の名前">' + swatch(c.c, "cc", i) +
+      cs.map((c, i) => '<div class="tstg"><span class="mo-lab" style="background:' + COL(c.c) + ';color:' + INK + '">' + esc(c.n) + '</span><input type="text" value="' + esc(c.n) + '" data-mg="cn" data-i="' + i + '" aria-label="分類の名前">' + swatch(c.c, "cc", i) +
         A.rt.mvBtns(i, cs.length, 'data-ma="cat-mv"') + '<button class="btn sm danger" data-ma="cat-del" data-i="' + i + '"' + (cs.length < 2 ? " disabled" : "") + ">消す</button></div>").join("") +
       '<div class="tstg"><input type="text" id="mm_cn" placeholder="新しい分類の名前（例：部活動）"><select id="mm_cc">' + CNAME.map((n, k) => '<option value="' + k + '">' + n + "</option>").join("") + '</select><button class="btn on" data-ma="cat-add">分類を足す</button></div>' +
       '<div class="tstg"><span class="note">分類を消すとき、その中のメモの移し先：</span><select id="mm_cto">' + cs.map(c => '<option value="' + esc(c.id) + '">' + esc(c.n) + "</option>").join("") + "</select></div>" +
       '<p class="note" style="margin:14px 0 6px"><b>② ジャンル</b>（分類の下の細かい分け。どの分類でも共通です）。▲▼で順番を変えると、メモの一覧も、重要Tipsも、その順に並びます。</p>' +
-      tags.map((t, i) => '<div class="tstg"><span class="tgchip tgx tg-' + t.c + '">' + esc(t.n) + '</span><input type="text" value="' + esc(t.n) + '" data-mg="n" data-i="' + i + '" aria-label="ジャンルの名前"><select data-mg="c" data-i="' + i + '" aria-label="色">' + TGN.map((n, c) => '<option value="' + c + '"' + (t.c === c ? " selected" : "") + ">" + n + "</option>").join("") + "</select>" +
+      tags.map((t, i) => '<div class="tstg"><span class="tgchip tgx tg-' + A.rt.tgk(t.c) + '">' + esc(t.n) + '</span><input type="text" value="' + esc(t.n) + '" data-mg="n" data-i="' + i + '" aria-label="ジャンルの名前">' + pick(t.c, "c", i, TGN, TGH) +
         A.rt.mvBtns(i, tags.length, 'data-ma="tag-mv"') + '<button class="btn sm danger" data-ma="tag-del" data-i="' + i + '">消す</button></div>').join("") +
       '<div class="tstg"><input type="text" id="mm_tn" placeholder="新しいジャンルの名前"><select id="mm_tc">' + TGN.map((n, c) => '<option value="' + c + '">' + n + '</option>').join("") + '</select><button class="btn on" data-ma="tag-add">ジャンルを足す</button></div></div></details>';
   }
@@ -235,7 +237,7 @@
     h += '<div class="pghd"><div><h2 class="pgt">MEMO</h2><p class="pgs">手順やメモを、「分類」と「ジャンル」の2段で整理できます。★を付けると、どのホームの「重要Tips」にも出ます。</p></div></div>';
     h += '<div class="tsbar"><input type="search" id="mm_q" placeholder="手順・メモをさがす（全部のメモから）" value="' + esc(ui.q) + '" autocomplete="off"><button class="btn on" data-ma="add" data-s="' + scope + '" style="white-space:nowrap">＋ 新しいメモ</button></div>';
     h += '<div class="tsseg mmseg mm-cat"><button class="btn' + (cf === "all" ? " on" : "") + '" data-ma="cat" data-s="' + scope + '" data-v="all">すべて ' + total + "</button>" +
-      cs.map(x => '<button class="btn mm-cb' + (cf === x.id ? " on" : "") + '" style="--cc:' + (CPAL[x.c] || CPAL[7]) + '" data-ma="cat" data-s="' + scope + '" data-v="' + esc(x.id) + '">' + esc(x.n) + " " + (cnt[x.id] || 0) + "</button>").join("") + "</div>";
+      cs.map(x => '<button class="btn mm-cb' + (cf === x.id ? " on" : "") + '" style="--cc:' + COL(x.c) + '" data-ma="cat" data-s="' + scope + '" data-v="' + esc(x.id) + '">' + esc(x.n) + " " + (cnt[x.id] || 0) + "</button>").join("") + "</div>";
     h += '<div class="tsseg mmseg"><button class="btn' + (ui.g ? "" : " on") + '" data-ma="gen" data-v="">ジャンル：すべて</button>' +
       tagsNow().filter(t => used[t.id] || ui.g === t.id).map(t => '<button class="btn' + (ui.g === t.id ? " on" : "") + '" data-ma="gen" data-v="' + esc(t.id) + '">' + esc(t.n) + " " + (used[t.id] || 0) + "</button>").join("") + "</div>";
     h += '<div id="mm_l" data-s="' + scope + '">' + listH(scope) + "</div>" + mgrH();
@@ -296,8 +298,8 @@
       if (f === "tag") it.d.tag = t.value; else if (f === "go") it.d.go = t.value; else if (f === "tip") it.d.tip = t.checked;
       touch(it.c); if (f !== "go") A.render(); return;
     }
-    if (g === "c") { const l = clone(tagsNow()), x = l[+t.dataset.i]; if (x) { x.c = +t.value || 0; setTags(l); ui.mgr = true; A.render(); } }
-    if (g === "cc") { const l = clone(catsNow()), x = l[+t.dataset.i]; if (x) { x.c = +t.value || 0; setCats(l); ui.mgr = true; A.render(); } }
+    if ((g === "c" || g === "ch") && t.value !== "x") { const l = clone(tagsNow()), x = l[+t.dataset.i]; if (x) { x.c = g === "ch" ? A.rt.nc(t.value) : +t.value || 0; setTags(l); ui.mgr = true; A.render(); } }
+    if ((g === "cc" || g === "cch") && t.value !== "x") { const l = clone(catsNow()), x = l[+t.dataset.i]; if (x) { x.c = g === "cch" ? A.rt.nc(t.value) : +t.value || 0; setCats(l); ui.mgr = true; A.render(); } }
   });
   document.addEventListener("input", e => {
     const t = e.target;

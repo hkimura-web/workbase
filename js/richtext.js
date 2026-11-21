@@ -19,6 +19,10 @@
   function mv(tags, i, d) { const j = i + d; if (j < 0 || j >= tags.length) return false; const t = tags[i]; tags[i] = tags[j]; tags[j] = t; return true; }
   A.rt = {
     grp, mvBtns, mv,
+    /* 色の値: 0〜8なら番号、#rrggbb なら自分で作った色（その色のクラスを、その場で作る） */
+    isHex: c => typeof c === "string" && /^#[0-9a-f]{6}$/i.test(c),
+    nc: c => (typeof c === "string" && /^#[0-9a-f]{6}$/i.test(c) ? c.toLowerCase() : Math.max(0, Math.min(8, +c || 0))),
+    tgk: c => { if (!(typeof c === "string" && /^#[0-9a-f]{6}$/i.test(c))) return c; const k = c.slice(1).toLowerCase(); if (!document.getElementById("tgh-" + k)) { const st = document.createElement("style"); st.id = "tgh-" + k; st.textContent = ".tg-h" + k + "{--tgc:#" + k + "}"; document.head.appendChild(st); } return "h" + k; },
     fmt,
     /* すでにエスケープした文字に、太字と色・下線を当てる */
     inl: s => fmt(s.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")),

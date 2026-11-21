@@ -88,7 +88,7 @@
     mo.done = mo.done || {}; mo.weekend = !!mo.weekend;
     { const old = J.addDays(J.ds(new Date()), -3); Object.keys(mo.done).forEach(k => { if (k.slice(0, 10) < old) delete mo.done[k]; }); }
     if (!Array.isArray(s.tags) || !s.tags.length) s.tags = TAGS.map(t => ({ id: t[0], n: t[1], c: -1 }));
-    s.tags = s.tags.filter(t => t && t.id).map(t => ({ id: String(t.id), n: String(t.n || "タグ"), c: t.c >= 0 ? Math.min(7, +t.c) : -1 }));
+    s.tags = s.tags.filter(t => t && t.id).map(t => ({ id: String(t.id), n: String(t.n || "タグ"), c: A.rt.isHex(t.c) ? A.rt.nc(t.c) : (t.c >= 0 ? Math.min(8, +t.c) : -1) }));
     s.moved = s.moved && typeof s.moved === "object" ? s.moved : {}; s.d = s.d || {}; s.cd = s.cd || {}; s.tipOrder = Array.isArray(s.tipOrder) ? s.tipOrder : []; s.fav = Array.isArray(s.fav) ? s.fav : []; s.mine = Array.isArray(s.mine) ? s.mine : [];
     s.bell = bellMig(s.bell);
     s.roles = s.roles || ["担", "教", "部", "全"]; if (!s.fx3) { if (!s.roles.includes("全")) s.roles.push("全"); s.fx3 = 1; } if (!s.fx5) { if (!s.roles.includes("授")) s.roles.push("授"); s.tasks.forEach(t => { if (/^[123]学期の授業計画を作る/.test(t.t)) t.r = "授"; }); s.fx5 = 1; } /* 「授業」の区分を足し、授業計画の仕事をそこへ（1回だけ） */ /* 「教員共通」の区分を足す（1回だけ） */ s.g = s.g || "3";
@@ -252,7 +252,7 @@
   const TAGDEF = { d1: "seiseki", d17: "seiseki", d2: "class", d3: "class", d4: "class", d5: "class", d6: "class", d7: "class", d8: "class", d9: "class", d10: "class", d11: "class", d12: "class", d13: "class", d14: "class", d15: "class", d16: "class" };
   const tagsOf = () => (W.S && Array.isArray(W.S.tags) && W.S.tags.length ? W.S.tags : TAGS.map(t => ({ id: t[0], n: t[1], c: -1 })));
   const tagName = k => (tagsOf().find(x => x.id === k) || { n: "" }).n;
-  const tagCls = k => { const t = tagsOf().find(x => x.id === k); return t && t.c >= 0 ? "tgx tg-" + t.c : "t-" + (t ? k : "none"); };
+  const tagCls = k => { const t = tagsOf().find(x => x.id === k); return t && (A.rt.isHex(t.c) || t.c >= 0) ? "tgx tg-" + A.rt.tgk(t.c) : "t-" + (t ? k : "none"); };
   const TGN = ["ピンク", "ブルー", "グリーン", "オレンジ", "パープル", "ティール", "レッド", "グレー"];
   const TO = ["d5", "d3", "d15", "d4", "d16", "d17"];
   /* 重要Tipsの並び: はじめは「公務全般→クラス→授業→部活動」の順。手で動かしたら、その順番を覚える */

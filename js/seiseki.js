@@ -53,7 +53,7 @@
     if (!Array.isArray(s.man)) s.man = JSON.parse(JSON.stringify(SD.DM));
     s.man = s.man.filter(m => m && m.id).map(m => ({ id: String(m.id), t: String(m.t || "無題"), m: String(m.m || "") }));
     if (!Array.isArray(s.tags) || !s.tags.length) s.tags = DEFTAGS();
-    s.tags = s.tags.filter(t => t && t.id).map(t => ({ id: String(t.id), n: String(t.n || "タグ"), c: Math.max(0, Math.min(7, +t.c || 0)) }));
+    s.tags = s.tags.filter(t => t && t.id).map(t => ({ id: String(t.id), n: String(t.n || "タグ"), c: A.rt.nc(t.c) }));
     s.docs = Array.isArray(s.docs) ? s.docs : [];
     if (!s.docsInit) { /* はじめの1回だけ: 今までのマニュアルと、★を付けたリンクを、手順・メモに移す */
       (Array.isArray(s.man) ? s.man : SD.DM).forEach(m => { if (m && m.id && !s.docs.some(d => d.id === "m_" + m.id)) s.docs.push({ id: "m_" + m.id, t: String(m.t || "無題"), b: String(m.m || ""), u: "", ut: "", ls: [], tip: false, tag: "seiseki", go: "" }); });
@@ -233,7 +233,7 @@
   }
   /* ---------- 手順・メモ（校務の「手順・メモ」と同じ形）と、ホームの重要Tips ---------- */
   const tagOf = id => Q.S.tags.find(t => t.id === id);
-  const tgc = d => { const t = tagOf(d.tag); return " tgx tg-" + (t ? t.c : "n"); };
+  const tgc = d => { const t = tagOf(d.tag); return " tgx tg-" + (t ? A.rt.tgk(t.c) : "n"); };
   const dl = d => { const o = []; if (d.u) o.push({ t: d.ut || "リンク1", u: d.u }); d.ls.forEach((x, k) => { if (x.u) o.push({ t: x.t || "リンク" + (k + 2), u: x.u }); }); return o; };
   const goLink = d => { const n = dl(d).length; if (!n) return false; if (d.go === "link") return true; if (d.go === "detail") return false; return n === 1 && !d.b.trim(); };
   const lnkH = d => dl(d).map(x => '<a class="btn wlnk" href="' + esc(x.u) + '" target="_blank" rel="noopener noreferrer">' + esc(x.t) + " ↗</a>").join("");
@@ -248,7 +248,7 @@
       ? '<a class="wtp' + tgc(d) + '" href="' + esc(dl(d)[0].u) + '" target="_blank" rel="noopener noreferrer" title="押すと資料がすぐ開きます">' + esc(d.t) + ' <span class="wgo">↗</span></a>'
       : '<button class="wtp' + tgc(d) + '" data-sact="tip" data-id="' + d.id + '">' + esc(d.t) + (dl(d).length > 1 ? ' <span class="wgo">▾' + dl(d).length + "</span>" : "") + "</button>";
     return '<section class="panel p-ts p-imp"><header class="panel-h"><h2>重要Tips</h2><span class="panel-n"><button class="btn sm" data-sact="go-man">手順・メモを開く</button></span></header><div class="panel-b">' +
-      (used.length ? '<div class="wleg">' + used.map(t => '<span class="tgchip tgx tg-' + t.c + '">' + esc(t.n) + "</span>").join("") + "</div>" : "") +
+      (used.length ? '<div class="wleg">' + used.map(t => '<span class="tgchip tgx tg-' + A.rt.tgk(t.c) + '">' + esc(t.n) + "</span>").join("") + "</div>" : "") +
       (l.length ? l.map(btn).join("") : '<p class="note" style="margin:0">よく使う手順やリンクは、「手順・メモ」で ☆ を押すと、ここに並びます。</p>') + "</div></section>";
   }
   function viewLinks() {
@@ -305,7 +305,7 @@
   const docMatch = d => { const q = ui.dq.trim().toLowerCase(); return (!ui.dtag || d.tag === ui.dtag) && (!q || (d.t + " " + d.b).toLowerCase().includes(q)); };
   function docCard(d, i) {
     const t = tagOf(d.tag), ed = ui.dedit === d.id, k = "d" + d.id;
-    const sum = '<summary><span class="wdt">' + esc(d.t || "（無題）") + "</span>" + (t ? '<span class="tgchip tgx tg-' + t.c + '">' + esc(t.n) + "</span>" : "") + (d.tip ? '<span class="tsstar on tsmini">★</span>' : "") + "</summary>";
+    const sum = '<summary><span class="wdt">' + esc(d.t || "（無題）") + "</span>" + (t ? '<span class="tgchip tgx tg-' + A.rt.tgk(t.c) + '">' + esc(t.n) + "</span>" : "") + (d.tip ? '<span class="tsstar on tsmini">★</span>' : "") + "</summary>";
     let b;
     if (!ed) b = '<div class="tsmv">' + md2h(d.b) + "</div>" + (A.work && A.work.imgsH ? A.work.imgsH(d) : "") + (dl(d).length ? '<div class="wlnks">' + lnkH(d) + "</div>" : "") + '<div class="btns" style="margin-top:8px"><button class="btn" data-sact="doc-edit" data-id="' + d.id + '">編集する</button><button class="btn" data-sact="doc-star" data-i="' + i + '">' + (d.tip ? "★ 重要から外す" : "☆ 重要にする（ホームに出す）") + "</button></div>";
     else {
@@ -320,7 +320,7 @@
     }
     return '<details class="wdet wdoc" data-ph="' + k + '"' + (ui.det[k] || ed ? " open" : "") + ">" + sum + b + "</details>";
   }
-  const docListHtml = () => { const l = Q.S.docs.map((d, i) => [d, i]).filter(x => docMatch(x[0])); return l.length ? A.rt.grp(Q.S.tags, l, docCard, t => '<span class="tgchip tgx tg-' + (t ? t.c : "n") + '">' + esc(t ? t.n : "タグなし") + "</span>") : empty("該当するメモがありません。"); };
+  const docListHtml = () => { const l = Q.S.docs.map((d, i) => [d, i]).filter(x => docMatch(x[0])); return l.length ? A.rt.grp(Q.S.tags, l, docCard, t => '<span class="tgchip tgx tg-' + (t ? A.rt.tgk(t.c) : "n") + '">' + esc(t ? t.n : "タグなし") + "</span>") : empty("該当するメモがありません。"); };
   function viewMan() {
     if (A.memo) return A.memo.view("test");   /* 手順・メモは、授業・校務と同じ共通の画面 */
     let h = askH();
@@ -329,7 +329,7 @@
     h += '<div class="tsseg"><button class="btn' + (ui.dtag ? "" : " on") + '" data-sact="dtag" data-v="">すべて</button>' + Q.S.tags.map(t => '<button class="btn' + (ui.dtag === t.id ? " on" : "") + '" data-sact="dtag" data-v="' + t.id + '">' + esc(t.n) + "</button>").join("") + "</div>";
     h += '<div id="ts_dl">' + docListHtml() + "</div>" + A.memoOthers("test");
     h += '<details class="wdet" data-ph="tagmgr"' + (ui.det.tagmgr ? " open" : "") + "><summary><b>タグを管理する（順番・名前・色を変える／増やす）</b></summary><div class=\"tsadd\"><p class=\"note\" style=\"margin:6px 0\">▲▼でタグの順番を変えると、メモの一覧もその順に並びます。</p>" +
-      Q.S.tags.map((t, i) => '<div class="tstg"><span class="tgchip tgx tg-' + t.c + '">' + esc(t.n) + '</span><input type="text" value="' + esc(t.n) + '" data-sf="tag-n" data-i="' + i + '" aria-label="タグの名前"><select data-schg="tag-c" data-i="' + i + '" aria-label="色">' + TGN.map((n, c) => '<option value="' + c + '"' + (t.c === c ? " selected" : "") + ">" + n + "</option>").join("") + '</select>' + A.rt.mvBtns(i, Q.S.tags.length, 'data-sact="tag-mv"') + '<button class="btn sm danger" data-sact="tag-del" data-i="' + i + '">消す</button></div>').join("") +
+      Q.S.tags.map((t, i) => '<div class="tstg"><span class="tgchip tgx tg-' + A.rt.tgk(t.c) + '">' + esc(t.n) + '</span><input type="text" value="' + esc(t.n) + '" data-sf="tag-n" data-i="' + i + '" aria-label="タグの名前"><select data-schg="tag-c" data-i="' + i + '" aria-label="色">' + TGN.map((n, c) => '<option value="' + c + '"' + (t.c === c ? " selected" : "") + ">" + n + "</option>").join("") + '</select>' + A.rt.mvBtns(i, Q.S.tags.length, 'data-sact="tag-mv"') + '<button class="btn sm danger" data-sact="tag-del" data-i="' + i + '">消す</button></div>').join("") +
       '<div class="tstg"><input type="text" id="tg_new" placeholder="新しいタグの名前"><select id="tg_col">' + TGN.map((n, c) => '<option value="' + c + '">' + n + "</option>").join("") + '</select><button class="btn on" data-sact="tag-add">タグを足す</button></div></div></details>';
     return h;
   }
