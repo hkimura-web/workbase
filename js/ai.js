@@ -84,19 +84,21 @@
     const jobs = d.jobs.filter(j => j.a === a.id), shown = jobs.filter(j => jobMatch(d, j)), ok = avail(a);
     if ((ui.q || ui.f) && !shown.length) return "";
     const act = jobs.filter(j => j.st === "making").length;
-    let h = '<div class="aicard' + (ok ? "" : " wait") + '" data-aid="' + a.id + '"><div class="aich">';
+    const col = !!ui.cl[a.id] && ui.ea !== a.id && ui.sa !== a.id;
+    let h = '<div class="aicard' + (ok ? "" : " wait") + (col ? " col" : "") + '" data-aid="' + a.id + '"><div class="aich' + (ui.ea === a.id || ui.sa === a.id ? "" : " aitog") + '"' + (ui.ea === a.id || ui.sa === a.id ? "" : ' data-ai="cl" data-id="' + a.id + '" role="button" tabindex="0" aria-expanded="' + !col + '"') + ">";
     if (ui.sa === a.id) {
       const dv = new Date(ok ? now() + (a.h || 5) * 3600000 : a.lim);
       h += '<b class="ain">' + esc(a.n) + '</b><label class="small">次に使える時刻<input type="time" id="ai_stt" value="' + String(dv.getHours()).padStart(2, "0") + ":" + String(dv.getMinutes()).padStart(2, "0") + '"></label><button class="btn" data-ai="stop-ok" data-id="' + a.id + '">この時刻に決定</button><button class="btn" data-ai="stop-no">✕ 閉じる</button><span class="note">いまより前の時刻は、明日の時刻になります</span>';
     } else if (ui.ea === a.id) {
       h += '<input type="text" id="ai_an" value="' + esc(a.n) + '" aria-label="呼び名"><label class="small">止まったとき、時刻の初めの案（何時間後）<input type="number" id="ai_ah" min="1" max="72" value="' + (a.h || 5) + '" style="width:60px"> 時間</label><button class="btn" data-ai="acct-ok" data-id="' + a.id + '">保存</button><button class="btn" data-ai="acct-no">✕ 閉じる</button><button class="btn danger" data-ai="acct-del" data-id="' + a.id + '">このアカウントを消す</button>';
     } else {
-      h += '<b class="ain">' + esc(a.n) + '</b><span class="aistat ' + (ok ? "ok" : "wait") + '">' + (ok ? "● 使える" : "◌ " + when(a.lim) + " から使える（あと" + left(a.lim) + "）") + "</span>" +
-        (act ? '<span class="aicnt">作成中 ' + act + "</span>" : "") + '<span class="aisp"></span>' +
+      h += '<span class="aichev">' + (col ? "▸" : "▾") + '</span><b class="ain">' + esc(a.n) + '</b><span class="aistat ' + (ok ? "ok" : "wait") + '">' + (ok ? "● 使える" : "◌ " + when(a.lim) + " から使える（あと" + left(a.lim) + "）") + "</span>" +
+        (act ? '<span class="aicnt">作成中 ' + act + "</span>" : "") + (col ? '<span class="note">作業 ' + jobs.length + "件</span>" : "") + '<span class="aisp"></span>' +
         (ok ? '<button class="btn sm" data-ai="stop" data-id="' + a.id + '" title="無料枠が止まったとき。使える時刻を決めます">止まった</button>' : '<button class="btn sm" data-ai="stop" data-id="' + a.id + '">時刻を変える</button><button class="btn sm" data-ai="go" data-id="' + a.id + '">使えるに戻す</button>') +
         '<button class="btn sm" data-ai="acct-ed" data-id="' + a.id + '">設定</button>';
     }
     h += "</div>";
+    if (col) return h + "</div>";
     h += shown.map((j, i) => jobRow(d, j, i, true)).join("") || '<p class="note" style="margin:4px 8px">作業はまだありません。</p>';
     if (ui.na === a.id) h += '<div class="aijob editing">' + jobForm(d, { e: d.cats[0] ? d.cats[0].e : "📍", st: "making", t: "", a: a.id, n: "" }, true) + "</div>";
     else h += '<div class="aiadd"><button class="btn sm" data-ai="job-new" data-id="' + a.id + '">＋ 作業を追加</button></div>';
@@ -119,8 +121,9 @@
   function viewJob(d) {
     const l = d.jobs.filter(j => jobMatch(d, j)); if (!l.length) return '<p class="note">見つかりません。</p>';
     const keys = d.cats.map(c => c.e), g = {}; l.forEach(j => { const k = keys.includes(j.e) ? j.e : "_"; (g[k] = g[k] || []).push(j); });
-    return keys.concat(["_"]).filter(k => g[k]).map(k => '<section class="aisec"><h3><span class="aie">' + (k === "_" ? "・" : esc(k)) + "</span>" + esc(k === "_" ? "その他" : catN(d, k)) + ' <span class="note">' + g[k].length + "件</span></h3>" +
-      g[k].slice().sort((a, b) => (a.t < b.t ? -1 : a.t > b.t ? 1 : 0)).map((j, i) => jobRow(d, j, i, false)).join("") + "</section>").join("");
+    return keys.concat(["_"]).filter(k => g[k]).map(k => { const id = "j:" + k, col = !!ui.cl[id];
+      return '<div class="aicard' + (col ? " col" : "") + '"><div class="aich aitog" data-ai="cl" data-id="' + esc(id) + '" role="button" tabindex="0" aria-expanded="' + !col + '"><span class="aichev">' + (col ? "▸" : "▾") + '</span><span class="aie">' + (k === "_" ? "・" : esc(k)) + '</span><b class="ain">' + esc(k === "_" ? "その他" : catN(d, k)) + '</b><span class="note">' + g[k].length + "件</span></div>" +
+        (col ? "" : g[k].slice().sort((a, b) => (a.t < b.t ? -1 : a.t > b.t ? 1 : 0)).map((j, i) => jobRow(d, j, i, false)).join("")) + "</div>"; }).join("");
   }
   const EMOJIS = ["🔴", "🟠", "🟡", "🟢", "🔵", "🟣", "⚫", "⚪", "🟥", "🟧", "🟨", "🟩", "🟦", "🟪", "⬛", "⬜", "✏️", "📍", "✂️", "📱", "💛", "🐽", "📝", "📚", "💻", "📊", "🎓", "🏃", "📌", "⭐", "🔥", "💡", "📧", "🗂️", "🏫", "👥", "📅", "🔍", "🎯", "🧪"];
   const palette = (id) => '<div class="aipal" data-pal="' + id + '"><span class="note">マークを選んでください</span><div class="aipg">' + EMOJIS.map(e => '<button type="button" class="aipb" data-ai="cat-set" data-i="' + id + '" data-e="' + e + '">' + e + "</button>").join("") + '</div><label class="small">一覧にないマーク：<input type="text" class="aice" data-aice-free="' + id + '" maxlength="8" placeholder="貼り付け" style="width:70px"> <button type="button" class="btn sm" data-ai="cat-free" data-i="' + id + '">これにする</button></label><button type="button" class="btn sm" data-ai="cat-pk" data-i="-1">閉じる</button></div>';
@@ -170,12 +173,17 @@
         '<pre class="aipre' + (open ? " open" : "") + '">' + esc(open ? p.b : (p.b || "").split("\n").slice(0, 2).join("\n")) + "</pre></div>";
     }).join("");
   }
+  const bodyOf = d => (ui.v === "acct" ? viewAcct(d) : ui.v === "job" ? viewJob(d) : viewPr(d));
+  /* 折りたたみ（アカウント・作業の種類）。この端末に覚える */
+  const CLK = "jd.aicl";
+  try { ui.cl = JSON.parse(localStorage.getItem(CLK) || "{}") || {}; } catch (e) { ui.cl = {}; }
+  const clSave = () => { try { localStorage.setItem(CLK, JSON.stringify(ui.cl)); } catch (e) { /* 覚えられなくても動く */ } };
   A.ai.view = function () {
     const d = D(); if (!d) return '<p class="note">読み込んでいます…</p>';
     const nWait = d.accts.filter(a => !avail(a)).length;
     return '<div class="aihead"><div class="seg"><button data-ai="v" data-v="acct" aria-pressed="' + (ui.v === "acct") + '">アカウントごと</button><button data-ai="v" data-v="job" aria-pressed="' + (ui.v === "job") + '">作業ごと</button><button data-ai="v" data-v="pr" aria-pressed="' + (ui.v === "pr") + '">プロンプト集</button></div>' +
       '<input type="search" id="aiq" class="lq" placeholder="' + (ui.v === "pr" ? "さがす（題名・本文）" : "さがす（作業名・アカウント）") + '" value="' + esc(ui.q) + '" autocomplete="off"><button class="btn" data-ai="cm-tog" title="作業のマークと名前を決める">⚙ 作業の種類を設定</button>' + (ui.v === "pr" ? "" : '<select id="aif" aria-label="状態で絞る"><option value="">状態：すべて</option>' + ST.slice(0, 4).map(s => '<option value="' + s[0] + '"' + (ui.f === s[0] ? " selected" : "") + ">" + s[1] + "</option>").join("") + "</select>") + '</div>' +
-      (ui.v === "pr" ? "" : nowStrip(d)) + catMgr(d) + (ui.v === "acct" ? viewAcct(d) : ui.v === "job" ? viewJob(d) : viewPr(d)) +
+      (ui.v === "pr" ? "" : nowStrip(d)) + catMgr(d) + '<div id="aibody">' + bodyOf(d) + "</div>" +
       '<p class="note">メールアドレスは入れず、呼び名だけで管理します（このデータは公開のGitHubに入るため）。待ち時間はアカウントごとに「設定」で変えられます。' + (nWait ? "いま待ちのアカウント：" + nWait : "") + "</p>";
   };
   /* トップページの細い帯（重要Tipsと今朝のまとめの間）。押すとAIのページが開く */
@@ -196,7 +204,9 @@
   document.addEventListener("click", e => {
     const b = e.target.closest && e.target.closest("[data-ai]"); if (!b) return;
     const d = D(); if (!d) return; const a = b.dataset.ai, id = b.dataset.id, jobAt = () => d.jobs.findIndex(j => j.id === id);
+    if (a === "cl") { if (e.target.closest("button,input,select,a,label")) return; ui.cl[id] ? delete ui.cl[id] : (ui.cl[id] = 1); clSave(); return A.render(); }
     if (a === "jump") {
+      if (ui.cl[id]) { delete ui.cl[id]; clSave(); }
       const go = () => { const el = document.querySelector('[data-aid="' + id + '"]'); if (!el) return false; el.scrollIntoView({ behavior: "smooth", block: "start" }); el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); return true; };
       if (ui.v !== "acct" || !document.querySelector('[data-aid="' + id + '"]')) { ui.v = "acct"; ui.q = ""; ui.f = ""; A.render(); }
       setTimeout(go, 60); return;
@@ -273,12 +283,16 @@
     if (a === "doc") { if (A.memo && A.memo.openDoc) A.memo.openDoc(b.dataset.s, id, false); return; }
   });
   document.addEventListener("keydown", e => {
+    const h = e.target && e.target.closest && e.target.closest('[data-ai="cl"]');
+    if (h && (e.key === "Enter" || e.key === " ") && e.target === h) { e.preventDefault(); h.click(); return; }
     if (e.key === "Escape" && (ui.ed || ui.na || ui.ea || ui.ns || ui.sa) && A.ui.mode === "work" && A.ui.work.tab === "ai") { ui.ed = ui.na = ui.ea = ui.ns = ui.sa = null; A.render(); }
   });
+  function liveBody() { const d = D(), el = document.getElementById("aibody"); if (d && el) el.innerHTML = bodyOf(d); }
+  document.addEventListener("compositionend", e => { if (e.target && e.target.id === "aiq") { ui.q = e.target.value; liveBody(); } });
   document.addEventListener("input", e => {
     const t = e.target; if (!t || !t.id) return;
     if (t.id === "ai_nn2") { ui.nn = t.value; return; }
-    if (t.id === "aiq") { ui.q = t.value; const p = t.selectionStart; A.render(); const n = document.getElementById("aiq"); if (n) { n.focus(); try { n.setSelectionRange(p, p); } catch (x) { /* 位置は戻せなくてもよい */ } } }
+    if (t.id === "aiq") { if (e.isComposing) return; ui.q = t.value; liveBody(); return; }
   });
   document.addEventListener("change", e => {
     const t = e.target; if (!t) return;

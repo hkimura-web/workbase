@@ -13,15 +13,21 @@
       if (p.classList.contains("mb")) return;   /* 今朝のまとめは、もとの開閉を使う */
       const h = p.querySelector(":scope>.panel-h"), b = p.querySelector(":scope>.panel-b"); if (!h || !b) return;
       const k = keyOf(p); if (!/:p-/.test(k)) return;
-      let t = h.querySelector(".fold-t");
-      if (!t) { t = document.createElement("button"); t.type = "button"; t.className = "fold-t"; t.dataset.foldk = k; h.appendChild(t); }
-      const f = !!st[k]; p.classList.toggle("folded", f); t.dataset.foldk = k; t.textContent = f ? "Open" : "Close"; t.setAttribute("aria-expanded", String(!f));
+      p.classList.add("foldable");
+      let c = h.querySelector(".fold-c");
+      if (!c) { c = document.createElement("span"); c.className = "fold-c"; c.setAttribute("aria-hidden", "true"); h.appendChild(c); h.setAttribute("role", "button"); h.tabIndex = 0; }
+      const f = !!st[k]; p.classList.toggle("folded", f); h.dataset.foldk = k; c.textContent = f ? "▸" : "▾"; h.setAttribute("aria-expanded", String(!f));
     });
   }
+  const toggle = h => { const st = load(), k = h.dataset.foldk; if (!k) return; if (st[k]) delete st[k]; else st[k] = 1; save(st); decorate(); };
   document.addEventListener("click", e => {
-    const t = e.target.closest && e.target.closest(".fold-t"); if (!t) return;
-    const st = load(), k = t.dataset.foldk; if (st[k]) delete st[k]; else st[k] = 1;
-    save(st); decorate();
+    const h = e.target.closest && e.target.closest(".panel.foldable>.panel-h"); if (!h) return;
+    if (e.target.closest("a,button,input,select,textarea,label,summary")) return;   /* 見出しの中の操作は、そのまま使える */
+    toggle(h);
+  });
+  document.addEventListener("keydown", e => {
+    const h = e.target && e.target.matches && e.target.matches(".panel.foldable>.panel-h") ? e.target : null;
+    if (h && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggle(h); }
   });
   let q = 0; const later = () => { if (q) return; q = requestAnimationFrame(() => { q = 0; decorate(); }); };
   function start() { const app = document.getElementById("app"); if (!app) return; new MutationObserver(later).observe(app, { childList: true, subtree: true }); decorate(); }
