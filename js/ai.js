@@ -43,14 +43,14 @@
   }
   function acctOpts(d, cur) { return d.accts.map(a => '<option value="' + a.id + '"' + (a.id === cur ? " selected" : "") + ">" + esc(SVN(a.s)[1] + "・" + a.n) + "</option>").join(""); }
   function jobForm(d, j, isNew) {
-    return '<div class="aiform" data-aiform="' + (isNew ? "new" : j.id) + '"><div class="aigrid">' +
+    return '<div class="aiform" data-aiform="' + (isNew ? "new" : j.id) + '"><div class="aifh"><b>' + (isNew ? "作業を追加" : "作業を編集中") + '</b><button class="btn sm" data-ai="job-no" aria-label="閉じる">✕ 閉じる</button></div><div class="aigrid">' +
       '<label>分類<select id="ai_e">' + d.cats.map(c => '<option value="' + esc(c.e) + '"' + (c.e === j.e ? " selected" : "") + ">" + esc(c.e + " " + c.n) + "</option>").join("") + "</select></label>" +
       '<label>状態<select id="ai_st">' + ST.map(s => '<option value="' + s[0] + '"' + (s[0] === j.st ? " selected" : "") + ">" + s[1] + "</option>").join("") + "</select></label>" +
       '<label class="w2">作業名<input type="text" id="ai_t" value="' + esc(j.t) + '" placeholder="例：定期試験（古典）問題作成（白波）"></label>' +
       '<label>アカウント<select id="ai_a">' + acctOpts(d, j.a) + "</select></label>" +
       '<label>プロンプト（手順・メモ）<select id="ai_d">' + docOpts(d, j.d || "") + "</select></label>" +
       '<label class="w2">ひとこと<input type="text" id="ai_n" value="' + esc(j.n) + '" placeholder="例：2027ルビチェック"></label></div>' +
-      '<div class="aibtns"><button class="btn" data-ai="job-ok" data-id="' + (isNew ? "" : j.id) + '">保存</button><button class="btn ghost" data-ai="job-no">やめる</button>' +
+      '<div class="aibtns"><button class="btn" data-ai="job-ok" data-id="' + (isNew ? "" : j.id) + '">保存</button><button class="btn" data-ai="job-no">閉じる（保存しない）</button>' +
       (isNew ? "" : '<span class="aisp"></span><select id="ai_cp" aria-label="別のアカウントにも作る"><option value="">別のアカウントにも作る…</option>' + acctOpts(d, "").replace(/<option value="/, '<option value="') + '</select><button class="btn" data-ai="job-cp" data-id="' + j.id + '">コピーを作る</button><button class="btn danger" data-ai="job-del" data-id="' + j.id + '">削除</button>') + "</div></div>";
   }
   function jobRow(d, j, i, byAcct) {
@@ -67,7 +67,7 @@
     const act = jobs.filter(j => j.st === "making").length;
     let h = '<div class="aicard' + (ok ? "" : " wait") + '" data-aid="' + a.id + '"><div class="aich">';
     if (ui.ea === a.id) {
-      h += '<input type="text" id="ai_an" value="' + esc(a.n) + '" aria-label="呼び名"><label class="small">止まったときの待ち時間<input type="number" id="ai_ah" min="1" max="72" value="' + (a.h || 5) + '" style="width:60px"> 時間</label><button class="btn" data-ai="acct-ok" data-id="' + a.id + '">保存</button><button class="btn ghost" data-ai="acct-no">やめる</button><button class="btn danger" data-ai="acct-del" data-id="' + a.id + '">このアカウントを消す</button>';
+      h += '<input type="text" id="ai_an" value="' + esc(a.n) + '" aria-label="呼び名"><label class="small">止まったときの待ち時間<input type="number" id="ai_ah" min="1" max="72" value="' + (a.h || 5) + '" style="width:60px"> 時間</label><button class="btn" data-ai="acct-ok" data-id="' + a.id + '">保存</button><button class="btn" data-ai="acct-no">✕ 閉じる</button><button class="btn danger" data-ai="acct-del" data-id="' + a.id + '">このアカウントを消す</button>';
     } else {
       h += '<b class="ain">' + esc(a.n) + '</b><span class="aistat ' + (ok ? "ok" : "wait") + '">' + (ok ? "● 使える" : "◌ 待ち　あと" + left(a.lim) + "（" + hm(a.lim) + "に再開）") + "</span>" +
         (act ? '<span class="aicnt">作成中 ' + act + "</span>" : "") + '<span class="aisp"></span>' +
@@ -81,7 +81,7 @@
     return h + "</div>";
   }
   function nowStrip(d) {
-    return '<div class="ainow">' + SV.map(s => {
+    return '<div class="ainow"><div class="ainh"><b>アカウントの状態</b><span class="note"><span class="aip ok">● 使える</span> <span class="aip wait">◌ 待ち（再開時刻〜）</span>　止まったアカウントは、下の各アカウントの「止まった」で切り替えます</span></div>' + SV.map(s => {
       const l = d.accts.filter(a => a.s === s[0]); if (!l.length) return "";
       return '<div class="ainr"><b style="color:' + s[2] + '">' + s[1] + "</b>" + l.map(a => avail(a) ? '<span class="aip ok">● ' + esc(a.n) + "</span>" : '<span class="aip wait">◌ ' + esc(a.n) + "（" + hm(a.lim) + "〜）</span>").join("") + "</div>";
     }).join("") + "</div>";
@@ -110,6 +110,16 @@
       '<input type="search" id="aiq" class="lq" placeholder="さがす（作業名・アカウント）" value="' + esc(ui.q) + '" autocomplete="off"><select id="aif" aria-label="状態で絞る"><option value="">状態：すべて</option>' + ST.slice(0, 4).map(s => '<option value="' + s[0] + '"' + (ui.f === s[0] ? " selected" : "") + ">" + s[1] + "</option>").join("") + "</select></div>" +
       nowStrip(d) + (ui.v === "acct" ? viewAcct(d) : viewJob(d)) + catMgr(d) +
       '<p class="note">メールアドレスは入れず、呼び名だけで管理します（このデータは公開のGitHubに入るため）。待ち時間はアカウントごとに「設定」で変えられます。' + (nWait ? "いま待ちのアカウント：" + nWait : "") + "</p>";
+  };
+  /* トップページの細い帯（重要Tipsと今朝のまとめの間）。押すとAIのページが開く */
+  A.ai.band = function () {
+    const d = D(); if (!d || !d.accts.length) return "";
+    const mk = d.jobs.filter(j => j.st === "making").length;
+    const rows = SV.map(s => {
+      const l = d.accts.filter(a => a.s === s[0]); if (!l.length) return "";
+      return '<div class="ainr"><b style="color:' + s[2] + '">' + s[1] + "</b>" + l.map(a => avail(a) ? '<span class="aip ok">● ' + esc(a.n) + "</span>" : '<span class="aip wait">◌ ' + esc(a.n) + "（" + hm(a.lim) + "〜）</span>").join("") + "</div>";
+    }).join("");
+    return '<section class="panel p-ai"><header class="panel-h"><h2>AIアカウント</h2><span class="panel-n">' + (mk ? "作成中 " + mk + "件" : "") + '</span></header><div class="panel-b aibandb" data-side="work:ai" title="AI使い分けを開く" role="link" tabindex="0">' + rows + "</div></section>";
   };
   A.ai.counts = () => { const d = D(); return d ? { making: d.jobs.filter(j => j.st === "making").length, ok: d.accts.filter(avail).length, all: d.accts.length } : null; };
 
@@ -147,6 +157,9 @@
     if (a === "acct-new") { ui.ns = b.dataset.s; return A.render(); }
     if (a === "acct-add") { const n = val("ai_nn").trim(); if (!n) return; d.accts.push({ id: nid(d, "a"), s: b.dataset.s, n, h: b.dataset.s === "claude" || b.dataset.s === "gpt" ? 5 : 24, lim: 0 }); ui.ns = null; return save(); }
     if (a === "doc") { if (A.memo && A.memo.openDoc) A.memo.openDoc(b.dataset.s, id, false); return; }
+  });
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && (ui.ed || ui.na || ui.ea || ui.ns) && A.ui.mode === "work" && A.ui.work.tab === "ai") { ui.ed = ui.na = ui.ea = ui.ns = null; A.render(); }
   });
   document.addEventListener("input", e => {
     const t = e.target; if (!t || !t.id) return;

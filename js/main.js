@@ -203,14 +203,14 @@
   };
   const SIDE = [
     ["授業", "class", [["grid", "一覧"], ["plan", "計画表"], ["unit", "単元別"], ["sum", "サマリー"], ["lib", "資料"], ["memo", "手順・メモ"]]],
-    ["校務", "work", [["home", "ホーム"], ["year", "年間"], ["links", "リンク集"], ["shiryo", "学校資料"], ["docs", "手順・メモ"], ["repeat", "くり返し"], ["ai", "AI使い分け"], ["cal", "カレンダー"], ["set", "校務の設定"]]],
+    ["校務", "work", [["home", "ホーム"], ["year", "年間"], ["links", "リンク集"], ["shiryo", "学校資料"], ["docs", "手順・メモ"], ["repeat", "くり返し"], ["cal", "カレンダー"], ["set", "校務の設定"]]],
     ["テスト成績", "test", [["home", "ホーム"], ["tasks", "作業一覧"], ["print", "印刷枚数"], ["links", "リンク集"], ["man", "手順・メモ"], ["set", "学期の設定"]]],
     ["勤怠", "kin", [["home", "ダッシュボード"], ["cal", "カレンダー"], ["yk", "有給"], ["ot", "超過勤務"], ["fh", "振替休日"], ["ev", "行事予定"], ["set", "勤怠の設定"]]]
   ];
   function renderSide() {
     const md0 = A.ui.mode, cur = md0 === "work" ? A.ui.work.tab : md0 === "test" ? A.ui.test.tab : md0 === "kin" ? A.ui.kin.tab : A.ui.tab;
     const svg = k => '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">' + IC[k] + "</svg>";
-    let h = "";
+    let h = '<button class="si ai' + (md0 === "work" && cur === "ai" ? " on" : "") + '" data-side="work:ai"' + (md0 === "work" && cur === "ai" ? ' aria-current="page"' : "") + ">" + svg("ai") + "<span>AI使い分け</span></button>";
     SIDE.forEach(([gn, m, items]) => {
       h += '<div class="sg">' + gn + "</div>";
       items.forEach(([k, n]) => {

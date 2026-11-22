@@ -223,6 +223,7 @@
     if (isToday) h += liveHtml(today);
     const wkP = A.work ? A.work.todayPanel() : "";
     h += A.tipsBand ? A.tipsBand("class") : "";
+    h += (A.ai && A.ai.band ? A.ai.band() : "");   /* AIアカウント（重要Tipsと今朝のまとめの間） */
     h += (A.morning ? A.morning.band() : "");   /* 今朝のまとめ（重要Tipsと、今日の授業の間） */
     h += '<div class="tworow' + (wkP ? (wkP.indexOf("p-slim") >= 0 ? " slim" : "") : " one") + '">' + nowP + wkP + "</div>";
     h += A.seiseki ? A.seiseki.todayPanel() : "";
