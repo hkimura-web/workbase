@@ -1212,3 +1212,10 @@ body:has(.sg) .side .si.ai{margin-bottom:6px;border-bottom:1px solid rgba(255,25
 .aicr .aicn{flex:1;min-width:0}
 .aicadd{padding:6px 0 2px;border-top:1px solid var(--line)}
 @media (max-width:560px){.aicr{flex-wrap:wrap}}
+/* トップページのAI帯: 白っぽい見出し・青いアカウント札・小さめ */
+.p-ai .panel-h{background:#fbfcfe;border-bottom:1px solid var(--line)}
+.aibandb .aip{font-size:11px;padding:1px 8px}
+.aibandb .aip.ok{background:#e3ecfa;border-color:#bcd0ee;color:#1f3f73}
+.aibandb .ainr{font-size:12px}
+.aibandb .ainnb,.aibandb .ainb{display:contents}
+.aibandb .ainb>b{margin-left:14px;min-width:0}
