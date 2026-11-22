@@ -9,8 +9,9 @@
   const PH = ["試験準備", "試験実施・採点", "成績算出", "報告・会議"];
   /* [工程, 作業名, 基準日(E=試験の初日 G=成績提出 M=成績会議), 何日ずらすか, 科目ごとに作る] */
   const TP = [
-    [0, "試験範囲を確定・配付", "E", -35, 0], [0, "問題作成", "E", -28, 1], [0, "問題チェックシートを提出", "E", -21, 0], [0, "問題漢字を検索", "E", -21, 1],
-    [0, "採点基準を作成", "E", -14, 1], [0, "印刷枚数を確認（在籍＋留学＋予備）", "E", -12, 0], [0, "問題冊子・解答用紙を印刷", "E", -10, 0],
+    [0, "問題作成を始める（3週間前）", "E", -21, 1], [0, "試験範囲を確定・配付（2週間前までに）", "E", -14, 0], [0, "問題作成を完成（目標：2週間前）", "E", -14, 1],
+    [0, "問題漢字を検索", "E", -13, 1], [0, "問題チェックシートを提出", "E", -12, 0], [0, "採点基準を作成", "E", -11, 1],
+    [0, "印刷枚数を確認（在籍＋留学＋予備）", "E", -10, 0], [0, "問題冊子・解答用紙を印刷", "E", -9, 0],
     [0, "封筒・チェックリストを作成", "E", -7, 0], [0, "採点ナビ用の模範解答を作成", "E", -7, 1], [0, "採点ナビを設定", "E", -5, 0],
     [1, "欠席者の見込み点を入力", "E", 7, 0], [1, "素点を入力", "E", 7, 1], [1, "主体性評価・漢字テストを入力", "E", 9, 1],
     [2, "観点別評価を算出", "G", -7, 1], [2, "評定を確認", "G", -5, 1],
@@ -157,7 +158,7 @@
   function termForm() {
     const e = ui.form === "edit", t = e ? cur() : { name: "", E: J.addDays(today(), 35), G: J.addDays(today(), 52), M: J.addDays(today(), 56), subs: ["現代の国語", "言語文化"] };
     return '<div class="wcard"><b>' + (e ? "学期の日程を変更" : "新しい学期を作る") + '</b><label>学期名</label><input type="text" id="sf_n" value="' + esc(t.name) + '" placeholder="例：2026年度 2学期 期末">' +
-      '<div class="tsg2"><div><label>試験の初日</label><input type="date" id="sf_e" value="' + t.E + '"></div><div><label>成績の提出期限</label><input type="date" id="sf_g" value="' + t.G + '"></div><div><label>成績会議の日</label><input type="date" id="sf_m" value="' + t.M + '"></div></div>' +
+      '<p style="margin:6px 0"><button type="button" class="btn" data-sact="t-auto">年間予定から試験の日を入れる</button> <span class="note" id="sf_msg"></span></p><div class="tsg2"><div><label>試験の初日</label><input type="date" id="sf_e" value="' + t.E + '"></div><div><label>成績の提出期限</label><input type="date" id="sf_g" value="' + t.G + '"></div><div><label>成績会議の日</label><input type="date" id="sf_m" value="' + t.M + '"></div></div>' +
       '<label>科目（読点「、」で区切る）</label><input type="text" id="sf_s" value="' + esc(t.subs.join("、")) + '"' + (e ? " disabled" : "") + ">" +
       '<p class="note">' + (e ? "まだ終わっていない作業の期限を、新しい日程に合わせて引き直します。" : "日程から逆算して、試験準備から成績会議までの作業が自動で並びます。") + '</p><div class="btns"><button class="btn on" data-sact="t-ok">' + (e ? "日程を反映" : "作成する") + '</button> <button class="btn" data-sact="t-cancel">やめる</button></div></div>';
   }
@@ -403,6 +404,15 @@
       case "mcancel": ui.ME = false; A.render(); return;
       case "msave": { const m = S0.man.find(x => x.id === ui.OM); if (m) { m.t = V("mt").trim() || "無題"; m.m = V("mb"); } ui.ME = false; save(); A.render(); return; }
       case "mdel": if (root.confirm("このマニュアルを削除します。よろしいですか？")) { S0.man = S0.man.filter(x => x.id !== ui.OM); ui.OM = ""; ui.ME = false; save(); A.render(); } return;
+      case "t-auto": {
+        const ev = (A.st && A.st.events) || {}, ds = Object.keys(ev).filter(d => /(中間|期末)試験[(（]/.test(ev[d])).sort();
+        const m = $("sf_msg"); if (!ds.length) { if (m) m.textContent = "年間予定に、試験の日が見つかりませんでした。日付を自分で入れてください。"; return; }
+        const gr = []; ds.forEach(d => { const l = gr[gr.length - 1]; if (l && diff(d) - diff(l[l.length - 1]) <= 5) l.push(d); else gr.push([d]); });
+        const g = gr.find(x => diff(x[0]) >= 0) || gr[gr.length - 1], E = g[0], kind0 = /期末/.test(ev[E]) ? "期末試験" : "中間試験";
+        $("sf_e").value = E; $("sf_g").value = J.addDays(E, 17); $("sf_m").value = J.addDays(E, 21);
+        if (m) m.textContent = "年間予定の「" + kind0 + "」" + md(E) + (g.length > 1 ? "〜" + md(g[g.length - 1]) : "") + " を入れました（成績提出・成績会議の日は、初日から17日後・21日後の案です。直せます）。";
+        return;
+      }
       case "t-new": ui.form = "new"; A.render(); return;
       case "t-edit": S0.cur = id; ui.form = "edit"; A.render(); return;
       case "t-cancel": ui.form = null; A.render(); return;
@@ -413,7 +423,10 @@
         if (!n || !E || !G || !M) { root.alert("学期名と、3つの日付を入れてください。"); return; }
         if (ui.form === "edit") {
           const T = cur(); Object.assign(T, { name: n, E, G, M }); const fr = gen(T, T.subs);
+          const RN = { "試験範囲を確定・配付": "試験範囲を確定・配付（2週間前までに）", "問題作成": "問題作成を完成（目標：2週間前）" };   /* 前の名前の作業は、新しい名前に直す */
+          S0.tasks.filter(x => x.term === T.id).forEach(x => { if (RN[x.title]) x.title = RN[x.title]; });
           S0.tasks.filter(x => x.term === T.id && !x.done).forEach(x => { const f = fr.find(y => y.ph === x.ph && y.title === x.title && y.sub === x.sub); if (f) x.due = f.due; });
+          fr.filter(y => !S0.tasks.some(x => x.term === T.id && x.ph === y.ph && x.title === y.title && x.sub === y.sub)).forEach(y => { if (y.title.indexOf("問題作成を始める") === 0) { y.done = diff(y.due) < 0; S0.tasks.push(y); } });   /* 新しく増えた「始める」だけ足す（過ぎた日のものは、済みにする） */
         } else {
           const subs = V("sf_s").split(/[、,，]/).map(s => s.trim()).filter(Boolean), T = { id: "T" + (uid++), name: n, E, G, M, subs };
           S0.terms.push(T); S0.cur = T.id; S0.tasks = S0.tasks.concat(gen(T, subs));

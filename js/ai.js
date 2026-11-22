@@ -32,6 +32,7 @@
   const when = t => { const x = new Date(t), dd = dkey(t) - dkey(now()); return (dd === 0 ? "" : dd === 1 ? "明日 " : (x.getMonth() + 1) + "/" + x.getDate() + " ") + hm(t); };
   const left = t => { const m = Math.max(1, Math.ceil((t - now()) / 60000)); return m >= 60 ? Math.floor(m / 60) + "時間" + (m % 60 ? m % 60 + "分" : "") : m + "分"; };
   const prOf = (d, id) => (d.prompts || []).find(x => x.id === id);
+  const snH = a => (a.sn ? '<span class="aisn">・' + esc(a.sn) + "</span>" : "");
   const acctOf = (d, id) => d.accts.find(a => a.id === id);
   const catN = (d, e) => { const c = d.cats.find(x => x.e === e); return c ? c.n : "その他"; };
   const fx = e => (e === "\u270f" || e === "\u2702" ? e + "\ufe0f" : e);   /* ✏ ✂ は、絵（色つき）で出す */
@@ -88,11 +89,11 @@
     let h = '<div class="aicard' + (ok ? "" : " wait") + (col ? " col" : "") + '" data-aid="' + a.id + '"><div class="aich' + (ui.ea === a.id || ui.sa === a.id ? "" : " aitog") + '"' + (ui.ea === a.id || ui.sa === a.id ? "" : ' data-ai="cl" data-id="' + a.id + '" role="button" tabindex="0" aria-expanded="' + !col + '"') + ">";
     if (ui.sa === a.id) {
       const dv = new Date(ok ? now() + (a.h || 5) * 3600000 : a.lim);
-      h += '<b class="ain">' + esc(a.n) + '</b><label class="small">次に使える時刻<input type="time" id="ai_stt" value="' + String(dv.getHours()).padStart(2, "0") + ":" + String(dv.getMinutes()).padStart(2, "0") + '"></label><button class="btn" data-ai="stop-ok" data-id="' + a.id + '">この時刻に決定</button><button class="btn" data-ai="stop-no">✕ 閉じる</button><span class="note">いまより前の時刻は、明日の時刻になります</span>';
+      h += '<b class="ain">' + esc(a.n) + '</b><label class="small">次に使える時刻<input type="time" id="ai_stt" value="' + String(dv.getHours()).padStart(2, "0") + ":" + String(dv.getMinutes()).padStart(2, "0") + '"></label><label class="small">内容・用途<input type="text" id="ai_sn" value="' + esc(a.sn || (d.jobs.find(j => j.a === a.id && j.st === "making") || {}).t || "") + '" placeholder="例：定期試験の問題作成" style="width:220px"></label><button class="btn" data-ai="stop-ok" data-id="' + a.id + '">この時刻に決定</button><button class="btn" data-ai="stop-no">✕ 閉じる</button><span class="note">いまより前の時刻は、明日の時刻になります</span>';
     } else if (ui.ea === a.id) {
       h += '<input type="text" id="ai_an" value="' + esc(a.n) + '" aria-label="呼び名"><label class="small">止まったとき、時刻の初めの案（何時間後）<input type="number" id="ai_ah" min="1" max="72" value="' + (a.h || 5) + '" style="width:60px"> 時間</label><button class="btn" data-ai="acct-ok" data-id="' + a.id + '">保存</button><button class="btn" data-ai="acct-no">✕ 閉じる</button><button class="btn danger" data-ai="acct-del" data-id="' + a.id + '">このアカウントを消す</button>';
     } else {
-      h += '<span class="aichev">' + (col ? "▸" : "▾") + '</span><b class="ain">' + esc(a.n) + '</b><span class="aistat ' + (ok ? "ok" : "wait") + '">' + (ok ? "● 使える" : "◌ " + when(a.lim) + " から使える（あと" + left(a.lim) + "）") + "</span>" +
+      h += '<span class="aichev">' + (col ? "▸" : "▾") + '</span><b class="ain">' + esc(a.n) + '</b><span class="aistat ' + (ok ? "ok" : "wait") + '">' + (ok ? "● 使える" : "◌ " + when(a.lim) + " から使える（あと" + left(a.lim) + "）" + (a.sn ? "　" + esc(a.sn) : "")) + "</span>" +
         (act ? '<span class="aicnt">作成中 ' + act + "</span>" : "") + (col ? '<span class="note">作業 ' + jobs.length + "件</span>" : "") + '<span class="aisp"></span>' +
         (ok ? '<button class="btn sm" data-ai="stop" data-id="' + a.id + '" title="無料枠が止まったとき。使える時刻を決めます">止まった</button>' : '<button class="btn sm" data-ai="stop" data-id="' + a.id + '">時刻を変える</button><button class="btn sm" data-ai="go" data-id="' + a.id + '">使えるに戻す</button>') +
         '<button class="btn sm" data-ai="acct-ed" data-id="' + a.id + '">設定</button>';
@@ -107,7 +108,7 @@
   function nowStrip(d) {
     return '<div class="ainow"><div class="ainh"><b>アカウントの状態</b><span class="note"><span class="aip ok">● 使える</span> <span class="aip wait">◌ 待ち（再開時刻〜）</span>　名前を押すと、そのアカウントの場所に移ります</span></div>' + SV.map(s => {
       const l = d.accts.filter(a => a.s === s[0]); if (!l.length) return "";
-      return '<div class="ainr"><b style="color:' + s[2] + '">' + s[1] + "</b>" + l.map(a => avail(a) ? '<button class="aip ok" data-ai="jump" data-id="' + a.id + '" title="このアカウントの場所へ">● ' + esc(a.n) + "</button>" : '<button class="aip wait" data-ai="jump" data-id="' + a.id + '" title="このアカウントの場所へ">◌ ' + esc(a.n) + "（" + when(a.lim) + "〜）</button>").join("") + "</div>";
+      return '<div class="ainr"><b style="color:' + s[2] + '">' + s[1] + "</b>" + l.map(a => avail(a) ? '<button class="aip ok" data-ai="jump" data-id="' + a.id + '" title="このアカウントの場所へ">● ' + esc(a.n) + "</button>" : '<button class="aip wait" data-ai="jump" data-id="' + a.id + '" title="このアカウントの場所へ">◌ ' + esc(a.n) + "（" + when(a.lim) + "〜）" + snH(a) + "</button>").join("") + "</div>";
     }).join("") + "</div>";
   }
   function viewAcct(d) {
@@ -199,7 +200,7 @@
   A.ai.band = function () {
     const d = D(); if (!d || !d.accts.length) return "";
     const mk = d.jobs.filter(j => j.st === "making").length;
-    const chips = l => l.map(a => avail(a) ? '<span class="aip ok">● ' + esc(a.n) + "</span>" : '<span class="aip wait">◌ ' + esc(a.n) + "（" + when(a.lim) + "〜）</span>").join("");
+    const chips = l => l.map(a => avail(a) ? '<span class="aip ok">● ' + esc(a.n) + "</span>" : '<span class="aip wait">◌ ' + esc(a.n) + "（" + when(a.lim) + "〜）" + snH(a) + "</span>").join("");
     const lab = k => '<b style="color:' + SVN(k)[2] + '">' + SVN(k)[1] + "</b>", by = k => d.accts.filter(a => a.s === k);
     const rows = [["claude"], ["gpt"], ["gem", "nb"]].map(g => {
       const parts = g.filter(k => by(k).length).map((k, i) => (i ? '<span class="ainb">' : "") + lab(k) + chips(by(k)) + (i ? "</span>" : "")); if (!parts.length) return "";
@@ -246,9 +247,9 @@
     if (a === "stop-ok") {
       const x = acctOf(d, id), m = /^(\d{1,2}):(\d{2})$/.exec(val("ai_stt")); if (!x || !m) { A.toast && A.toast("時刻を入れてください"); return; }
       const t = new Date(); t.setHours(+m[1], +m[2], 0, 0); if (t.getTime() <= now()) t.setDate(t.getDate() + 1);
-      x.lim = t.getTime(); ui.sa = null; return save();
+      x.lim = t.getTime(); const sn = val("ai_sn").trim(); if (sn) x.sn = sn; else delete x.sn; ui.sa = null; return save();
     }
-    if (a === "go") { const x = acctOf(d, id); if (x) { x.lim = 0; save(); } return; }
+    if (a === "go") { const x = acctOf(d, id); if (x) { x.lim = 0; delete x.sn; save(); } return; }
     if (a === "acct-ed") { ui.ea = id; ui.sa = null; return A.render(); }
     if (a === "acct-no") { ui.ea = null; ui.ns = null; return A.render(); }
     if (a === "acct-ok") { const x = acctOf(d, id); if (x) { const n = val("ai_an").trim(); if (n) x.n = n; x.h = Math.max(1, Math.min(72, +val("ai_ah") || 5)); } ui.ea = null; return save(); }

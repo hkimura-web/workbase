@@ -1260,3 +1260,5 @@ button.aip:hover{filter:brightness(.96);text-decoration:underline}
 .aipm-v::before{content:"説明　";font-weight:700;font-size:11.5px}
 .aigrp>.aigb{padding:8px 10px 2px;background:rgba(0,0,0,.02)}
 .aigb .aicard{margin:0 0 8px;background:var(--surface)}
+.aisn{font-size:inherit;opacity:.85;max-width:16em;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
+.aibandb .aip.wait,.ainow .aip.wait{max-width:100%}

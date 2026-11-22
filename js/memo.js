@@ -172,7 +172,7 @@
   function match(it, scope) {
     const cf = ui.cat[scope], q = nf(ui.q).split(/\s+/).filter(Boolean), tg = tagsNow().find(x => x.id === it.d.tag);
     if (cf !== "all" && it.c !== cf) return false;
-    if (ui.g && it.d.tag !== ui.g) return false;
+    if (ui.g === "_") { if (tagsNow().some(x => x.id === it.d.tag)) return false; } else if (ui.g && it.d.tag !== ui.g) return false;
     const txt = nf(it.d.t + " " + it.d.b + " " + (tg ? tg.n : "") + " " + cinfo(it.c).n);
     return q.every(w => txt.indexOf(w) >= 0);
   }
@@ -239,6 +239,7 @@
     h += '<div class="tsseg mmseg mm-cat"><button class="btn' + (cf === "all" ? " on" : "") + '" data-ma="cat" data-s="' + scope + '" data-v="all">すべて ' + total + "</button>" +
       cs.map(x => '<button class="btn mm-cb' + (cf === x.id ? " on" : "") + '" style="--cc:' + COL(x.c) + '" data-ma="cat" data-s="' + scope + '" data-v="' + esc(x.id) + '">' + esc(x.n) + " " + (cnt[x.id] || 0) + "</button>").join("") + "</div>";
     h += '<div class="tsseg mmseg"><button class="btn' + (ui.g ? "" : " on") + '" data-ma="gen" data-v="">ジャンル：すべて</button>' +
+      (() => { const kn = {}; tagsNow().forEach(t => { kn[t.id] = 1; }); const n = inCat.filter(it => !kn[it.d.tag]).length; return n || ui.g === "_" ? '<button class="btn' + (ui.g === "_" ? " on" : "") + '" data-ma="gen" data-v="_">ジャンルなし ' + n + "</button>" : ""; })() +
       tagsNow().filter(t => used[t.id] || ui.g === t.id).map(t => '<button class="btn' + (ui.g === t.id ? " on" : "") + '" data-ma="gen" data-v="' + esc(t.id) + '">' + esc(t.n) + " " + (used[t.id] || 0) + "</button>").join("") + "</div>";
     h += '<div id="mm_l" data-s="' + scope + '">' + listH(scope) + "</div>" + mgrH();
     return h;
@@ -263,7 +264,7 @@
       case "gen": ui.g = t.dataset.v; A.render(); return;
       case "add": {
         const cf = ui.cat[s], c0 = cf === "all" ? s : cf, c = catsNow().some(x => x.id === c0) ? c0 : catsNow()[0].id, dst = st(c); if (!dst) return;
-        const d = { id: "d" + (uid++), t: "新しいメモ", b: "", u: "", ut: "", ls: [], tip: false, kw: "", img: [], tag: ui.g || "", go: "" };
+        const d = { id: "d" + (uid++), t: "新しいメモ", b: "", u: "", ut: "", ls: [], tip: false, kw: "", img: [], tag: ui.g === "_" ? "" : ui.g || "", go: "" };
         if (c !== sk(c)) d.cat = c;
         dst.docs.unshift(d); ui.open[c + ":" + d.id] = true; ui.edit = c + ":" + d.id; touch(c); A.render(); return;
       }
