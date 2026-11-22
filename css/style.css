@@ -1235,3 +1235,4 @@ button.aip:hover{filter:brightness(.96);text-decoration:underline}
 .aipg{display:flex;flex-wrap:wrap;gap:4px}
 .aipb{font-size:20px;line-height:1;padding:5px 7px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}
 .aipb:hover{border-color:var(--accent);background:#eef3fd}
+.aibandb .aip.wait{background:#c3c9d2;border-color:#a3abb8;color:#3f4757}

@@ -210,7 +210,7 @@
   function renderSide() {
     const md0 = A.ui.mode, cur = md0 === "work" ? A.ui.work.tab : md0 === "test" ? A.ui.test.tab : md0 === "kin" ? A.ui.kin.tab : A.ui.tab;
     const svg = k => '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">' + IC[k] + "</svg>";
-    let h = '<button class="si ai' + (md0 === "work" && cur === "ai" ? " on" : "") + '" data-side="work:ai"' + (md0 === "work" && cur === "ai" ? ' aria-current="page"' : "") + ">" + svg("ai") + "<span>AI使い分け</span></button>";
+    let h = '<button class="si ai' + (md0 === "work" && cur === "ai" ? " on" : "") + '" data-side="work:ai"' + (md0 === "work" && cur === "ai" ? ' aria-current="page"' : "") + ">" + svg("ai") + "<span>AI</span></button>";
     SIDE.forEach(([gn, m, items]) => {
       h += '<div class="sg">' + gn + "</div>";
       items.forEach(([k, n]) => {
