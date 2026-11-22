@@ -48,7 +48,7 @@
   function acctOpts(d, cur) { return d.accts.map(a => '<option value="' + a.id + '"' + (a.id === cur ? " selected" : "") + ">" + esc(SVN(a.s)[1] + "・" + a.n) + "</option>").join(""); }
   function jobForm(d, j, isNew) {
     return '<div class="aiform" data-aiform="' + (isNew ? "new" : j.id) + '"><div class="aifh"><b>' + (isNew ? "作業を追加" : "作業を編集中") + '</b><button class="btn sm" data-ai="job-no" aria-label="閉じる">✕ 閉じる</button></div><div class="aigrid">' +
-      '<label>分類<select id="ai_e">' + (d.cats.some(c => c.e === j.e) ? "" : '<option value="' + esc(j.e) + '" selected>' + esc(j.e + " その他") + "</option>") + d.cats.map(c => '<option value="' + esc(c.e) + '"' + (c.e === j.e ? " selected" : "") + ">" + esc(c.e + " " + c.n) + "</option>").join("") + "</select></label>" +
+      '<label>作業の種類<select id="ai_e">' + (d.cats.some(c => c.e === j.e) ? "" : '<option value="' + esc(j.e) + '" selected>' + esc(j.e + " その他") + "</option>") + d.cats.map(c => '<option value="' + esc(c.e) + '"' + (c.e === j.e ? " selected" : "") + ">" + esc(c.e + " " + c.n) + "</option>").join("") + "</select></label>" +
       '<label>状態<select id="ai_st">' + ST.map(s => '<option value="' + s[0] + '"' + (s[0] === j.st ? " selected" : "") + ">" + s[1] + "</option>").join("") + "</select></label>" +
       '<label class="w2">作業名<input type="text" id="ai_t" value="' + esc(j.t) + '" placeholder="例：定期試験（古典）問題作成（白波）"></label>' +
       '<label>アカウント<select id="ai_a">' + acctOpts(d, j.a) + "</select></label>" +
@@ -88,9 +88,9 @@
     return h + "</div>";
   }
   function nowStrip(d) {
-    return '<div class="ainow"><div class="ainh"><b>アカウントの状態</b><span class="note"><span class="aip ok">● 使える</span> <span class="aip wait">◌ 待ち（再開時刻〜）</span>　止まったアカウントは、下の各アカウントの「止まった」で切り替えます</span></div>' + SV.map(s => {
+    return '<div class="ainow"><div class="ainh"><b>アカウントの状態</b><span class="note"><span class="aip ok">● 使える</span> <span class="aip wait">◌ 待ち（再開時刻〜）</span>　名前を押すと、そのアカウントの場所に移ります</span></div>' + SV.map(s => {
       const l = d.accts.filter(a => a.s === s[0]); if (!l.length) return "";
-      return '<div class="ainr"><b style="color:' + s[2] + '">' + s[1] + "</b>" + l.map(a => avail(a) ? '<span class="aip ok">● ' + esc(a.n) + "</span>" : '<span class="aip wait">◌ ' + esc(a.n) + "（" + when(a.lim) + "〜）</span>").join("") + "</div>";
+      return '<div class="ainr"><b style="color:' + s[2] + '">' + s[1] + "</b>" + l.map(a => avail(a) ? '<button class="aip ok" data-ai="jump" data-id="' + a.id + '" title="このアカウントの場所へ">● ' + esc(a.n) + "</button>" : '<button class="aip wait" data-ai="jump" data-id="' + a.id + '" title="このアカウントの場所へ">◌ ' + esc(a.n) + "（" + when(a.lim) + "〜）</button>").join("") + "</div>";
     }).join("") + "</div>";
   }
   function viewAcct(d) {
@@ -110,10 +110,10 @@
   const EMOJIS = ["🔴", "🟥", "🟠", "🟡", "🟢", "🔵", "🟣", "🟦", "🟪", "⚫", "✏️", "📍", "✂️", "📱", "💛", "🐽", "📝", "📚", "💻", "📊", "🎓", "🏃", "📌", "⭐", "🔥", "💡", "📧", "🗂️"];
   function catMgr(d) {
     const n = d.cats.length;
-    return '<details class="wdet aicm" id="aicm"' + (ui.cmo ? " open" : "") + '><summary><b>分類を編集する（マーク・名前・並び順・追加・削除）</b></summary><datalist id="ai_emo">' + EMOJIS.map(e => '<option value="' + e + '"></option>').join("") + "</datalist>" +
+    return '<details class="wdet aicm" id="aicm"' + (ui.cmo ? " open" : "") + '><summary><b>作業の種類を編集する（マークと名前のセット）</b></summary><p class="note" style="margin:6px 0 0">「授業用の教材」「試験・入試」など、作業を分けるグループです。作業の頭に付くマークと、「作業ごと」の見出しの名前になります。</p><datalist id="ai_emo">' + EMOJIS.map(e => '<option value="' + e + '"></option>').join("") + "</datalist>" +
       '<div class="aicl">' + d.cats.map((c, i) => '<div class="aicr"><input type="text" class="aice" data-aice="' + i + '" value="' + esc(c.e) + '" list="ai_emo" maxlength="8" aria-label="マーク" title="マーク（絵文字）。入力するか、候補から選べます"><input type="text" class="aicn" data-aicn="' + i + '" value="' + esc(c.n) + '" aria-label="分類の名前"><span class="aimv"><button class="btn sm" data-ai="cat-up" data-i="' + i + '"' + (i === 0 ? " disabled" : "") + ' aria-label="上へ">▲</button><button class="btn sm" data-ai="cat-dn" data-i="' + i + '"' + (i >= n - 1 ? " disabled" : "") + ' aria-label="下へ">▼</button><button class="btn sm danger" data-ai="cat-del" data-i="' + i + '">削除</button></span></div>').join("") + "</div>" +
-      '<div class="aicr aicadd"><input type="text" class="aice" id="ai_ne" list="ai_emo" maxlength="8" placeholder="マーク" aria-label="新しい分類のマーク"><input type="text" class="aicn" id="ai_nn2" placeholder="新しい分類の名前"><button class="btn" data-ai="cat-add">＋ 分類を追加</button></div>' +
-      '<p class="note" style="margin:6px 0 0">マークを変えると、その分類の作業も新しいマークに変わります。分類を削除した作業は「その他」に入ります（作業は消えません）。</p></details>';
+      '<div class="aicr aicadd"><input type="text" class="aice" id="ai_ne" list="ai_emo" maxlength="8" placeholder="マーク" aria-label="新しい種類のマーク"><input type="text" class="aicn" id="ai_nn2" placeholder="新しい種類の名前（例：授業用の教材）"><button class="btn" data-ai="cat-add">＋ 種類を追加</button></div>' +
+      '<p class="note" style="margin:6px 0 0">マークを変えると、その種類の作業も新しいマークに変わります。種類を削除した作業は「その他」に入ります（作業は消えません）。</p></details>';
   }
   A.ai.view = function () {
     const d = D(); if (!d) return '<p class="note">読み込んでいます…</p>';
@@ -141,6 +141,11 @@
   document.addEventListener("click", e => {
     const b = e.target.closest && e.target.closest("[data-ai]"); if (!b) return;
     const d = D(); if (!d) return; const a = b.dataset.ai, id = b.dataset.id, jobAt = () => d.jobs.findIndex(j => j.id === id);
+    if (a === "jump") {
+      const go = () => { const el = document.querySelector('[data-aid="' + id + '"]'); if (!el) return false; el.scrollIntoView({ behavior: "smooth", block: "start" }); el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); return true; };
+      if (ui.v !== "acct" || !document.querySelector('[data-aid="' + id + '"]')) { ui.v = "acct"; ui.q = ""; ui.f = ""; A.render(); }
+      setTimeout(go, 60); return;
+    }
     if (a === "v") { ui.v = b.dataset.v; return A.render(); }
     if (a === "ed") { ui.ed = id; ui.na = null; return A.render(); }
     if (a === "job-no") { ui.ed = null; ui.na = null; return A.render(); }
@@ -182,7 +187,7 @@
       d.cats.push({ e, n }); ui.cmo = true; return save();
     }
     if (a === "cat-up" || a === "cat-dn") { const i = +b.dataset.i, k = i + (a === "cat-up" ? -1 : 1); if (k < 0 || k >= d.cats.length) return; const t = d.cats[i]; d.cats[i] = d.cats[k]; d.cats[k] = t; ui.cmo = true; return save(); }
-    if (a === "cat-del") { const c = d.cats[+b.dataset.i], n = c ? d.jobs.filter(j => j.e === c.e).length : 0; if (c && root.confirm("分類「" + c.e + " " + c.n + "」を削除します。" + (n ? "この分類の作業 " + n + " 件は「その他」に入ります。" : "") + "よろしいですか？")) { d.cats.splice(+b.dataset.i, 1); ui.cmo = true; save(); } return; }
+    if (a === "cat-del") { const c = d.cats[+b.dataset.i], n = c ? d.jobs.filter(j => j.e === c.e).length : 0; if (c && root.confirm("作業の種類「" + c.e + " " + c.n + "」を削除します。" + (n ? "この種類の作業 " + n + " 件は「その他」に入ります。" : "") + "よろしいですか？")) { d.cats.splice(+b.dataset.i, 1); ui.cmo = true; save(); } return; }
     if (a === "doc") { if (A.memo && A.memo.openDoc) A.memo.openDoc(b.dataset.s, id, false); return; }
   });
   document.addEventListener("toggle", e => { if (e.target && e.target.id === "aicm") ui.cmo = e.target.open; }, true);

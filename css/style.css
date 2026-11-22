@@ -1219,3 +1219,8 @@ body:has(.sg) .side .si.ai{margin-bottom:6px;border-bottom:1px solid rgba(255,25
 .aibandb .ainr{font-size:12px}
 .aibandb .ainnb,.aibandb .ainb{display:contents}
 .aibandb .ainb>b{margin-left:14px;min-width:0}
+button.aip{font:inherit;font-size:12.5px;cursor:pointer}
+button.aip:hover{filter:brightness(.96);text-decoration:underline}
+.aicard{scroll-margin-top:84px}
+.aicard.flash{animation:aiflash 1.6s ease-out}
+@keyframes aiflash{0%{box-shadow:0 0 0 3px var(--accent)}100%{box-shadow:0 0 0 3px transparent}}
