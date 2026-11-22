@@ -1161,3 +1161,35 @@ body.testmode .tdp.p-now{border-top-color:var(--ts)}
 .matlk{grid-template-columns:minmax(110px,170px) 1fr auto}
 .matlk .tmv{display:flex;gap:2px;align-items:center}
 @media (max-width:560px){.matlk{grid-template-columns:1fr auto}.matlk .matlb{grid-column:1/-1}}
+/* AI使い分け */
+.aihead{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px}
+.aihead .seg{margin:0}.aihead .lq{flex:1;min-width:180px}
+.ainow{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin:0 0 14px;display:grid;gap:4px}
+.ainr{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;font-size:13px}.ainr>b{min-width:120px}
+.aip{padding:2px 9px;border-radius:12px;font-size:12.5px;border:1px solid var(--line)}
+.aip.ok{background:#e4f4ea;border-color:#b5dcc3;color:#1f5a38}.aip.wait{background:#f1f1f1;color:#777}
+.aisec{margin:0 0 18px}.aisec>h3{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:8px}
+.aidot{width:10px;height:10px;border-radius:50%;background:var(--sc)}
+.aicard{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin:0 0 10px;overflow:hidden}
+.aicard.wait{opacity:.82}
+.aich{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:8px 12px;background:rgba(0,0,0,.035);border-bottom:1px solid var(--line)}
+.aich input[type=text]{width:140px}
+.ain{font-size:15px}.aisp{flex:1}
+.aistat{font-size:12.5px;padding:2px 9px;border-radius:12px}.aistat.ok{background:#e4f4ea;color:#1f5a38}.aistat.wait{background:#fdecd3;color:#8a5a12}
+.aicnt{font-size:12px;color:#8a5a12}
+.aijob{display:flex;gap:10px;align-items:flex-start;padding:7px 12px;border-top:1px solid var(--line)}
+.aijob:first-of-type{border-top:0}.aijob.editing{display:block}
+.aie{flex:none;width:1.6em;text-align:center}.aijt{flex:1;min-width:0;line-height:1.5}
+.aijt b{font-weight:600}.ainote{display:inline-block;margin-left:8px;font-size:12.5px;color:#666}
+.aist{font-size:11.5px;padding:1px 8px;border-radius:10px;margin-left:4px;border:1px solid var(--line)}
+.aist.s-making{background:#fff1d6;color:#8a5a12;border-color:#f0d9a8}.aist.s-using{background:#e1ecfb;color:#274d86;border-color:#bcd0ee}.aist.s-done{background:#e4f4ea;color:#1f5a38;border-color:#b5dcc3}.aist.s-unused{background:#eee;color:#777}
+.aichip{display:inline-block;font-size:12px;padding:1px 9px;border-radius:12px;border:1px solid var(--sc);color:#1f2a44;background:color-mix(in srgb,var(--sc) 14%,#fff);margin-left:6px}
+.aiwho.wait .aichip{opacity:.55}
+.aimv{flex:none;display:flex;gap:3px}
+.aiadd{padding:6px 12px;border-top:1px solid var(--line)}
+.aiform{padding:6px 0}.aigrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 12px}
+.aigrid label{display:block;font-size:12px;color:#555}.aigrid .w2{grid-column:span 2}
+.aigrid input,.aigrid select{display:block;width:100%;box-sizing:border-box;margin-top:2px}
+.aibtns{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+@media (max-width:560px){.aigrid .w2{grid-column:auto}.aijob{flex-wrap:wrap}}
+.aihead select{width:auto}.aihead .lq{flex:1 1 240px;width:auto}
