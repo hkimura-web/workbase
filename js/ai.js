@@ -167,11 +167,19 @@
     let h = '<div class="aihead" style="margin-top:-2px"><button class="btn" data-ai="pr-new">＋ 新しいプロンプト</button><button class="btn" data-ai="pr-all" data-v="1">すべて開く</button><button class="btn" data-ai="pr-all" data-v="0">すべて閉じる</button><select id="aipf" aria-label="種類で絞る"><option value="">種類：すべて</option>' + d.cats.map(c => '<option value="' + esc(c.e) + '"' + (ui.pf === c.e ? " selected" : "") + ">" + esc(c.e + " " + c.n) + "</option>").join("") + "</select></div>";
     if (ui.pe === "new") h += '<div class="aicard aipc">' + prForm(d, ui.pd || { t: "", b: "", e: d.cats[0] ? d.cats[0].e : "📍" }, true) + "</div>";
     if (!l.length && ui.pe !== "new") return h + '<p class="note">' + (d.prompts.length ? "見つかりません。" : "まだプロンプトがありません。「＋ 新しいプロンプト」から入れてください。") + "</p>";
-    return h + l.slice().sort((a, b) => (a.t < b.t ? -1 : a.t > b.t ? 1 : 0)).map(p => {
+    const card = p => {
       if (ui.pe === p.id) return '<div class="aicard aipc" data-pid="' + p.id + '">' + prForm(d, p, false) + "</div>";
       const used = d.jobs.filter(j => j.pr === p.id).length, open = !!(ui.po && ui.po[p.id]);
       return '<div class="aicard aipc' + (open ? "" : " col") + (ui.pj === p.id ? " flash" : "") + '" data-pid="' + p.id + '"><div class="aich aitog" data-ai="pr-tog" data-id="' + p.id + '" role="button" tabindex="0" aria-expanded="' + open + '"><span class="aichev">' + (open ? "▾" : "▸") + '</span><span class="aie">' + esc(p.e) + '</span><b class="ain">' + esc(p.t || "（無題）") + "</b>" + (used ? '<span class="aicnt">使っている作業 ' + used + "件</span>" : "") + '<span class="note">' + (p.u ? "更新 " + dstr(p.u) : "") + '</span><span class="aisp"></span><button class="btn sm" data-ai="pr-copy" data-id="' + p.id + '">コピー</button><button class="btn sm" data-ai="pr-ed" data-id="' + p.id + '">編集</button></div>' +
         (open ? (p.m ? '<div class="aipm-v">' + esc(p.m) + "</div>" : "") + '<pre class="aipre open">' + esc(p.b) + "</pre>" : "") + "</div>";
+    };
+    /* 作業の種類ごと（種類の設定の順）に分けて、種類ごとに閉じられる */
+    const keys = d.cats.map(c => c.e), g = {};
+    l.forEach(p => { const k = keys.includes(p.e) ? p.e : "_"; (g[k] = g[k] || []).push(p); });
+    return h + keys.concat(["_"]).filter(k => g[k]).map(k => {
+      const id = "pg:" + k, col = !!ui.cl[id] && !g[k].some(p => ui.pe === p.id);
+      return '<div class="aicard aigrp' + (col ? " col" : "") + '"><div class="aich aitog" data-ai="cl" data-id="' + esc(id) + '" role="button" tabindex="0" aria-expanded="' + !col + '"><span class="aichev">' + (col ? "▸" : "▾") + '</span><span class="aie">' + (k === "_" ? "・" : esc(k)) + '</span><b class="ain">' + esc(k === "_" ? "その他" : catN(d, k)) + '</b><span class="note">' + g[k].length + "件</span></div>" +
+        (col ? "" : '<div class="aigb">' + g[k].slice().sort((a, b) => (a.t < b.t ? -1 : a.t > b.t ? 1 : 0)).map(card).join("") + "</div>") + "</div>";
     }).join("");
   }
   const bodyOf = d => (ui.v === "acct" ? viewAcct(d) : ui.v === "job" ? viewJob(d) : viewPr(d));
@@ -270,7 +278,7 @@
     if (a === "pr-all") { ui.po = {}; if (b.dataset.v === "1") d.prompts.forEach(x => { ui.po[x.id] = 1; }); return A.render(); }
     if (a === "pr-tog") { if (e.target.closest("button,input,select,a,label")) return; ui.po = ui.po || {}; if (ui.po[id]) delete ui.po[id]; else ui.po[id] = 1; return A.render(); }
     if (a === "pr-copy") { const p = prOf(d, id); if (p) copyText(p.b || ""); return; }
-    if (a === "pr-go") { ui.v = "pr"; ui.pe = null; ui.q = ""; ui.pf = ""; ui.pj = id; ui.po = ui.po || {}; ui.po[id] = 1; A.render(); setTimeout(() => { const el = document.querySelector('[data-pid="' + id + '"]'); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); ui.pj = null; }, 60); return; }
+    if (a === "pr-go") { ui.v = "pr"; ui.pe = null; ui.q = ""; ui.pf = ""; ui.pj = id; ui.po = ui.po || {}; ui.po[id] = 1; { const pp = prOf(d, id); if (pp) { const kk = d.cats.some(c => c.e === pp.e) ? pp.e : "_"; if (ui.cl["pg:" + kk]) { delete ui.cl["pg:" + kk]; clSave(); } } } A.render(); setTimeout(() => { const el = document.querySelector('[data-pid="' + id + '"]'); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); ui.pj = null; }, 60); return; }
     if (a === "pr-imp") {
       const dd = M().S().docs.find(x => x.id === val("pr_imp")); if (!dd) { A.toast && A.toast("取り込む手順・メモを選んでください"); return; }
       ui.pd = { t: dd.t || "", m: val("pr_m"), b: htmlText(dd.b), e: val("pr_e") || (d.cats[0] ? d.cats[0].e : "📍") }; return A.render();
