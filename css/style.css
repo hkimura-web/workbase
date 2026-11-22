@@ -1236,3 +1236,9 @@ button.aip:hover{filter:brightness(.96);text-decoration:underline}
 .aipb{font-size:20px;line-height:1;padding:5px 7px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}
 .aipb:hover{border-color:var(--accent);background:#eef3fd}
 .aibandb .aip.wait{background:#c3c9d2;border-color:#a3abb8;color:#3f4757}
+/* プロンプト集 */
+.aipc .aich{border-bottom:0}
+.aipre{margin:0;padding:6px 14px 10px 44px;white-space:pre-wrap;word-break:break-word;font:12.5px/1.6 var(--f-body,inherit);color:#555;max-height:4.2em;overflow:hidden}
+.aipre.open{max-height:none;color:#222;background:#fafbfd;border-top:1px solid var(--line)}
+.aipta{width:100%;box-sizing:border-box;font:13px/1.6 monospace;margin-top:2px;resize:vertical}
+.aiprf{padding:10px 14px}

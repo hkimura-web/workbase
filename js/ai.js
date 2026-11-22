@@ -31,6 +31,7 @@
   const dkey = t => { const x = new Date(t); return x.getFullYear() * 400 + x.getMonth() * 31 + x.getDate(); };
   const when = t => { const x = new Date(t), dd = dkey(t) - dkey(now()); return (dd === 0 ? "" : dd === 1 ? "明日 " : (x.getMonth() + 1) + "/" + x.getDate() + " ") + hm(t); };
   const left = t => { const m = Math.max(1, Math.ceil((t - now()) / 60000)); return m >= 60 ? Math.floor(m / 60) + "時間" + (m % 60 ? m % 60 + "分" : "") : m + "分"; };
+  const prOf = (d, id) => (d.prompts || []).find(x => x.id === id);
   const acctOf = (d, id) => d.accts.find(a => a.id === id);
   const catN = (d, e) => { const c = d.cats.find(x => x.e === e); return c ? c.n : "その他"; };
   const fx = e => (e === "\u270f" || e === "\u2702" ? e + "\ufe0f" : e);   /* ✏ ✂ は、絵（色つき）で出す */
@@ -45,6 +46,15 @@
   }
   const stChip = st => st ? '<span class="aist s-' + st + '">' + STN(st) + "</span>" : "";
   function docOpts(d, cur) {
+    let o = '<option value="">（なし）</option>';
+    (d.prompts || []).slice().sort((a, b) => (a.t < b.t ? -1 : 1)).forEach(x => { const v = "p:" + x.id; o += '<option value="' + esc(v) + '"' + (v === cur ? " selected" : "") + ">" + esc(x.t || "（無題）") + "</option>"; });
+    if (cur && cur.indexOf("p:") !== 0) {   /* 前につないだ「手順・メモ」は、そのまま残す */
+      const S = M().S(), k = cur.split(":"), doc = k[0] === "work" ? S.docs.find(x => x.id === k.slice(1).join(":")) : null;
+      o += '<option value="' + esc(cur) + '" selected>手順メモ：' + esc(doc ? doc.t : "（つないだメモ）") + "</option>";
+    }
+    return o;
+  }
+  function docOptsOld(d, cur) {
     const S = M().S(); let o = '<option value="">（なし）</option>';
     const l = S.docs.map(x => ["work", x.id, x.t]).concat(A.memo && A.memo.otherDocs ? A.memo.otherDocs().map(x => [x.cat === "授業" ? "class" : "test", x.id, x.t]) : []);
     l.forEach(x => { const v = x[0] + ":" + x[1]; o += '<option value="' + esc(v) + '"' + (v === cur ? " selected" : "") + ">" + esc(x[2] || "（無題）") + "</option>"; });
@@ -57,7 +67,7 @@
       '<label>状態<select id="ai_st">' + ST.map(s => '<option value="' + s[0] + '"' + (s[0] === j.st ? " selected" : "") + ">" + s[1] + "</option>").join("") + "</select></label>" +
       '<label class="w2">作業名<input type="text" id="ai_t" value="' + esc(j.t) + '" placeholder="例：定期試験（古典）問題作成（白波）"></label>' +
       '<label>アカウント<select id="ai_a">' + acctOpts(d, j.a) + "</select></label>" +
-      '<label>プロンプト（手順・メモ）<select id="ai_d">' + docOpts(d, j.d || "") + "</select></label>" +
+      '<label>プロンプト（プロンプト集から選ぶ）<select id="ai_d">' + docOpts(d, j.pr ? "p:" + j.pr : (j.d || "")) + "</select></label>" +
       '<label class="w2">ひとこと<input type="text" id="ai_n" value="' + esc(j.n) + '" placeholder="例：2027ルビチェック"></label></div>' +
       '<div class="aibtns"><button class="btn" data-ai="job-ok" data-id="' + (isNew ? "" : j.id) + '">保存</button><button class="btn" data-ai="job-no">閉じる（保存しない）</button>' +
       (isNew ? "" : '<span class="aisp"></span><select id="ai_cp" aria-label="別のアカウントにも作る"><option value="">別のアカウントにも作る…</option>' + acctOpts(d, "").replace(/<option value="/, '<option value="') + '</select><button class="btn" data-ai="job-cp" data-id="' + j.id + '">コピーを作る</button><button class="btn danger" data-ai="job-del" data-id="' + j.id + '">削除</button>') + "</div></div>";
@@ -66,7 +76,7 @@
     if (ui.ed === j.id) return '<div class="aijob editing">' + jobForm(d, j, false) + "</div>";
     const a = acctOf(d, j.a), dd = j.d ? j.d.split(":") : null;
     return '<div class="aijob s-' + (j.st || "n") + '"><span class="aie">' + esc(j.e) + '</span><div class="aijt"><b>' + esc(j.t) + "</b> " + stChip(j.st) + (j.n ? '<span class="ainote">' + esc(j.n) + "</span>" : "") +
-      (dd ? ' <button class="btn sm" data-ai="doc" data-s="' + esc(dd[0]) + '" data-id="' + esc(dd.slice(1).join(":")) + '">📄 プロンプト</button>' : "") +
+      (j.pr && prOf(d, j.pr) ? ' <button class="btn sm" data-ai="pr-go" data-id="' + j.pr + '">📄 プロンプト</button><button class="btn sm" data-ai="pr-copy" data-id="' + j.pr + '">コピー</button>' : "") + (dd ? ' <button class="btn sm" data-ai="doc" data-s="' + esc(dd[0]) + '" data-id="' + esc(dd.slice(1).join(":")) + '">📄 プロンプト</button>' : "") +
       (byAcct ? "" : ' <span class="aiwho' + (a && !avail(a) ? " wait" : "") + '">' + (a ? chipS(a) : "") + "</span>") + "</div>" +
       '<span class="aimv">' + (byAcct ? '<button class="btn sm" data-ai="up" data-id="' + j.id + '" aria-label="上へ">▲</button><button class="btn sm" data-ai="dn" data-id="' + j.id + '" aria-label="下へ">▼</button>' : "") + '<button class="btn sm" data-ai="ed" data-id="' + j.id + '" aria-label="編集">編集</button></span></div>';
   }
@@ -129,12 +139,43 @@
     if (ui.cp === "new") h += palette("new");
     return h + '</div><p class="note" style="margin:6px 0 0">マークを変えると、その種類の作業も新しいマークに変わります。種類を削除した作業は「その他」に入ります（作業は消えません）。</p></section>';
   }
+  /* ---------- プロンプト集 ---------- */
+  const htmlText = h => { const e = document.createElement("div"); e.innerHTML = String(h || "").replace(/<br\s*\/?>/gi, "\n").replace(/<\/(p|div|li|h\d)>/gi, "\n"); return e.textContent.replace(/\n{3,}/g, "\n\n").trim(); };
+  const dstr = t => { if (!t) return ""; const x = new Date(t); return x.getFullYear() + "/" + (x.getMonth() + 1) + "/" + x.getDate(); };
+  function copyText(text) {
+    const ok = () => A.toast && A.toast("コピーしました");
+    if (root.navigator && navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(ok, () => fallback());
+    else fallback();
+    function fallback() { const t = document.createElement("textarea"); t.value = text; t.style.cssText = "position:fixed;opacity:0"; document.body.appendChild(t); t.select(); try { document.execCommand("copy"); ok(); } catch (e) { A.toast && A.toast("コピーできませんでした"); } t.remove(); }
+  }
+  function prForm(d, p, isNew) {
+    const docs = M().S().docs.map(x => '<option value="' + esc(x.id) + '">' + esc(x.t || "（無題）") + "</option>").join("");
+    return '<div class="aiform aiprf"><div class="aifh"><b>' + (isNew ? "新しいプロンプト" : "プロンプトを編集中") + '</b><button class="btn sm" data-ai="pr-no">✕ 閉じる</button></div>' +
+      '<div class="aigrid"><label class="w2">題名<input type="text" id="pr_t" value="' + esc(p.t) + '" placeholder="例：定期試験（古典）問題作成"></label>' +
+      '<label>作業の種類<select id="pr_e">' + (d.cats.some(c => c.e === p.e) ? "" : '<option value="' + esc(p.e) + '" selected>' + esc(p.e + " その他") + "</option>") + d.cats.map(c => '<option value="' + esc(c.e) + '"' + (c.e === p.e ? " selected" : "") + ">" + esc(c.e + " " + c.n) + "</option>").join("") + "</select></label></div>" +
+      '<label class="small" style="display:block;margin-top:8px">本文（AIに貼る文章）<textarea id="pr_b" rows="14" class="aipta" placeholder="ここにプロンプトを貼り付けます">' + esc(p.b) + "</textarea></label>" +
+      '<div class="aibtns"><button class="btn" data-ai="pr-ok" data-id="' + (isNew ? "" : p.id) + '">保存</button><button class="btn" data-ai="pr-no">閉じる（保存しない）</button>' +
+      (isNew ? '<span class="aisp"></span><select id="pr_imp" aria-label="手順・メモから取り込む"><option value="">手順・メモから取り込む…</option>' + docs + '</select><button class="btn" data-ai="pr-imp">取り込む</button>' : '<span class="aisp"></span><button class="btn danger" data-ai="pr-del" data-id="' + p.id + '">削除</button>') + "</div></div>";
+  }
+  function viewPr(d) {
+    d.prompts = d.prompts || [];
+    const q = nfkc(ui.q).split(/\s+/).filter(Boolean), l = d.prompts.filter(p => (!ui.pf || p.e === ui.pf) && q.every(t => nfkc(p.t + " " + p.b).indexOf(t) >= 0));
+    let h = '<div class="aihead" style="margin-top:-2px"><button class="btn" data-ai="pr-new">＋ 新しいプロンプト</button><select id="aipf" aria-label="種類で絞る"><option value="">種類：すべて</option>' + d.cats.map(c => '<option value="' + esc(c.e) + '"' + (ui.pf === c.e ? " selected" : "") + ">" + esc(c.e + " " + c.n) + "</option>").join("") + "</select></div>";
+    if (ui.pe === "new") h += '<div class="aicard aipc">' + prForm(d, ui.pd || { t: "", b: "", e: d.cats[0] ? d.cats[0].e : "📍" }, true) + "</div>";
+    if (!l.length && ui.pe !== "new") return h + '<p class="note">' + (d.prompts.length ? "見つかりません。" : "まだプロンプトがありません。「＋ 新しいプロンプト」から入れてください。") + "</p>";
+    return h + l.slice().sort((a, b) => (a.t < b.t ? -1 : a.t > b.t ? 1 : 0)).map(p => {
+      if (ui.pe === p.id) return '<div class="aicard aipc" data-pid="' + p.id + '">' + prForm(d, p, false) + "</div>";
+      const used = d.jobs.filter(j => j.pr === p.id).length, open = ui.po && ui.po[p.id];
+      return '<div class="aicard aipc' + (ui.pj === p.id ? " flash" : "") + '" data-pid="' + p.id + '"><div class="aich"><span class="aie">' + esc(p.e) + '</span><b class="ain">' + esc(p.t || "（無題）") + "</b>" + (used ? '<span class="aicnt">使っている作業 ' + used + "件</span>" : "") + '<span class="note">' + (p.u ? "更新 " + dstr(p.u) : "") + '</span><span class="aisp"></span><button class="btn sm" data-ai="pr-copy" data-id="' + p.id + '">コピー</button><button class="btn sm" data-ai="pr-tog" data-id="' + p.id + '">' + (open ? "閉じる" : "本文を見る") + '</button><button class="btn sm" data-ai="pr-ed" data-id="' + p.id + '">編集</button></div>' +
+        '<pre class="aipre' + (open ? " open" : "") + '">' + esc(open ? p.b : (p.b || "").split("\n").slice(0, 2).join("\n")) + "</pre></div>";
+    }).join("");
+  }
   A.ai.view = function () {
     const d = D(); if (!d) return '<p class="note">読み込んでいます…</p>';
     const nWait = d.accts.filter(a => !avail(a)).length;
-    return '<div class="aihead"><div class="seg"><button data-ai="v" data-v="acct" aria-pressed="' + (ui.v === "acct") + '">アカウントごと</button><button data-ai="v" data-v="job" aria-pressed="' + (ui.v === "job") + '">作業ごと</button></div>' +
-      '<input type="search" id="aiq" class="lq" placeholder="さがす（作業名・アカウント）" value="' + esc(ui.q) + '" autocomplete="off"><button class="btn" data-ai="cm-tog" title="作業のマークと名前を決める">⚙ 作業の種類を設定</button><select id="aif" aria-label="状態で絞る"><option value="">状態：すべて</option>' + ST.slice(0, 4).map(s => '<option value="' + s[0] + '"' + (ui.f === s[0] ? " selected" : "") + ">" + s[1] + "</option>").join("") + "</select></div>" +
-      nowStrip(d) + catMgr(d) + (ui.v === "acct" ? viewAcct(d) : viewJob(d)) +
+    return '<div class="aihead"><div class="seg"><button data-ai="v" data-v="acct" aria-pressed="' + (ui.v === "acct") + '">アカウントごと</button><button data-ai="v" data-v="job" aria-pressed="' + (ui.v === "job") + '">作業ごと</button><button data-ai="v" data-v="pr" aria-pressed="' + (ui.v === "pr") + '">プロンプト集</button></div>' +
+      '<input type="search" id="aiq" class="lq" placeholder="' + (ui.v === "pr" ? "さがす（題名・本文）" : "さがす（作業名・アカウント）") + '" value="' + esc(ui.q) + '" autocomplete="off"><button class="btn" data-ai="cm-tog" title="作業のマークと名前を決める">⚙ 作業の種類を設定</button>' + (ui.v === "pr" ? "" : '<select id="aif" aria-label="状態で絞る"><option value="">状態：すべて</option>' + ST.slice(0, 4).map(s => '<option value="' + s[0] + '"' + (ui.f === s[0] ? " selected" : "") + ">" + s[1] + "</option>").join("") + "</select>") + '</div>' +
+      (ui.v === "pr" ? "" : nowStrip(d)) + catMgr(d) + (ui.v === "acct" ? viewAcct(d) : ui.v === "job" ? viewJob(d) : viewPr(d)) +
       '<p class="note">メールアドレスは入れず、呼び名だけで管理します（このデータは公開のGitHubに入るため）。待ち時間はアカウントごとに「設定」で変えられます。' + (nWait ? "いま待ちのアカウント：" + nWait : "") + "</p>";
   };
   /* トップページの細い帯（重要Tipsと今朝のまとめの間）。押すとAIのページが開く */
@@ -160,14 +201,14 @@
       if (ui.v !== "acct" || !document.querySelector('[data-aid="' + id + '"]')) { ui.v = "acct"; ui.q = ""; ui.f = ""; A.render(); }
       setTimeout(go, 60); return;
     }
-    if (a === "v") { ui.v = b.dataset.v; return A.render(); }
+    if (a === "v") { ui.v = b.dataset.v; ui.pe = null; return A.render(); }
     if (a === "ed") { ui.ed = id; ui.na = null; return A.render(); }
     if (a === "job-no") { ui.ed = null; ui.na = null; return A.render(); }
     if (a === "job-new") { ui.na = id; ui.ed = null; return A.render(); }
     if (a === "job-ok") {
       const t = val("ai_t").trim(); if (!t) { A.toast && A.toast("作業名を入れてください"); return; }
-      const f = { e: val("ai_e"), st: val("ai_st"), t, a: val("ai_a"), n: val("ai_n").trim(), d: val("ai_d") };
-      if (!f.d) delete f.d;
+      const f = { e: val("ai_e"), st: val("ai_st"), t, a: val("ai_a"), n: val("ai_n").trim() }, dv = val("ai_d");
+      if (dv.indexOf("p:") === 0) f.pr = dv.slice(2); else if (dv) f.d = dv;
       if (id) { const j = d.jobs[jobAt()]; if (j) { Object.keys(j).forEach(k => { if (k !== "id") delete j[k]; }); Object.assign(j, f); } } else d.jobs.push(Object.assign({ id: nid(d, "j") }, f));
       ui.ed = null; ui.na = null; return save();
     }
@@ -212,6 +253,23 @@
     }
     if (a === "cat-up" || a === "cat-dn") { const i = +b.dataset.i, k = i + (a === "cat-up" ? -1 : 1); if (k < 0 || k >= d.cats.length) return; const t = d.cats[i]; d.cats[i] = d.cats[k]; d.cats[k] = t; return save(); }
     if (a === "cat-del") { const c = d.cats[+b.dataset.i], n = c ? d.jobs.filter(j => j.e === c.e).length : 0; if (c && root.confirm("作業の種類「" + c.e + " " + c.n + "」を削除します。" + (n ? "この種類の作業 " + n + " 件は「その他」に入ります。" : "") + "よろしいですか？")) { d.cats.splice(+b.dataset.i, 1); save(); } return; }
+    if (a === "pr-new") { ui.pe = "new"; ui.pd = null; return A.render(); }
+    if (a === "pr-no") { ui.pe = null; ui.pd = null; return A.render(); }
+    if (a === "pr-ed") { ui.pe = id; return A.render(); }
+    if (a === "pr-tog") { ui.po = ui.po || {}; if (ui.po[id]) delete ui.po[id]; else ui.po[id] = 1; return A.render(); }
+    if (a === "pr-copy") { const p = prOf(d, id); if (p) copyText(p.b || ""); return; }
+    if (a === "pr-go") { ui.v = "pr"; ui.pe = null; ui.q = ""; ui.pf = ""; ui.pj = id; ui.po = ui.po || {}; ui.po[id] = 1; A.render(); setTimeout(() => { const el = document.querySelector('[data-pid="' + id + '"]'); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); ui.pj = null; }, 60); return; }
+    if (a === "pr-imp") {
+      const dd = M().S().docs.find(x => x.id === val("pr_imp")); if (!dd) { A.toast && A.toast("取り込む手順・メモを選んでください"); return; }
+      ui.pd = { t: dd.t || "", b: htmlText(dd.b), e: val("pr_e") || (d.cats[0] ? d.cats[0].e : "📍") }; return A.render();
+    }
+    if (a === "pr-ok") {
+      const t = val("pr_t").trim(), body = val("pr_b").replace(/\r\n/g, "\n"); if (!t) { A.toast && A.toast("題名を入れてください"); return; }
+      d.prompts = d.prompts || [];
+      if (id) { const p = prOf(d, id); if (p) { p.t = t; p.b = body; p.e = val("pr_e"); p.u = now(); } } else d.prompts.push({ id: nid(d, "p"), t, b: body, e: val("pr_e"), u: now() });
+      ui.pe = null; ui.pd = null; return save();
+    }
+    if (a === "pr-del") { const p = prOf(d, id), n = d.jobs.filter(j => j.pr === id).length; if (p && root.confirm("プロンプト「" + p.t + "」を削除します。" + (n ? "使っている作業 " + n + " 件のつなぎは外れます（作業は消えません）。" : "") + "よろしいですか？")) { d.prompts = d.prompts.filter(x => x.id !== id); d.jobs.forEach(j => { if (j.pr === id) delete j.pr; }); ui.pe = null; save(); } return; }
     if (a === "doc") { if (A.memo && A.memo.openDoc) A.memo.openDoc(b.dataset.s, id, false); return; }
   });
   document.addEventListener("keydown", e => {
@@ -224,12 +282,13 @@
   });
   document.addEventListener("change", e => {
     const t = e.target; if (!t) return;
+    if (t.id === "aipf") { ui.pf = t.value; A.render(); return; }
     if (t.id === "aif") { ui.f = t.value; A.render(); return; }
     if (t.dataset && t.dataset.aicn !== undefined) { const d = D(), c = d && d.cats[+t.dataset.aicn]; if (c && t.value.trim()) { c.n = t.value.trim(); save(); } return; }
     });
   setInterval(() => {
     if (document.hidden || !A.ui || A.ui.mode !== "work" || A.ui.work.tab !== "ai") return;
-    if (ui.ed || ui.na || ui.ea || ui.ns || ui.sa || document.querySelector("dialog[open]") || (document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))) return;
+    if (ui.ed || ui.na || ui.ea || ui.ns || ui.sa || ui.pe || document.querySelector("dialog[open]") || (document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))) return;
     A.render();
   }, 60000);
 })(window);
