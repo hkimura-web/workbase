@@ -1206,3 +1206,9 @@ body:has(.sg) .side .si.ai{margin-bottom:6px;border-bottom:1px solid rgba(255,25
 .aibandb{cursor:pointer;padding:8px 16px;display:grid;gap:3px}
 .aibandb:hover{background:rgba(0,0,0,.02)}
 .aibandb .ainr>b{min-width:110px}
+.aicl{display:grid;gap:6px;padding:8px 0}
+.aicr{display:flex;gap:8px;align-items:center}
+.aicr .aice{width:64px;flex:none;text-align:center;font-size:18px}
+.aicr .aicn{flex:1;min-width:0}
+.aicadd{padding:6px 0 2px;border-top:1px solid var(--line)}
+@media (max-width:560px){.aicr{flex-wrap:wrap}}

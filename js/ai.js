@@ -15,7 +15,8 @@
   const D = () => {
     const S = M() && M().S(); if (!S) return null;
     if (!S.ai || !Array.isArray(S.ai.accts)) { S.ai = JSON.parse(JSON.stringify(root.AISEED || { v: 1, accts: [], jobs: [], cats: [], seq: 0 })); M().save(); }
-    const d = S.ai; d.jobs = d.jobs || []; d.cats = d.cats || []; d.seq = d.seq || d.jobs.length; return d;
+    const d = S.ai; d.jobs = d.jobs || []; d.cats = d.cats || [];
+    d.jobs.forEach(j => { j.e = fx(j.e); }); d.cats.forEach(c => { c.e = fx(c.e); }); d.seq = d.seq || d.jobs.length; return d;
   };
   const save = () => { M().save(); A.render(); };
   const nid = (d, p) => p + (++d.seq).toString(36) + Math.random().toString(36).slice(2, 4);
@@ -25,6 +26,7 @@
   const left = t => { const m = Math.max(1, Math.ceil((t - now()) / 60000)); return m >= 60 ? Math.floor(m / 60) + "時間" + (m % 60 ? m % 60 + "分" : "") : m + "分"; };
   const acctOf = (d, id) => d.accts.find(a => a.id === id);
   const catN = (d, e) => { const c = d.cats.find(x => x.e === e); return c ? c.n : "その他"; };
+  const fx = e => (e === "\u270f" || e === "\u2702" ? e + "\ufe0f" : e);   /* ✏ ✂ は、絵（色つき）で出す */
   const nfkc = s => String(s || "").normalize("NFKC").toLowerCase();
   const chipS = (a) => { const s = SVN(a.s); return '<span class="aichip" style="--sc:' + s[2] + '">' + esc(s[1]) + "・" + esc(a.n) + "</span>"; };
 
@@ -44,7 +46,7 @@
   function acctOpts(d, cur) { return d.accts.map(a => '<option value="' + a.id + '"' + (a.id === cur ? " selected" : "") + ">" + esc(SVN(a.s)[1] + "・" + a.n) + "</option>").join(""); }
   function jobForm(d, j, isNew) {
     return '<div class="aiform" data-aiform="' + (isNew ? "new" : j.id) + '"><div class="aifh"><b>' + (isNew ? "作業を追加" : "作業を編集中") + '</b><button class="btn sm" data-ai="job-no" aria-label="閉じる">✕ 閉じる</button></div><div class="aigrid">' +
-      '<label>分類<select id="ai_e">' + d.cats.map(c => '<option value="' + esc(c.e) + '"' + (c.e === j.e ? " selected" : "") + ">" + esc(c.e + " " + c.n) + "</option>").join("") + "</select></label>" +
+      '<label>分類<select id="ai_e">' + (d.cats.some(c => c.e === j.e) ? "" : '<option value="' + esc(j.e) + '" selected>' + esc(j.e + " その他") + "</option>") + d.cats.map(c => '<option value="' + esc(c.e) + '"' + (c.e === j.e ? " selected" : "") + ">" + esc(c.e + " " + c.n) + "</option>").join("") + "</select></label>" +
       '<label>状態<select id="ai_st">' + ST.map(s => '<option value="' + s[0] + '"' + (s[0] === j.st ? " selected" : "") + ">" + s[1] + "</option>").join("") + "</select></label>" +
       '<label class="w2">作業名<input type="text" id="ai_t" value="' + esc(j.t) + '" placeholder="例：定期試験（古典）問題作成（白波）"></label>' +
       '<label>アカウント<select id="ai_a">' + acctOpts(d, j.a) + "</select></label>" +
@@ -100,8 +102,13 @@
     return keys.concat(["_"]).filter(k => g[k]).map(k => '<section class="aisec"><h3><span class="aie">' + (k === "_" ? "・" : esc(k)) + "</span>" + esc(k === "_" ? "その他" : catN(d, k)) + ' <span class="note">' + g[k].length + "件</span></h3>" +
       g[k].slice().sort((a, b) => (a.t < b.t ? -1 : a.t > b.t ? 1 : 0)).map((j, i) => jobRow(d, j, i, false)).join("") + "</section>").join("");
   }
+  const EMOJIS = ["🔴", "🟥", "🟠", "🟡", "🟢", "🔵", "🟣", "🟦", "🟪", "⚫", "✏️", "📍", "✂️", "📱", "💛", "🐽", "📝", "📚", "💻", "📊", "🎓", "🏃", "📌", "⭐", "🔥", "💡", "📧", "🗂️"];
   function catMgr(d) {
-    return '<details class="wdet"><summary><b>分類の名前を変える</b></summary><div class="aigrid" style="padding:8px 0">' + d.cats.map((c, i) => '<label>' + esc(c.e) + '<input type="text" data-aicat="' + i + '" value="' + esc(c.n) + '"></label>').join("") + "</div></details>";
+    const n = d.cats.length;
+    return '<details class="wdet aicm" id="aicm"' + (ui.cmo ? " open" : "") + '><summary><b>分類を編集する（マーク・名前・並び順・追加・削除）</b></summary><datalist id="ai_emo">' + EMOJIS.map(e => '<option value="' + e + '"></option>').join("") + "</datalist>" +
+      '<div class="aicl">' + d.cats.map((c, i) => '<div class="aicr"><input type="text" class="aice" data-aice="' + i + '" value="' + esc(c.e) + '" list="ai_emo" maxlength="8" aria-label="マーク" title="マーク（絵文字）。入力するか、候補から選べます"><input type="text" class="aicn" data-aicn="' + i + '" value="' + esc(c.n) + '" aria-label="分類の名前"><span class="aimv"><button class="btn sm" data-ai="cat-up" data-i="' + i + '"' + (i === 0 ? " disabled" : "") + ' aria-label="上へ">▲</button><button class="btn sm" data-ai="cat-dn" data-i="' + i + '"' + (i >= n - 1 ? " disabled" : "") + ' aria-label="下へ">▼</button><button class="btn sm danger" data-ai="cat-del" data-i="' + i + '">削除</button></span></div>').join("") + "</div>" +
+      '<div class="aicr aicadd"><input type="text" class="aice" id="ai_ne" list="ai_emo" maxlength="8" placeholder="マーク" aria-label="新しい分類のマーク"><input type="text" class="aicn" id="ai_nn2" placeholder="新しい分類の名前"><button class="btn" data-ai="cat-add">＋ 分類を追加</button></div>' +
+      '<p class="note" style="margin:6px 0 0">マークを変えると、その分類の作業も新しいマークに変わります。分類を削除した作業は「その他」に入ります（作業は消えません）。</p></details>';
   }
   A.ai.view = function () {
     const d = D(); if (!d) return '<p class="note">読み込んでいます…</p>';
@@ -156,8 +163,16 @@
     if (a === "acct-del") { const x = acctOf(d, id), n = d.jobs.filter(j => j.a === id).length; if (x && root.confirm("アカウント「" + x.n + "」を消します。" + (n ? "中の作業 " + n + " 件も消えます。" : "") + "よろしいですか？")) { d.accts = d.accts.filter(y => y.id !== id); d.jobs = d.jobs.filter(j => j.a !== id); ui.ea = null; save(); } return; }
     if (a === "acct-new") { ui.ns = b.dataset.s; return A.render(); }
     if (a === "acct-add") { const n = val("ai_nn").trim(); if (!n) return; d.accts.push({ id: nid(d, "a"), s: b.dataset.s, n, h: b.dataset.s === "claude" || b.dataset.s === "gpt" ? 5 : 24, lim: 0 }); ui.ns = null; return save(); }
+    if (a === "cat-add") {
+      const e = fx(val("ai_ne").trim()), n = val("ai_nn2").trim(); if (!e || !n) { A.toast && A.toast("マークと名前を入れてください"); return; }
+      if (d.cats.some(c => c.e === e)) { A.toast && A.toast("そのマークはもう使われています"); return; }
+      d.cats.push({ e, n }); ui.cmo = true; return save();
+    }
+    if (a === "cat-up" || a === "cat-dn") { const i = +b.dataset.i, k = i + (a === "cat-up" ? -1 : 1); if (k < 0 || k >= d.cats.length) return; const t = d.cats[i]; d.cats[i] = d.cats[k]; d.cats[k] = t; ui.cmo = true; return save(); }
+    if (a === "cat-del") { const c = d.cats[+b.dataset.i], n = c ? d.jobs.filter(j => j.e === c.e).length : 0; if (c && root.confirm("分類「" + c.e + " " + c.n + "」を削除します。" + (n ? "この分類の作業 " + n + " 件は「その他」に入ります。" : "") + "よろしいですか？")) { d.cats.splice(+b.dataset.i, 1); ui.cmo = true; save(); } return; }
     if (a === "doc") { if (A.memo && A.memo.openDoc) A.memo.openDoc(b.dataset.s, id, false); return; }
   });
+  document.addEventListener("toggle", e => { if (e.target && e.target.id === "aicm") ui.cmo = e.target.open; }, true);
   document.addEventListener("keydown", e => {
     if (e.key === "Escape" && (ui.ed || ui.na || ui.ea || ui.ns) && A.ui.mode === "work" && A.ui.work.tab === "ai") { ui.ed = ui.na = ui.ea = ui.ns = null; A.render(); }
   });
@@ -168,7 +183,12 @@
   document.addEventListener("change", e => {
     const t = e.target; if (!t) return;
     if (t.id === "aif") { ui.f = t.value; A.render(); return; }
-    if (t.dataset && t.dataset.aicat !== undefined) { const d = D(); const c = d && d.cats[+t.dataset.aicat]; if (c && t.value.trim()) { c.n = t.value.trim(); M().save(); } }
+    if (t.dataset && t.dataset.aicn !== undefined) { const d = D(), c = d && d.cats[+t.dataset.aicn]; if (c && t.value.trim()) { c.n = t.value.trim(); ui.cmo = true; save(); } return; }
+    if (t.dataset && t.dataset.aice !== undefined) {
+      const d = D(), c = d && d.cats[+t.dataset.aice], e = fx(t.value.trim()); if (!c) return;
+      if (!e || d.cats.some((x, i) => i !== +t.dataset.aice && x.e === e)) { A.toast && A.toast(e ? "そのマークはもう使われています" : "マークを入れてください"); ui.cmo = true; A.render(); return; }
+      d.jobs.forEach(j => { if (j.e === c.e) j.e = e; }); c.e = e; ui.cmo = true; save();
+    }
   });
   setInterval(() => {
     if (document.hidden || !A.ui || A.ui.mode !== "work" || A.ui.work.tab !== "ai") return;
