@@ -1273,3 +1273,8 @@ button.aip:hover{filter:brightness(.96);text-decoration:underline}
 /* 使用中：明るめオレンジのうすい色・普通の太さ */
 .aist.s-using,.aip.ok.use,.aibandb .aip.ok.use,.aiuse{background:color-mix(in srgb,#ff8a1f 18%,var(--surface));border:1px solid color-mix(in srgb,#ff8a1f 50%,var(--surface));color:color-mix(in srgb,#d96a00 80%,var(--ink));font-weight:400}
 .aistg.s-using{border-color:color-mix(in srgb,#ff8a1f 45%,var(--surface))}
+/* AI帯の色：使える＝白地で静かに／使用中＝珊瑚（うすい赤みオレンジ）／待ち＝薄いグレー */
+.aip.ok,.aibandb .aip.ok,.ainow .aip.ok{background:#fff;border-color:#cfd6e2;color:#44506a;font-weight:400}
+.aip.wait,.aibandb .aip.wait,.ainow .aip.wait{background:#f0f1f4;border-color:#d9dce3;color:#8a92a0}
+.aist.s-using,.aip.ok.use,.aibandb .aip.ok.use,.ainow .aip.ok.use,.aiuse{background:#ffe3dc;border:1px solid #f5a898;color:#b3361f;font-weight:400}
+.aistg.s-using{border-color:#f5a898}
