@@ -1267,3 +1267,6 @@ button.aip:hover{filter:brightness(.96);text-decoration:underline}
 .aip.ok.use,.aibandb .aip.ok.use{background:#ff2d6f;border-color:#e0125a;color:#fff;font-weight:700}
 .aiuse{background:#ff2d6f;color:#fff;border-radius:10px;padding:1px 8px;font-size:11px;font-weight:700;margin-left:6px}
 .aistg.s-using{border-color:#ff9db9}
+/* 使用中：重要Tipsのテスト成績と同じ、うすいピンク地＋濃いピンク字 */
+.aist.s-using,.aip.ok.use,.aibandb .aip.ok.use,.aiuse{background:color-mix(in srgb,#d6458a 13%,var(--surface));border:1px solid color-mix(in srgb,#d6458a 38%,var(--surface));color:color-mix(in srgb,#d6458a 78%,var(--ink));font-weight:700}
+.aistg.s-using{border-color:color-mix(in srgb,#d6458a 38%,var(--surface))}
