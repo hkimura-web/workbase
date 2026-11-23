@@ -1262,3 +1262,8 @@ button.aip:hover{filter:brightness(.96);text-decoration:underline}
 .aigb .aicard{margin:0 0 8px;background:var(--surface)}
 .aisn{font-size:inherit;opacity:.85;max-width:16em;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
 .aibandb .aip.wait,.ainow .aip.wait{max-width:100%}
+/* 使用中＝一番目立つ赤（パッションピンク） */
+.aist.s-using{background:#ff2d6f;color:#fff;border-color:#e0125a;font-weight:700}
+.aip.ok.use,.aibandb .aip.ok.use{background:#ff2d6f;border-color:#e0125a;color:#fff;font-weight:700}
+.aiuse{background:#ff2d6f;color:#fff;border-radius:10px;padding:1px 8px;font-size:11px;font-weight:700;margin-left:6px}
+.aistg.s-using{border-color:#ff9db9}
