@@ -1289,3 +1289,10 @@ button.aip:hover{filter:brightness(.96);text-decoration:underline}
 .aimbr>b{color:#b3361f;width:64px}
 .aimb{background:#ffe3dc;border:1px solid #f5a898;color:#b3361f;border-radius:12px;padding:2px 10px}
 .aimb small{margin-left:6px;opacity:.8}
+/* 同じ作業のまとめ */
+.aigp{margin:6px 8px;border:1px solid #f0d4cb;border-left:4px solid #f5a898;border-radius:8px;background:#fffdfc;overflow:hidden}
+.aigp .aijob:first-of-type{border-top:0}
+.aigh{display:flex;gap:10px;align-items:center;padding:4px 12px;background:#fff1ec;font-size:12px;color:#b3361f}
+/* 「同じ作業をまとめる」ボタン：重要Tipsのテスト成績と同じピンク */
+.aihead .btn[data-ai="gp"]{background:color-mix(in srgb,#d6458a 13%,var(--surface));border:1px solid color-mix(in srgb,#d6458a 38%,var(--surface));color:color-mix(in srgb,#d6458a 78%,var(--ink))}
+.aihead .btn[data-ai="gp"].on{background:color-mix(in srgb,#d6458a 22%,var(--surface));border-color:color-mix(in srgb,#d6458a 55%,var(--surface))}

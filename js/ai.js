@@ -82,6 +82,20 @@
       (byAcct ? "" : ' <span class="aiwho' + (a && !avail(a) ? " wait" : "") + '">' + (a ? chipS(a) : "") + "</span>") + "</div>" +
       '<span class="aimv">' + (byAcct ? '<button class="btn sm" data-ai="up" data-id="' + j.id + '" aria-label="上へ">▲</button><button class="btn sm" data-ai="dn" data-id="' + j.id + '" aria-label="下へ">▼</button>' : "") + '<button class="btn sm" data-ai="ed" data-id="' + j.id + '" aria-label="編集">編集</button></span></div>';
   }
+  /* 同じ名前の作業をまとめる（記憶：この端末） */
+  try { ui.gp = localStorage.getItem("jd.aigp") !== "0"; } catch (e) { ui.gp = true; }
+  function rows(d, list) {
+    if (!ui.gp) return list.map((j, i) => jobRow(d, j, i, false)).join("");
+    const key = j => (j.e || "") + "\u0001" + (j.t || "").trim(), seen = {}, order = [];
+    list.forEach(j => { const k = key(j); if (!seen[k]) { seen[k] = []; order.push(k); } seen[k].push(j); });
+    const rank = j => (j.fl ? 0 : 4) + (j.st === "using" ? 0 : 2) + (acctOf(d, j.a) && avail(acctOf(d, j.a)) ? 0 : 1);
+    return order.map(k => {
+      const g = seen[k].slice().sort((a, b) => rank(a) - rank(b));
+      if (g.length === 1) return jobRow(d, g[0], 0, false);
+      const ok = g.filter(j => { const a = acctOf(d, j.a); return a && avail(a); }).length, w = g.length - ok;
+      return '<div class="aigp"><div class="aigh"><b>同じ作業 ' + g.length + '件</b><span class="note">使える ' + ok + (w ? "・待ち " + w : "") + "</span></div>" + g.map((j, i) => jobRow(d, j, i, false)).join("") + "</div>";
+    }).join("");
+  }
   function acctCard(d, a) {
     const jobs = d.jobs.filter(j => j.a === a.id), shown = jobs.filter(j => jobMatch(d, j)), ok = avail(a);
     if ((ui.q || ui.f) && !shown.length) return "";
@@ -111,7 +125,7 @@
   const flagA = (d, a) => d.jobs.some(j => j.fl && j.a === a.id);
   function mainStrip(d) {
     const l = flagged(d);
-    return '<div class="aimain"><div class="ainh"><b>⚑ いまのメイン</b><span class="note">作業の左の旗を押すと、ここに並びます</span></div>' +
+    return '<div class="aimain"><div class="ainh"><b>⚑ 作業中</b><span class="note">作業の左の旗を押すと、ここに並びます</span></div>' +
       (l.length ? l.map(j => { const a = acctOf(d, j.a); return '<div class="aimi"><button class="aifl on" data-ai="flag" data-id="' + j.id + '" title="旗をはずす" aria-label="旗をはずす">⚑</button><span class="aie">' + esc(j.e) + "</span><b>" + esc(j.t) + "</b> " + stChip(j.st) + (a ? ' <button class="aiwho' + (avail(a) ? "" : " wait") + '" data-ai="jump" data-id="' + a.id + '" title="このアカウントの場所へ">' + chipS(a) + "</button>" : "") + (j.n ? '<span class="ainote">' + esc(j.n) + "</span>" : "") + "</div>"; }).join("") : '<p class="note">旗を立てた作業はまだありません。</p>') + "</div>";
   }
   function nowStrip(d) {
@@ -133,7 +147,7 @@
     const keys = d.cats.map(c => c.e), g = {}; l.forEach(j => { const k = keys.includes(j.e) ? j.e : "_"; (g[k] = g[k] || []).push(j); });
     return keys.concat(["_"]).filter(k => g[k]).map(k => { const id = "j:" + k, col = !!ui.cl[id];
       return '<div class="aicard' + (col ? " col" : "") + '"><div class="aich aitog" data-ai="cl" data-id="' + esc(id) + '" role="button" tabindex="0" aria-expanded="' + !col + '"><span class="aichev">' + (col ? "▸" : "▾") + '</span><span class="aie">' + (k === "_" ? "・" : esc(k)) + '</span><b class="ain">' + esc(k === "_" ? "その他" : catN(d, k)) + '</b><span class="note">' + g[k].length + "件</span></div>" +
-        (col ? "" : g[k].slice().sort((a, b) => (a.t < b.t ? -1 : a.t > b.t ? 1 : 0)).map((j, i) => jobRow(d, j, i, false)).join("")) + "</div>"; }).join("");
+        (col ? "" : rows(d, g[k].slice().sort((a, b) => (a.t < b.t ? -1 : a.t > b.t ? 1 : 0)))) + "</div>"; }).join("");
   }
   /* 状態ごと（使用中を一番上に） */
   const STO = ["using", "making", "done", "unused", ""];
@@ -143,7 +157,7 @@
     return STO.filter(k => l.some(j => (j.st || "") === k)).map(k => {
       const id = "s:" + (k || "none"), col = !!ui.cl[id], g = l.filter(j => (j.st || "") === k);
       return '<div class="aicard aistg s-' + (k || "n") + (col ? " col" : "") + '"><div class="aich aitog" data-ai="cl" data-id="' + id + '" role="button" tabindex="0" aria-expanded="' + !col + '"><span class="aichev">' + (col ? "▸" : "▾") + "</span>" + (k ? stChip(k) : '<b class="ain">状態なし</b>') + '<span class="note">' + g.length + "件</span></div>" +
-        (col ? "" : g.slice().sort((a, b) => (b.fl ? 1 : 0) - (a.fl ? 1 : 0) || ci(a.e) - ci(b.e) || (a.t < b.t ? -1 : a.t > b.t ? 1 : 0)).map((j, i) => jobRow(d, j, i, false)).join("")) + "</div>";
+        (col ? "" : rows(d, g.slice().sort((a, b) => (b.fl ? 1 : 0) - (a.fl ? 1 : 0) || ci(a.e) - ci(b.e) || (a.t < b.t ? -1 : a.t > b.t ? 1 : 0)))) + "</div>";
     }).join("");
   }
   const EMOJIS = ["🔴", "🟠", "🟡", "🟢", "🔵", "🟣", "⚫", "⚪", "🟥", "🟧", "🟨", "🟩", "🟦", "🟪", "⬛", "⬜", "✏️", "📍", "✂️", "📱", "💛", "🐽", "📝", "📚", "💻", "📊", "🎓", "🏃", "📌", "⭐", "🔥", "💡", "📧", "🗂️", "🏫", "👥", "📅", "🔍", "🎯", "🧪"];
@@ -212,7 +226,7 @@
     const d = D(); if (!d) return '<p class="note">読み込んでいます…</p>';
     const nWait = d.accts.filter(a => !avail(a)).length;
     return '<div class="aihead"><div class="seg"><button data-ai="v" data-v="acct" aria-pressed="' + (ui.v === "acct") + '">アカウントごと</button><button data-ai="v" data-v="job" aria-pressed="' + (ui.v === "job") + '">作業ごと</button><button data-ai="v" data-v="st" aria-pressed="' + (ui.v === "st") + '">状態ごと</button><button data-ai="v" data-v="pr" aria-pressed="' + (ui.v === "pr") + '">プロンプト集</button></div>' +
-      '<input type="search" id="aiq" class="lq" placeholder="' + (ui.v === "pr" ? "さがす（題名・本文）" : "さがす（作業名・アカウント）") + '" value="' + esc(ui.q) + '" autocomplete="off"><button class="btn" data-ai="cm-tog" title="作業のマークと名前を決める">⚙ 作業の種類を設定</button>' + (ui.v === "pr" || ui.v === "st" ? "" : '<select id="aif" aria-label="状態で絞る"><option value="">状態：すべて</option>' + ST.slice(0, 4).map(s => '<option value="' + s[0] + '"' + (ui.f === s[0] ? " selected" : "") + ">" + s[1] + "</option>").join("") + "</select>") + '</div>' +
+      '<input type="search" id="aiq" class="lq" placeholder="' + (ui.v === "pr" ? "さがす（題名・本文）" : "さがす（作業名・アカウント）") + '" value="' + esc(ui.q) + '" autocomplete="off">' + (ui.v === "job" || ui.v === "st" ? '<button class="btn' + (ui.gp ? " on" : "") + '" data-ai="gp" aria-pressed="' + !!ui.gp + '" title="同じ名前の作業を1つにまとめて見せます">同じ作業をまとめる</button>' : "") + '<button class="btn" data-ai="cm-tog" title="作業のマークと名前を決める">⚙ 作業の種類を設定</button>' + (ui.v === "pr" || ui.v === "st" ? "" : '<select id="aif" aria-label="状態で絞る"><option value="">状態：すべて</option>' + ST.slice(0, 4).map(s => '<option value="' + s[0] + '"' + (ui.f === s[0] ? " selected" : "") + ">" + s[1] + "</option>").join("") + "</select>") + '</div>' +
       (ui.v === "pr" ? "" : mainStrip(d)) + (ui.v === "pr" || ui.v === "st" ? "" : nowStrip(d)) + catMgr(d) + '<div id="aibody">' + bodyOf(d) + "</div>" +
       '<p class="note">メールアドレスは入れず、呼び名だけで管理します（このデータは公開のGitHubに入るため）。待ち時間はアカウントごとに「設定」で変えられます。' + (nWait ? "いま待ちのアカウント：" + nWait : "") + "</p>";
   };
@@ -227,7 +241,7 @@
       return '<div class="ainr">' + parts.join("") + "</div>";
     }).join("");
     const fl = flagged(d).map(j => { const a = acctOf(d, j.a); return '<span class="aimb">⚑ ' + esc(j.e) + esc(j.t) + (a ? '<small>' + esc(a.n) + "</small>" : "") + "</span>"; }).join("");
-    return '<section class="panel p-ai"><header class="panel-h"><h2>AI</h2><span class="panel-n">' + (mk ? "作成中 " + mk + "件" : "") + '</span></header><div class="panel-b aibandb" data-side="work:ai" title="AI使い分けを開く" role="link" tabindex="0">' + (fl ? '<div class="aimbr"><b>メイン</b>' + fl + "</div>" : "") + rows + "</div></section>";
+    return '<section class="panel p-ai"><header class="panel-h"><h2>AI</h2><span class="panel-n">' + (mk ? "作成中 " + mk + "件" : "") + '</span></header><div class="panel-b aibandb" data-side="work:ai" title="AI使い分けを開く" role="link" tabindex="0">' + (fl ? '<div class="aimbr"><b>作業中</b>' + fl + "</div>" : "") + rows + "</div></section>";
   };
   A.ai.counts = () => { const d = D(); return d ? { making: d.jobs.filter(j => j.st === "making").length, ok: d.accts.filter(avail).length, all: d.accts.length } : null; };
 
@@ -243,6 +257,7 @@
       setTimeout(go, 60); return;
     }
     if (a === "flag") { const j = d.jobs[jobAt()]; if (j) { j.fl ? delete j.fl : (j.fl = 1); } return save(); }
+    if (a === "gp") { ui.gp = !ui.gp; try { localStorage.setItem("jd.aigp", ui.gp ? "1" : "0"); } catch (e) { /* 覚えられなくても動く */ } return A.render(); }
     if (a === "v") { ui.v = b.dataset.v; ui.pe = null; return A.render(); }
     if (a === "ed") { ui.ed = id; ui.na = null; return A.render(); }
     if (a === "job-no") { ui.ed = null; ui.na = null; return A.render(); }
