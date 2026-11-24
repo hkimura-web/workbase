@@ -1278,3 +1278,14 @@ button.aip:hover{filter:brightness(.96);text-decoration:underline}
 .aip.wait,.aibandb .aip.wait,.ainow .aip.wait{background:#f0f1f4;border-color:#d9dce3;color:#8a92a0}
 .aist.s-using,.aip.ok.use,.aibandb .aip.ok.use,.ainow .aip.ok.use,.aiuse{background:#ffe3dc;border:1px solid #f5a898;color:#b3361f;font-weight:400}
 .aistg.s-using{border-color:#f5a898}
+/* 旗（メイン） */
+.aifl{border:0;background:none;color:#c5cbd6;font-size:16px;line-height:1;padding:2px 4px;cursor:pointer;flex:none;align-self:flex-start;margin-top:1px}
+.aifl:hover{color:#e8553a}.aifl.on{color:#e8553a}
+.aijob.fl{background:#fff6f3}
+.aimain{background:#fff8f5;border:1px solid #f5c9bd;border-radius:12px;padding:8px 12px;margin:0 0 10px;display:grid;gap:4px}
+.aimi{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:3px 0}
+.aimi .aiwho{border:0;background:none;padding:0;cursor:pointer}
+.aimbr{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px;font-size:12px}
+.aimbr>b{color:#b3361f;width:64px}
+.aimb{background:#ffe3dc;border:1px solid #f5a898;color:#b3361f;border-radius:12px;padding:2px 10px}
+.aimb small{margin-left:6px;opacity:.8}
