@@ -1296,3 +1296,5 @@ button.aip:hover{filter:brightness(.96);text-decoration:underline}
 /* トップの「作業中」札：重要Tipsのテスト成績（採点ナビ・試験範囲など）と同じピンク */
 .aimb{background:color-mix(in srgb,#d6458a 13%,var(--surface));border:1px solid color-mix(in srgb,#d6458a 38%,var(--surface));color:color-mix(in srgb,#d6458a 78%,var(--ink))}
 .aimbr>b{color:color-mix(in srgb,#d6458a 78%,var(--ink))}
+/* トップの「作業中」札：背景は白（使える札と同じ）、字だけピンク */
+.aimb{background:#fff;border-color:#cfd6e2}
