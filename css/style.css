@@ -1339,3 +1339,17 @@ button.aip:hover{filter:brightness(.96);text-decoration:underline}
 .tdl{max-height:50vh;overflow:auto;border:1px solid var(--line);border-radius:10px}
 .tdi{display:grid;grid-template-columns:20px 1fr;gap:2px 8px;padding:6px 10px;border-top:1px solid var(--line)}
 .tdi:first-child{border-top:0}.tdi small{grid-column:2;color:var(--muted)}
+/* 試験の出題（緑）・監督（黄） */
+.wit.wex{background:#e3f6ea;border-left:5px solid #2fb866;padding-left:8px}
+.wit.wkn{background:#fff8cf;border-left:5px solid #e6c600;padding-left:8px}
+.wit.wex.dn,.wit.wkn.dn{background:none}
+/* アカウントの状態：札を細くシャープに */
+.ainow{padding:6px 12px;gap:3px}
+.ainow .ainr{gap:3px 6px;font-size:12.5px;line-height:1.5}
+.ainow .aip,.ainow button.aip{padding:0 9px;font-size:12px;line-height:1.55;border-radius:9px;height:auto}
+.ainow .aip .aisn{max-width:14em}
+/* AIボタンの脳マーク（線画） */
+#btn-ai svg.brain{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ainow{gap:6px}
+.ainow .aip,.ainow button.aip{padding:1px 10px;line-height:1.4}
+.ainow .ainr{padding:3px 0}
