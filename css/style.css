@@ -1331,3 +1331,11 @@ button.aip:hover{filter:brightness(.96);text-decoration:underline}
 .p-ts .panel-h:has(.tsbig){align-items:center}
 .ghtop{text-decoration:none;margin-left:6px}
 .ghtop svg{fill:currentColor;stroke:none}
+/* GitHubトップの整理 */
+.tdlg{border:1px solid var(--line);border-radius:14px;padding:16px;max-width:640px;width:92vw;background:var(--surface);color:var(--ink)}
+.tdlg::backdrop{background:rgba(20,28,45,.45)}
+.tdh{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.tdbar{display:flex;gap:8px;margin:10px 0}
+.tdl{max-height:50vh;overflow:auto;border:1px solid var(--line);border-radius:10px}
+.tdi{display:grid;grid-template-columns:20px 1fr;gap:2px 8px;padding:6px 10px;border-top:1px solid var(--line)}
+.tdi:first-child{border-top:0}.tdi small{grid-column:2;color:var(--muted)}
