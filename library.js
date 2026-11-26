@@ -1,4 +1,4 @@
-/* myClassBlueprint.log: 資料タブ（資料集の検索・教材カード・お気に入り・準備チェックリスト）と、
+/* THE WORKBASE: 資料タブ（資料集の検索・教材カード・お気に入り・準備チェックリスト）と、
  * 単元の教材に資料を取り込む操作。
  *  - 資料のリンク一覧: library/links.json（tools/xlsx_to_library.py でスプレッドシートから作る。アプリでは読むだけ）
  *  - お気に入り・チェックリスト: data/portal.json（アプリで編集。トークンがあれば GitHub に自動保存） */
@@ -27,7 +27,7 @@
   function normPortal(p) { p = p || {}; p.fav = Array.isArray(p.fav) ? p.fav : []; p.checklist = Array.isArray(p.checklist) ? p.checklist : defaultPortal().checklist; p.checklist.forEach(c => { c.done = c.done || {}; }); return p; }
   async function load() {
     try { const r = await fetch("library/links.json?t=" + Date.now(), { cache: "no-store" }); A.lib = r.ok ? await r.json() : { materials: [], general: [], missing: true }; } catch (e) { A.lib = { materials: [], general: [], missing: true }; }
-    try { const r = await fetch("library/textbook.json?t=" + Date.now(), { cache: "no-store" }); A.textbook = r.ok ? await r.json() : null; } catch (e) { A.textbook = null; }
+    try { const r = await fetch("library/textbook.json?t=" + Date.now(), { cache: "no-store" }); { const j = r.ok ? await r.json() : null; A.textbooks = j && j.books ? j.books : (j ? [j] : []); } } catch (e) { A.textbooks = []; }
     if (A.ui.tab === "unit" && A.render) A.render();
     A._items = null;
     const s = S.getSettings(); let text = null; portal.token = !!(s.token && s.owner && s.repo);
@@ -103,7 +103,7 @@
         try {
           let st;
           if (A.st && A.st.term.id === t.id) st = A.st;
-          else { st = await (await fetch("data/" + t.file + "?t=" + Date.now(), { cache: "no-store" })).json(); ["rec", "off", "flags", "events", "units", "plans", "unitNotes"].forEach(k => { st[k] = st[k] || {}; }); st.classes.forEach(c => { st.plans[c.id] = st.plans[c.id] || []; }); J.migrateUnits(st); }
+          else { st = await (await fetch("data/" + t.file + "?t=" + Date.now(), { cache: "no-store" })).json(); ["rec", "off", "flags", "events", "units", "plans", "unitNotes"].forEach(k => { st[k] = st[k] || {}; }); J.migrateSlots(st); st.classes.forEach(c => { st.plans[c.id] = st.plans[c.id] || []; }); J.migrateUnits(st); }
           histRows(st, t.name).forEach(x => rows.push(x));
         } catch (e) { /* この学期は読めなかった */ }
       }
@@ -160,9 +160,10 @@
   /* ---------- 画面 ---------- */
   function viewLib() {
     const U = A.ui.lib;
-    let h = '<div class="seg" style="margin-bottom:10px"><button data-act="lib-mode" data-v="search" aria-pressed="' + (U.mode === "search") + '">資料をさがす</button><button data-act="lib-mode" data-v="check" aria-pressed="' + (U.mode === "check") + '">準備チェックリスト</button></div>';
+    let h = '<div class="seg" style="margin-bottom:10px"><button data-act="lib-mode" data-v="search" aria-pressed="' + (U.mode === "search") + '">資料をさがす</button><button data-act="lib-mode" data-v="check" aria-pressed="' + (U.mode === "check") + '">準備チェックリスト</button><button data-act="lib-mode" data-v="cmp" aria-pressed="' + (U.mode === "cmp") + '">単元を年度で比べる</button></div>';
     if (!A.portal) return h + '<p class="note">読み込んでいます…</p>';
     if (U.mode === "check") return h + checklist();
+    if (U.mode === "cmp") return h + cmpView();
     const L = A.lib || { materials: [], general: [] };
     const secs = [], yrs = []; L.materials.forEach(m => { if (secs.indexOf(m.section) < 0) secs.push(m.section); }); L.general.forEach(g => { if (g.y && yrs.indexOf(g.y) < 0) yrs.push(g.y); });
     yrs.sort().reverse();
@@ -218,12 +219,12 @@
           const st = await (await fetch("data/" + t.file + "?t=" + Date.now(), { cache: "no-store" })).json();
           ["rec", "off", "flags", "events", "units", "plans", "unitNotes"].forEach(k => { st[k] = st[k] || {}; });
           st.classes.forEach(c => { st.plans[c.id] = st.plans[c.id] || []; });
-          J.migrateUnits(st); out.push({ name: t.name, st });
+          J.migrateUnits(st); J.migrateSlots(st); out.push({ name: t.name, st });
         } catch (e) { /* 読めない学期は飛ばす */ }
       }
     } catch (e) { /* 一覧が読めない */ }
     A.past = out; A._pastLoading = false;
-    if (A.ui.tab === "unit" && A.render) A.render();
+    if ((A.ui.tab === "unit" || (A.ui.tab === "lib" && A.ui.lib.mode === "cmp")) && A.render) A.render();
   }
   function pastHtml(u) {
     const un = A.st.units[u]; if (!un) return "";
@@ -247,13 +248,117 @@
   }
   const md2 = d => { const x = new Date(d + "T00:00:00"); return (x.getMonth() + 1) + "/" + x.getDate(); };
   const pastKeyInput = (u, un) => '<label class="small" for="pk_' + u + '" style="margin-top:6px">過去の記録をさがす言葉（名前が違うときだけ。空なら単元名で自動）</label><input type="text" id="pk_' + u + '" data-act="un-pk" data-id="' + u + '" value="' + esc(un.pastKey || "") + '" placeholder="例：納得の構造">';
+  /* 科目の並び順（学年の順）。ここにない科目は、そのあとに出る */
+  const SUBJ_ORDER = ["現代の国語", "言語文化", "論理国語", "総合国語", "文学国語", "古典探究", "現代文特講", "国語演習"];
+  function subjOptions(entries, cur, subjOf, suffix) {
+    const groups = {};
+    entries.forEach(e => { const ss = subjOf(e); (ss.length ? ss : ["その他"]).forEach(x => { (groups[x] = groups[x] || []).push(e); }); });
+    const names = Object.keys(groups).sort((a, b) => { const ia = SUBJ_ORDER.indexOf(a), ib = SUBJ_ORDER.indexOf(b); return (ia < 0 ? (a === "その他" ? 999 : 100) : ia) - (ib < 0 ? (b === "その他" ? 999 : 100) : ib) || (a < b ? -1 : 1); });
+    return names.map(n => '<optgroup label="' + esc(n) + '">' + groups[n].map(e => '<option value="' + esc(e.key) + '"' + (e.key === cur ? " selected" : "") + ">" + esc(e.name) + esc(suffix(e)) + "</option>").join("") + "</optgroup>").join("");
+  }
+  const histSubjects = e => { const o = []; (e.terms || []).forEach(T => T.occ.forEach(c => { const x = J.subjectOf({ name: c.cls }); if (x && o.indexOf(x) < 0) o.push(x); })); return o; };
+  /* ---------- 同じ単元を、学期・年度で並べて比べる ---------- */
+  function termYear(id, name) { const m = /^(\d{4})/.exec(id || "") || /(\d{4})/.exec(name || ""); return m ? m[1] + "年度" : ""; }
+  function cmpIndex() {
+    const terms = (A.past || []).map(P => ({ id: P.st.term.id, name: P.name, st: P.st })).concat([{ id: A.st.term.id, name: A.st.term.name, st: A.st, cur: true }]);
+    const map = {};
+    terms.forEach(T => Object.keys(T.st.units).forEach(u => {
+      const un = T.st.units[u], key = normName(un.name); if (!key) return;
+      const occ = [];
+      T.st.classes.forEach(c => {
+        const x = J.unitStats(T.st, c, u); if (!(x.planned || x.actual)) return;
+        const rows = []; J.project(T.st, c).rows.forEach(r => r.blocks.forEach(b => { if (b.u === u) rows.push({ date: r.date, text: b.t, done: r.kind === "done" || r.kind === "part" }); }));
+        occ.push({ cls: c.name, hrs: x.actual || x.planned, planned: x.planned, actual: x.actual, start: x.start, end: x.end, rows });
+      });
+      if (!occ.length) return;
+      const e = map[key] = map[key] || { key, name: un.name, mats: un.mats || [], tb: un.tb || "", terms: [] };
+      if (!e.mats.length && (un.mats || []).length) { e.mats = un.mats; e.tb = un.tb || e.tb; }
+      e.terms.push({ id: T.id, name: T.name, cur: !!T.cur, occ });
+    }));
+    return Object.keys(map).map(k => map[k]).sort((x, y) => y.terms.length - x.terms.length || (x.name < y.name ? -1 : 1));
+  }
+  function cmpView() {
+    if (!A.past) { loadPast(); return '<p class="note">過去の学期を読み込んでいます…</p>'; }
+    const idx = cmpIndex(), U = A.ui.lib;
+    const mseg = '<div class="seg" style="margin-bottom:10px"><button data-act="cmp-mode" data-v="same" aria-pressed="' + (U.cmpMode !== "multi") + '">同じ単元を、学期で比べる</button><button data-act="cmp-mode" data-v="multi" aria-pressed="' + (U.cmpMode === "multi") + '">違う単元を、横に並べて比べる</button></div>';
+    if (U.cmpMode === "multi") return mseg + cmpMulti(idx);
+    if (!idx.length) return mseg + '<p class="note">比べられる単元がまだありません。</p>';
+    if (!U.cmp || !idx.some(e => e.key === U.cmp)) U.cmp = idx[0].key;
+    const cur = idx.find(e => e.key === U.cmp);
+    let h = mseg + '<p class="small" style="margin:0 0 8px">同じ名前の単元を、学期・年度ごとに並べて見られます。いくつの学期にあるかが多い順に並んでいます。単元の名前が違うと別の単元として数えるので、名前をそろえておくと比べやすくなります。</p>';
+    h += '<div class="lbar"><select id="cmp_u" data-act="cmp-u" aria-label="単元を選ぶ" style="flex:1;min-width:0">' + subjOptions(idx, U.cmp, e => { const o = histSubjects(e), t = (A.textbooks || []).find(B => B.parts.some(P => P.units.some(u => normName(u.name) === e.key))); if (t && t.subject && o.indexOf(t.subject) < 0) o.push(t.subject); return o; }, e => "（" + e.terms.length + "学期：" + e.terms.map(t => termYear(t.id, t.name)).filter((x, i, a) => a.indexOf(x) === i).join("・") + "）") + "</select></div>";
+    const part = t => /月分/.test(t.name), all = []; cur.terms.forEach(t => { if (!part(t)) t.occ.forEach(o => all.push(o.hrs)); });
+    const avg = all.length ? Math.round(all.reduce((a, b) => a + b, 0) / all.length * 10) / 10 : 0;
+    h += '<section class="panel p-soon"><header class="panel-h"><h2>' + esc(cur.name) + '</h2><span class="panel-n">' + cur.terms.length + "学期</span></header><div class=\"panel-b\">" +
+      (cur.mats.length ? '<p class="small" style="margin:0 0 6px"><b>教材：</b>' + esc(cur.mats.map(m => m.n).filter(Boolean).join("　／　")) + (cur.tb ? '<span class="muted">　（' + esc(cur.tb) + "）</span>" : "") + "</p>" : "") +
+      '<div class="tscroll"><table class="tbl"><thead><tr><th>学期</th><th>クラス</th><th>かけた時間</th><th>期間</th></tr></thead><tbody>' +
+      cur.terms.map(t => t.occ.map(o => "<tr><td>" + esc(t.name) + (t.cur ? ' <span class="small muted">（今学期）</span>' : "") + (part(t) ? ' <span class="small" style="color:var(--part)">※一部の月だけの記録</span>' : "") + "</td><td>" + esc(o.cls) + "</td><td><b>" + o.hrs + "時間</b>" + (o.actual !== o.planned && o.planned ? '<span class="small muted">（計画 ' + o.planned + "）</span>" : "") + "</td><td>" + (o.start ? md2(o.start) + "〜" + md2(o.end) : "−") + "</td></tr>").join("")).join("") +
+      '</tbody></table></div><p class="small" style="margin:6px 0 0">' + (all.length ? "クラスの平均は <b>" + avg + "時間</b>です" : "平均を出せる学期がまだありません") + (cur.terms.some(part) ? "（一部の月だけの記録の学期は、平均に入れていません）" : "") + "。</p></div></section>";
+    h += '<div class="cmpgrid">' + cur.terms.map(t => '<section class="cmpcol"><h3>' + esc(t.name) + (t.cur ? ' <span class="small muted">（今学期）</span>' : "") + "</h3>" +
+      t.occ.map(o => '<details class="lsec"' + (cur.terms.length <= 2 && t.occ.length === 1 ? " open" : "") + "><summary>" + esc(o.cls) + ' <span class="small muted">' + o.hrs + "時間・" + o.rows.length + "コマ</span></summary>" +
+        '<ol class="cmpl">' + o.rows.map(r => '<li><span class="cd">' + md2(r.date) + '</span><span class="ct">' + esc(r.text) + "</span></li>").join("") + "</ol></details>").join("") + "</section>").join("") + "</div>";
+    return h;
+  }
+  /* ---------- 違う単元を2〜3つ、横に並べて比べる（これからやる単元を選ぶとき用） ---------- */
+  function tbIndex() {
+    const out = {};
+    (A.textbooks || []).forEach(B => {
+      const flat = []; B.parts.forEach(P => P.units.forEach(u => flat.push({ B, P, u })));
+      const start = x => { const ps = x.u.mats.concat(x.u.manabi ? [x.u.manabi] : [], x.u.extra || []).map(m => m.p).filter(Boolean); return ps.length ? Math.min.apply(null, ps) : null; };
+      flat.forEach((x, i) => {
+        const st = start(x), nx = flat.slice(i + 1).map(start).find(v => v);
+        out[normName(x.u.name)] = { subject: B.subject || "", book: B.book, part: x.P.part, no: x.u.no, u: x.u, pages: st && nx && nx > st ? nx - st : null };
+      });
+    });
+    return out;
+  }
+  function cmpMulti(idx) {
+    const U = A.ui.lib, tb = tbIndex(), hist = {}; idx.forEach(e => { hist[e.key] = e; });
+    const ents = {};
+    Object.keys(hist).forEach(k => { ents[k] = { key: k, name: hist[k].name }; });
+    Object.keys(tb).forEach(k => { if (!ents[k]) ents[k] = { key: k, name: tb[k].u.name }; });
+    const list = Object.keys(ents).map(k => ents[k]);
+    const done = list.filter(e => hist[e.key]).sort((a, b) => hist[b.key].terms.length - hist[a.key].terms.length || (a.name < b.name ? -1 : 1));
+    const fresh = list.filter(e => !hist[e.key]);
+    U.cmpSel = (U.cmpSel || []).filter(k => ents[k]);
+    while (U.cmpSel.length < 3) U.cmpSel.push("");
+    const subjOf = e => { const o = hist[e.key] ? histSubjects(hist[e.key]) : []; if (tb[e.key] && tb[e.key].subject && o.indexOf(tb[e.key].subject) < 0) o.push(tb[e.key].subject); return o; };
+    const opt = cur => '<option value="">（選ばない）</option>' + subjOptions(done.concat(fresh), cur, subjOf, e => hist[e.key] ? "（" + hist[e.key].terms.length + "学期）" : "（まだやっていない）");
+    let h = '<p class="small" style="margin:0 0 8px">2つか3つの単元を選ぶと、教材・ページ数・これまでかかった時間などを横に並べます。これからどの単元をやるか決めるときに使ってください。</p><div class="cmpsel">' +
+      [0, 1, 2].map(i => '<select data-act="cmp-s" data-i="' + i + '" aria-label="単元' + (i + 1) + '">' + opt(U.cmpSel[i]) + "</select>").join("") + "</div>";
+    const sel = U.cmpSel.filter(Boolean);
+    if (sel.length < 2) return h + '<p class="note">単元を2つ以上選んでください。</p>';
+    const part = t => /月分/.test(t.name);
+    const cols = sel.map(k => {
+      const t = tb[k], e = hist[k], hrs = [], terms = [];
+      if (e) e.terms.forEach(T => { if (!part(T)) T.occ.forEach(o => hrs.push(o.hrs)); if (terms.indexOf(T.name) < 0) terms.push(T.name); });
+      return { k, name: ents[k].name, t, e, hrs, terms };
+    });
+    const row = (label, f) => "<tr><th scope=\"row\">" + label + "</th>" + cols.map(c => "<td>" + (f(c) || '<span class="muted">−</span>') + "</td>").join("") + "</tr>";
+    const avg = a => a.length ? Math.round(a.reduce((x, y) => x + y, 0) / a.length * 10) / 10 : null;
+    h += '<div class="tscroll"><table class="tbl cmptbl"><thead><tr><th></th>' + cols.map(c => "<th>" + esc(c.name) + "</th>").join("") + "</tr></thead><tbody>" +
+      row("教科書", c => c.t ? esc(c.t.book) + "<br>" + esc(c.t.part + (c.t.no ? " " + c.t.no : "")) : "") +
+      row("領域", c => c.t ? esc(c.t.u.mode || "") : "") +
+      row("教材（筆者・ページ）", c => c.t ? "<ul class=\"cmpul\">" + c.t.u.mats.map(m => "<li>" + esc(m.n) + '<span class="small muted">' + (m.by ? "　" + esc(m.by) : "") + (m.p ? "　p." + m.p : "") + "</span></li>").join("") + "</ul>" : (c.e && c.e.mats.length ? esc(c.e.mats.map(m => m.n).join("／")) : "")) +
+      row("学びを広げる・ズームアップ", c => c.t ? [c.t.u.manabi ? "学びを広げる：" + esc(c.t.u.manabi.n) : ""].concat((c.t.u.extra || []).map(x => esc(x.k + "：" + x.n))).filter(Boolean).join("<br>") : "") +
+      row("教科書のページ数", c => c.t && c.t.pages ? "約" + c.t.pages + "ページ" : "") +
+      row("教材の数", c => c.t ? c.t.u.mats.length + "つ" : (c.e && c.e.mats.length ? c.e.mats.length + "つ" : "")) +
+      row("これまでにやった回数", c => c.e ? c.terms.length + "学期（" + esc(c.terms.map(n => n.replace(/（.*）/, "")).join("、")) + "）" : "まだやっていない") +
+      row("かかった時間（平均）", c => avg(c.hrs) != null ? "<b>" + avg(c.hrs) + "時間</b>" : "") +
+      row("かかった時間（幅）", c => c.hrs.length ? Math.min.apply(null, c.hrs) + "〜" + Math.max.apply(null, c.hrs) + "時間" : "") +
+      row("クラスごとの実績", c => c.e ? c.e.terms.map(T => T.occ.map(o => '<div class="small">' + esc(T.name.replace(/（.*）/, "")) + "　" + esc(o.cls) + "：" + o.hrs + "時間" + (part(T) ? "（一部の月）" : "") + "</div>").join("")).join("") : "") +
+      row("今学期（2026年度）", c => { const T = c.e && c.e.terms.find(x => x.cur); return T ? T.occ.map(o => '<div class="small">' + esc(o.cls) + "：計画" + o.planned + "・実施" + o.actual + "時間</div>").join("") : ""; }) +
+      row("過去の授業の流れ（例）", c => { const T = c.e && c.e.terms.filter(x => !x.cur).slice(-1)[0], o = T && T.occ[0]; return o ? '<details><summary class="small">' + esc(T.name.replace(/（.*）/, "") + "　" + o.cls) + "（" + o.rows.length + "コマ）</summary><ol class=\"cmpl\">" + o.rows.map(r => '<li><span class="cd">' + md2(r.date) + '</span><span class="ct">' + esc(r.text) + "</span></li>").join("") + "</ol></details>" : ""; }) +
+      "</tbody></table></div>";
+    return h;
+  }
   /* 教科書の目次から単元を追加する（単元別タブの「単元を追加」の下に出す） */
   function tbPicker() {
-    const tb = A.textbook; if (!tb) return "";
+    const books = A.textbooks; if (!books || !books.length) return "";
     let opts = '<option value="">教科書の単元を選ぶ…</option>';
-    tb.parts.forEach((P, pi) => { opts += '<optgroup label="' + esc(P.part) + '">' + P.units.map((u, ui) => '<option value="' + pi + ":" + ui + '">' + esc(P.part + "　" + u.no + "　" + u.name + "（" + u.mats.map(m => m.n).join("・") + "）") + "</option>").join("") + "</optgroup>"; });
+    books.forEach((B, bi) => B.parts.forEach((P, pi) => { opts += '<optgroup label="' + esc(B.book + "　" + P.part) + '">' + P.units.map((u, ui) => '<option value="' + bi + ":" + pi + ":" + ui + '">' + esc((u.no ? u.no + "　" : "") + u.name + "（" + u.mats.map(m => m.n).join("・") + "）") + "</option>").join("") + "</optgroup>"; }));
     return '<div class="addrow" style="grid-template-columns:1fr 160px auto;margin-top:8px"><select id="tb_unit" aria-label="教科書の単元">' + opts + '</select><select id="tb_subj" aria-label="科目"><option value="">共通</option>' + subjectNames().map(x => '<option value="' + esc(x) + '">' + esc(x) + "</option>").join("") + '</select><button class="btn on" data-act="tb-add">目次から追加</button></div>' +
-      '<p class="small muted" style="margin:4px 0 0">' + esc(tb.book) + "の目次です。単元名と教材名（筆者つきの一覧は資料タブの元データ）が自動で入ります。</p>";
+      '<p class="small muted" style="margin:4px 0 0">' + esc(books.map(b => b.book).join("・")) + "の目次です。単元名と教材名が自動で入ります。</p>";
   }
   const subjectNames = () => { const o = []; (A.st.classes || []).forEach(c => { const x = J.subjectOf(c); if (x && o.indexOf(x) < 0) o.push(x); }); return o; };
   A.views.tbPicker = tbPicker;
@@ -266,7 +371,7 @@
 
   /* ---------- 操作 ---------- */
   function refreshLib() { const r = $("libres"); if (r) r.innerHTML = results(); }
-  function ensureMat(u, i) { const un = A.st.units[u]; if (!un) return null; const m = un.mats = un.mats || []; while (m.length < 6) m.push({}); return m[i]; }
+  function ensureMat(u, i) { const un = A.st.units[u]; if (!un) return null; const m = un.mats = un.mats || []; while (m.length <= i) m.push({}); return m[i]; }
   function trimMats(u) { const un = A.st.units[u], m = un.mats || []; while (m.length && !Object.keys(m[m.length - 1]).length) m.pop(); if (!m.length) delete un.mats; }
 
   document.addEventListener("click", e => {
@@ -274,6 +379,7 @@
     const a = t.dataset.act, id = t.dataset.id;
     switch (a) {
       case "lib-mode": A.ui.lib.mode = t.dataset.v; A.render(); break;
+      case "cmp-mode": A.ui.lib.cmpMode = t.dataset.v; A.render(); break;
       case "lib-clear": Object.assign(A.ui.lib, { q: "", kind: "", sec: "", year: "", favOnly: false }); A.render(); break;
       case "lib-fav": { const u = t.dataset.u, i = A.portal.fav.indexOf(u); if (i >= 0) A.portal.fav.splice(i, 1); else A.portal.fav.push(u); pcommit(); A.render(); break; }
       case "ck-del": { const c = A.portal.checklist; const i = c.findIndex(x => x.id === id); if (i >= 0 && root.confirm("「" + c[i].text + "」を消しますか？")) { c.splice(i, 1); pcommit(); A.render(); } break; }
@@ -284,6 +390,18 @@
         const it = { id: "c" + Date.now().toString(36), when: $("ck_new_w").value, text: tx, done: {} }; if (u) it.u = u;
         A.portal.checklist.push(it); pcommit(); A.render(); break;
       }
+      case "mat-mv": {
+        const MF = A.matSlots, un = A.st.units[t.dataset.u], m = un && un.mats && un.mats[Number(t.dataset.i)]; if (!m) break;
+        const vis = MF.filter((f, k) => k < 6 || m[f[0]] || (m.lb && m.lb[f[0]]) || (A.ui.matMore && A.ui.matMore[t.dataset.u + ":" + t.dataset.i]));
+        const vi = vis.findIndex(f => f[0] === t.dataset.f), wj = vi + Number(t.dataset.d); if (vi < 0 || wj < 0 || wj >= vis.length) break;
+        const a = vis[vi], b = vis[wj], eff = f => ((m.lb && m.lb[f[0]]) || "").trim() || f[1];
+        const ua = m[a[0]], ub = m[b[0]], la = eff(a), lb2 = eff(b);
+        const put = (f, url, lab) => { if (url) m[f[0]] = url; else delete m[f[0]]; m.lb = m.lb || {}; if (url && lab !== f[1]) m.lb[f[0]] = lab; else delete m.lb[f[0]]; };
+        put(a, ub, lb2); put(b, ua, la);
+        if (!Object.keys(m.lb).length) delete m.lb;
+        A.ui.matOpen = A.ui.matOpen || {}; A.ui.matOpen[t.dataset.u] = true; A.commit(); A.render(); break;
+      }
+      case "mat-more": { A.ui.matOpen = A.ui.matOpen || {}; A.ui.matOpen[t.dataset.u] = true; (A.ui.matMore = A.ui.matMore || {})[t.dataset.u + ":" + t.dataset.i] = true; A.render(); break; }
       case "mat-xdel": { const m = ensureMat(t.dataset.u, Number(t.dataset.i)); if (m && m.x) { m.x.splice(Number(t.dataset.j), 1); if (!m.x.length) delete m.x; trimMats(t.dataset.u); A.commit(); } break; }
       case "mat-xadd": {
         const u = t.dataset.u, i = Number(t.dataset.i), l = $("xl_" + u + i).value.trim(), url = $("xu_" + u + i).value.trim();
@@ -295,6 +413,8 @@
   document.addEventListener("change", e => {
     const t = e.target, a = t.dataset && t.dataset.act, v = t.value; if (!a) return;
     if (a === "lib-f") { const f = t.dataset.f; if (f === "fav") A.ui.lib.favOnly = t.checked; else A.ui.lib[f] = v; refreshLib(); return; }
+    if (a === "cmp-u") { A.ui.lib.cmp = v; A.render(); return; }
+    if (a === "cmp-s") { (A.ui.lib.cmpSel = A.ui.lib.cmpSel || ["", "", ""])[Number(t.dataset.i)] = v; A.render(); return; }
     if (a === "ck-year") { A.ui.lib.ckYear = v; A.render(); return; }
     const ck = id => A.portal.checklist.find(x => x.id === id);
     if (a === "ck-done") { const c = ck(t.dataset.id); if (c) { if (t.checked) c.done[A.ui.lib.ckYear] = true; else delete c.done[A.ui.lib.ckYear]; pcommit(); A.render(); } return; }
@@ -305,7 +425,7 @@
       const L = A.lib, card = L && L.materials[Number(v)]; if (!card || v === "") return;
       const u = t.dataset.u, i = Number(t.dataset.i), m = ensureMat(u, i); if (!m) return;
       if (!m.n) m.n = card.title.replace(/^\d+\s*/, "");
-      const have = {}; ["d", "t", "g", "p1", "p2", "p3"].forEach(k => { if (m[k]) have[m[k]] = 1; }); (m.x || []).forEach(e2 => { have[e2.u] = 1; });
+      const have = {}; ["d", "t", "g", "p1", "p2", "p3", "p4", "p5", "p6", "p7"].forEach(k => { if (m[k]) have[m[k]] = 1; }); (m.x || []).forEach(e2 => { have[e2.u] = 1; });
       m.x = m.x || [];
       if (card.url && !have[card.url]) { m.x.push({ l: "教材フォルダ", u: card.url }); have[card.url] = 1; }
       card.links.forEach(l => { if (!have[l.u]) { m.x.push({ l: l.l, u: l.u }); have[l.u] = 1; } });

@@ -11,7 +11,20 @@
     ["rec", "off", "flags", "events", "units", "plans", "unitNotes"].forEach(k => { st[k] = st[k] || {}; });
     st.classes.forEach(c => { st.plans[c.id] = st.plans[c.id] || []; });
     Object.keys(st.units).forEach(u => { if (!Array.isArray(st.units[u].items)) st.units[u].items = []; });
-    J.migrateUnits(st);
+    J.migrateUnits(st); J.migrateSlots(st);
+    /* 特別日課。2026年度2学期だけ、最初に来週（面談週間）の分を入れておく（あとから画面で直せる・消せる） */
+    if (!Array.isArray(st.days)) {
+      st.days = [];
+      if (st.term && st.term.id === "2026-2") st.days = [
+        { id: "z1", from: "2026-11-09", to: "2026-11-10", name: "面談週間（40分授業）", off: [5, 6, 7], why: "面談", bell: { s: 532, len: 40, brk: 8 } },
+        { id: "z2", from: "2026-11-11", to: "2026-11-12", name: "模擬試験", off: "all", why: "模擬試験", bell: null },
+        { id: "z3", from: "2026-11-13", to: "2026-11-13", name: "面談週間（40分授業）", off: [5, 6, 7], why: "面談", bell: { s: 532, len: 40, brk: 8 } }];
+    }
+    /* 2026年度3学期：行事予定表と確認ずみの授業なしの日を、はじめに入れる */
+    if (st.term && st.term.id === "2026-3" && window.WB_SEED_3) {
+      if (!Object.keys(st.events).length) st.events = JSON.parse(JSON.stringify(window.WB_SEED_3.events));
+      if (!st.days.length) st.days = JSON.parse(JSON.stringify(window.WB_SEED_3.days));
+    }
     return st;
   }
   function clampAsof() {
@@ -32,6 +45,18 @@
       else { dot = "ok"; txt = "GitHubに保存済み"; }
     } else if (dirty) { dot = "warn"; txt = "この端末に下書き保存中（GitHubには保存されていません）"; }
     else { dot = ""; txt = "閲覧モード：右上の「設定」でGitHubを接続すると、記録を保存できます"; }
+    if (A.ui.mode === "kin") {
+      $("status").innerHTML = '<span><span class="dot ' + (/⚠/.test(A.kintai.statusText()) ? "warn" : /保存済み|同期/.test(A.kintai.statusText()) ? "ok" : "") + '"></span>' + J.esc(A.kintai.statusText()) + "</span>";
+      return;
+    }
+    if (A.ui.mode === "test") {
+      $("status").innerHTML = '<span><span class="dot ' + (/⚠/.test(A.seiseki.statusText()) ? "warn" : /保存済み|同期/.test(A.seiseki.statusText()) ? "ok" : "") + '"></span>' + J.esc(A.seiseki.statusText()) + "</span>";
+      return;
+    }
+    if (A.ui.mode === "work") {
+      $("status").innerHTML = '<span><span class="dot ' + (/⚠/.test(A.work.statusText()) ? "warn" : /保存済み|同期/.test(A.work.statusText()) ? "ok" : "") + '"></span>' + J.esc(A.work.statusText()) + "</span>";
+      return;
+    }
     const pn = A.st ? A.views.pendingList().length : 0;
     $("status").innerHTML = '<span><span class="dot ' + dot + '"></span>' + J.esc(txt) + "</span>" +
       (pn ? ' <button class="remchip" data-act="rem-open" title="記録がまだ入っていない過去の授業">記録待ち ' + pn + "コマ</button>" : "");
@@ -41,10 +66,24 @@
     $("banner").innerHTML = b ? '<div class="banner' + (b.err ? " err" : "") + '"><div>' + J.esc(b.msg) + '</div><div class="btns">' +
       (b.btns || []).map(x => '<button class="btn" data-act="' + x[0] + '">' + J.esc(x[1]) + "</button>").join("") + "</div></div>" : "";
   }
+  /* 一覧の表を、画面にぴったり収める（ページ全体が動いて、上のバーが隠れるのを防ぐ） */
+  function fitGrid() {
+    const g = document.querySelector(".gridwrap"); if (!g) return;
+    if (window.innerWidth < 900) { g.style.maxHeight = ""; g.style.minHeight = ""; return; }
+    const st = g.scrollTop, sl = g.scrollLeft;
+    g.style.maxHeight = "none"; g.style.minHeight = "0";
+    const top = g.getBoundingClientRect().top + window.scrollY;
+    g.style.maxHeight = Math.max(260, window.innerHeight - top - 14) + "px";
+    g.scrollTop = st; g.scrollLeft = sl;
+  }
+  window.addEventListener("resize", fitGrid);
   function scrollGridToToday(g) {
-    const row = g.querySelector("tr.gr-today");
-    if (row) g.scrollTop += row.getBoundingClientRect().top - g.getBoundingClientRect().top - 150;
-    g.scrollLeft = 0;
+    const go = () => {
+      const row = g.querySelector("tr.gr-today"), th = g.querySelector("thead");
+      if (row) g.scrollTop += row.getBoundingClientRect().top - g.getBoundingClientRect().top - (th ? th.getBoundingClientRect().height : 80);
+      g.scrollLeft = 0;
+    };
+    go(); requestAnimationFrame(go);   /* 見出しのすぐ下に「今日」の行の頭をそろえる（描き終わったあとにもう一度） */
   }
   function fillCarry() { $("carrybody").innerHTML = A.views.carry(); }
   async function fetchTermData(t) {
@@ -97,7 +136,8 @@
   }
   function openRem(auto) {
     const today = J.ds(new Date());
-    if (auto && (LS.get("jd.remind") === today || today < A.st.term.start || today > J.addDays(A.st.term.end, 7) || !A.views.pendingList().length)) return;
+    const lessons = today >= A.st.term.start && today <= J.addDays(A.st.term.end, 7) && A.views.pendingList().length;
+    if (auto && (LS.get("jd.remind") === today || !(lessons || (A.work && A.work.dueCount())))) return;
     $("rembody").innerHTML = A.views.rem();
     if (!$("remdlg").open) $("remdlg").showModal();
     if (auto) LS.set("jd.remind", today);
@@ -122,28 +162,111 @@
       td.classList.add("flash"); setTimeout(() => td.classList.remove("flash"), 2500);
     }
   }
-  function goHome() { A.ui.tab = "today"; A.ui.open = null; render(); window.scrollTo(0, 0); }
+  function goHome() { A.ui.mode = "class"; LS.set("jd.mode", "class"); A.ui.tab = "today"; A.ui.open = null; render(); window.scrollTo(0, 0); }
   function fillFlow() { $("flowbody").innerHTML = A.views.flow(); }
   function fillCell() {
     const html = A.ui.cell ? A.views.cell(A.ui.cell) : null;
     if (html == null) { if ($("celldlg").open) $("celldlg").close(); return; }
     $("cellbody").innerHTML = html;
   }
+  /* ---------- 左のメニュー（パソコンの画面だけに出る） ---------- */
+  const IC = {
+    repeat: '<path d="M4 12a8 8 0 0 1 13.7-5.6L20 8.5M20 4v4.5h-4.5"/><path d="M20 12a8 8 0 0 1-13.7 5.6L4 15.5M4 20v-4.5h4.5"/>',
+    today: '<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><circle cx="12" cy="15" r="1.6" fill="currentColor" stroke="none"/>',
+    plan: '<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1" fill="currentColor"/><circle cx="4.5" cy="12" r="1" fill="currentColor"/><circle cx="4.5" cy="18" r="1" fill="currentColor"/>',
+    grid: '<rect x="3.5" y="5.5" width="17" height="13" rx="1.5"/><path d="M3.5 10h17M9.2 5.5v13M14.8 5.5v13"/>',
+    unit: '<path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/>',
+    sum: '<path d="M5 20V11M12 20V4M19 20v-6"/>',
+    memo: '<path d="M5 4.5h10.5a2.5 2.5 0 0 1 2.5 2.5v13H7.5A2.5 2.5 0 0 1 5 17.5z"/><path d="M5 17.5A2.5 2.5 0 0 1 7.5 15H18M9 8.5h5"/>',
+    lib: '<path d="M5 4.5h10.5a2.5 2.5 0 0 1 2.5 2.5v13H7.5A2.5 2.5 0 0 1 5 17.5z"/><path d="M5 17.5A2.5 2.5 0 0 1 7.5 15H18M9 8.5h5"/>',
+    home: '<path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/><path d="M10 20v-6h4v6"/>',
+    year: '<rect x="3.5" y="4.5" width="17" height="16" rx="2"/><path d="M3.5 9h17M8 4.5v-2M16 4.5v-2"/><path d="M7.5 13h3M13.5 13h3M7.5 16.5h3"/>',
+    links: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+    docs: '<path d="M6 3.5h9l4 4V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1z"/><path d="M14.5 3.5V8H19M8.5 12h7M8.5 15.5h7"/>',
+    cal: '<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M9 15l2 2 4-4"/>',
+    t_home: '<path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L7 5M3.5 12l1.2 1.2L7 11M3.5 18l1.2 1.2L7 17"/>',
+    t_tasks: '<rect x="4.5" y="3.5" width="15" height="17" rx="2"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/>',
+    t_print: '<path d="M7 9V4h10v5"/><rect x="4" y="9" width="16" height="8" rx="2"/><path d="M7 14h10v6H7z"/>',
+    t_links: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+    t_man: '<path d="M5 4.5h10.5a2.5 2.5 0 0 1 2.5 2.5v13H7.5A2.5 2.5 0 0 1 5 17.5z"/><path d="M5 17.5A2.5 2.5 0 0 1 7.5 15H18M9 8.5h5"/>',
+    k_home: '<rect x="3.5" y="4.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="4.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/>',
+    k_cal: '<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14h2M14 14h2M8 17h2"/>',
+    k_yk: '<circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/>',
+    k_ot: '<path d="M4 18V6M4 18h16"/><path d="M8 14l3-4 3 3 5-6"/>',
+    k_fh: '<path d="M5 8h12l-3-3M19 16H7l3 3"/>',
+    k_ev: '<path d="M5 20V4M5 5h11l-2 3.5L16 12H5"/>',
+    k_set: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
+    t_set: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
+    set: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
+    ai: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M18.5 15.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/>',
+    gear: '<circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8"/>'
+  };
+  const SIDE = [
+    ["授業", "class", [["grid", "一覧"], ["plan", "計画表"], ["unit", "単元別"], ["sum", "サマリー"], ["lib", "資料"], ["memo", "手順・メモ"]]],
+    ["校務", "work", [["home", "ホーム"], ["year", "年間"], ["links", "リンク集"], ["shiryo", "学校資料"], ["docs", "手順・メモ"], ["repeat", "くり返し"], ["cal", "カレンダー"], ["set", "校務の設定"]]],
+    ["テスト成績", "test", [["home", "ホーム"], ["tasks", "作業一覧"], ["print", "印刷枚数"], ["links", "リンク集"], ["man", "手順・メモ"], ["set", "学期の設定"]]],
+    ["勤怠", "kin", [["home", "ダッシュボード"], ["cal", "カレンダー"], ["yk", "有給"], ["ot", "超過勤務"], ["fh", "振替休日"], ["ev", "行事予定"], ["set", "勤怠の設定"]]]
+  ];
+  function renderSide() {
+    const md0 = A.ui.mode, cur = md0 === "work" ? A.ui.work.tab : md0 === "test" ? A.ui.test.tab : md0 === "kin" ? A.ui.kin.tab : A.ui.tab;
+    const svg = k => '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">' + IC[k] + "</svg>";
+    let h = '<button class="si ai' + (md0 === "work" && cur === "ai" ? " on" : "") + '" data-side="work:ai"' + (md0 === "work" && cur === "ai" ? ' aria-current="page"' : "") + ">" + svg("ai") + "<span>AI</span></button>";
+    SIDE.forEach(([gn, m, items]) => {
+      h += '<div class="sg">' + gn + "</div>";
+      items.forEach(([k, n]) => {
+        const on = m === md0 && cur === k;
+        const bd = m === "work" && k === "home" && A.work && A.work.dueCount() ? '<span class="sbd">' + A.work.dueCount() + "</span>" :
+          m === "test" && k === "home" && A.seiseki && A.seiseki.dueCount() ? '<span class="sbd">' + A.seiseki.dueCount() + "</span>" :
+          m === "kin" && k === "home" && A.kintai && A.kintai.dueCount() ? '<span class="sbd">' + A.kintai.dueCount() + "</span>" : "";
+        h += '<button class="si ' + m + (on ? " on" : "") + '" data-side="' + m + ":" + k + '"' + (on ? ' aria-current="page"' : "") + ">" + svg(m === "test" ? "t_" + k : m === "kin" ? "k_" + k : k) + "<span>" + n + "</span>" + bd + "</button>";
+      });
+    });
+    h += '<div class="sgap"></div><button class="si" data-act="settings">' + svg("gear") + "<span>設定・保存</span></button>";
+    $("sidenav").innerHTML = h;
+  }
   function render() {
     if (!A.st) return;
+    const wm = A.ui.mode === "work", tm = A.ui.mode === "test", km = A.ui.mode === "kin";
+    document.body.classList.toggle("workmode", wm); document.body.classList.toggle("testmode", tm); document.body.classList.toggle("kinmode", km);
+    $("classtabs").hidden = wm || tm || km; $("worktabs").hidden = !wm; $("testtabs").hidden = !tm; $("kintabs").hidden = !km;
+    $("mode-class").setAttribute("aria-pressed", !wm && !tm && !km); $("mode-work").setAttribute("aria-pressed", wm); $("mode-test").setAttribute("aria-pressed", tm); $("mode-kin").setAttribute("aria-pressed", km);
+    if (km) {
+      $("sub").textContent = A.kintai.sub();
+      document.querySelectorAll("[data-ktab]").forEach(b => { if (b.classList.contains("tab")) b.setAttribute("aria-selected", b.dataset.ktab === A.ui.kin.tab); });
+      document.querySelector(".wrap").classList.remove("wide");
+      $("app").innerHTML = A.kintai.view();
+      renderStatus(); renderBanner(); renderSide();
+      return;
+    }
+    if (tm) {
+      $("sub").textContent = A.seiseki.sub();
+      document.querySelectorAll("[data-ttab]").forEach(b => b.setAttribute("aria-selected", b.dataset.ttab === A.ui.test.tab));
+      document.querySelector(".wrap").classList.remove("wide");
+      $("app").innerHTML = A.seiseki.view();
+      renderStatus(); renderBanner(); renderSide();
+      return;
+    }
+    if (wm) {
+      $("sub").textContent = A.work.sub();
+      document.querySelectorAll("[data-wtab]").forEach(b => b.setAttribute("aria-selected", b.dataset.wtab === A.ui.work.tab));
+      document.querySelector(".wrap").classList.remove("wide");
+      $("app").innerHTML = A.work.view();
+      renderStatus(); renderBanner(); renderSide();
+      return;
+    }
     $("sub").textContent = A.st.term.name + "（" + J.md(A.st.term.start) + "〜" + J.md(A.st.term.end) + "）";
     $("asof").value = A.ui.asof;
-    ["today", "plan", "grid", "unit", "sum", "lib"].forEach(t => $("tab-" + t).setAttribute("aria-selected", A.ui.tab === t));
+    ["today", "plan", "grid", "unit", "sum", "lib", "memo"].forEach(t => $("tab-" + t).setAttribute("aria-selected", A.ui.tab === t));
     document.querySelector(".wrap").classList.toggle("wide", A.ui.tab === "grid");
     const old = document.querySelector(".gridwrap");
     const keep = old && !A.ui.gridReset ? { t: old.scrollTop, l: old.scrollLeft } : null;
     $("app").innerHTML = A.views[A.ui.tab]();
     const g = document.querySelector(".gridwrap");
-    if (g) { if (keep) { g.scrollTop = keep.t; g.scrollLeft = keep.l; } else scrollGridToToday(g); }
+    if (g) { fitGrid(); setTimeout(fitGrid, 400); if (keep) { g.scrollTop = keep.t; g.scrollLeft = keep.l; } else scrollGridToToday(g); }
     A.ui.gridReset = false;
     if (A.ui.cell && A.ui.cellRefresh) fillCell();
     A.ui.cellRefresh = false;
-    renderStatus(); renderBanner();
+    renderStatus(); renderBanner(); renderSide();
   }
   function fatal(msg) {
     $("sub").textContent = "データを読み込めません";
@@ -238,6 +361,8 @@
     if (j < 0 || j >= a.length) { toast(dir < 0 ? "これより前には動かせません" : "これより後ろには動かせません"); return; }
     [a[i], a[j]] = [a[j], a[i]]; A.ui.cellRefresh = true; commit();
   }
+  /* 「授業なし」は、同じ日の同じクラスの全時限に付ける（2時間続きでも、片方だけ残さない） */
+  function dayKeys(key) { const o = rowOf(key); if (!o || !o.c) return [key]; const a = key.split("|"); return J.project(A.st, o.c).rows.filter(x => x.date === a[1]).map(x => x.key); }
   function setRec(key, patch) {
     const nx = Object.assign({}, A.st.rec[key] || {}, patch);
     if (!nx.s || nx.s === "plan") { delete nx.s; delete nx.t; delete nx.sj; delete nx.fu; }
@@ -286,6 +411,44 @@
     const nm = (window.prompt("新しい単元の名前を入れてください（例：羅生門）" + (sj ? "\n科目は「" + sj + "」になります。" : "")) || "").trim();
     return nm ? newUnit(nm, sj) : null;
   }
+  /* ---------- 新しい学期をアプリの中で作る ---------- */
+  function openNewTerm() {
+    const cur = A.st.term, Y = window.WB_SEED_3, seeded = Y && cur.id === "2026-2";
+    const d = seeded ? { id: "2026-3", name: "2026年度 3学期", start: "2027-01-08", end: "2027-02-26" } : { id: "", name: "", start: "", end: "" };
+    $("ntbody").innerHTML = '<h2 style="margin:0 0 4px">新しい学期を作る</h2><p class="note" style="margin:0 0 10px">日付の範囲を決めると、いまの学期のクラスと時間割をもとに、その期間の授業の時間が一覧に先に並びます。行事予定表が入っている期間は、行事と授業なしの日も入ります。単元は、そのあと「単元別」で作り、「単元の予定を計画に入れる」で流し込めます。</p>' +
+      '<label class="small">学期の名前</label><input type="text" id="nt_name" value="' + J.esc(d.name) + '" placeholder="例：2026年度 3学期">' +
+      '<label class="small">学期のID（半角。例：2026-3）</label><input type="text" id="nt_id" value="' + J.esc(d.id) + '" autocapitalize="off">' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap"><div><label class="small">はじまり</label><input type="date" id="nt_s" value="' + d.start + '"></div><div><label class="small">おわり</label><input type="date" id="nt_e" value="' + d.end + '"></div></div>' +
+      '<p class="small" id="nt_msg" role="status" style="color:var(--bad,#b3261e)"></p>' +
+      '<div class="dlg-btns"><button class="btn" data-act="newterm-cancel">やめる</button><button class="btn on" data-act="newterm-ok">作る</button></div>';
+    $("ntdlg").showModal();
+  }
+  async function createTerm() {
+    const id = $("nt_id").value.trim(), name = $("nt_name").value.trim(), start = $("nt_s").value, end = $("nt_e").value, msg = t => { $("nt_msg").textContent = t; };
+    if (!/^[0-9A-Za-z_-]+$/.test(id)) return msg("IDは半角の英数字で入れてください（例：2026-3）。");
+    if (!name || !start || !end) return msg("名前と日付を入れてください。");
+    if (end < start) return msg("おわりの日が、はじまりより前になっています。");
+    if (terms.some(x => x.id === id)) return msg("そのIDの学期はもうあります。");
+    const s = S.getSettings();
+    if (!(s.token && s.owner && s.repo)) return msg("GitHubの設定がまだです。右上の「設定」で入れてから作ってください。");
+    const Y = window.WB_SEED_3, ev = {};
+    if (Y && Y.all) Object.keys(Y.all).forEach(k => { if (k >= start && k <= end) ev[k] = Y.all[k]; });
+    const st = { schema: A.st.schema || 1, term: { id, name, start, end }, classes: JSON.parse(JSON.stringify(A.st.classes)), events: ev, units: {}, plans: {}, rec: {}, off: {}, flags: {}, unitNotes: {} };
+    st.classes.forEach(c => { st.plans[c.id] = []; });
+    if (id === "2026-3" && Y && Y.days) st.days = JSON.parse(JSON.stringify(Y.days)); else st.days = [];
+    const file = id + ".json";
+    try {
+      await S.remotePut(s, "data/" + file, J.toJSON(st), null, "新しい学期を作成（" + name + "）");
+      let ix = await S.remoteGet(s, "data/index.json"), o = JSON.parse(ix.text);
+      o.terms = (o.terms || []).concat([{ id, name, file }]);
+      await S.remotePut(s, "data/index.json", JSON.stringify(o, null, 2) + "\n", ix.sha, "学期を追加（" + name + "）");
+    } catch (e) { return msg("GitHubに保存できませんでした：" + S.explain(e)); }
+    terms.push({ id, name, file });
+    $("term").innerHTML = terms.map(t => '<option value="' + J.esc(t.id) + '">' + J.esc(t.name) + "</option>").join("");
+    $("termwrap").hidden = false;
+    $("ntdlg").close(); toast("学期を作りました");
+    await loadTerm(id);
+  }
   function importFile(f) {
     if (!f) return;
     const rd = new FileReader();
@@ -307,7 +470,7 @@
 
   /* 別のパソコンで直した内容を、画面に戻ったときに取り込む */
   async function refreshLatest() {
-    if (mode !== "github" || dirty || saving || !term) return;
+    if (mode !== "github" || dirty || saving || !term || document.hidden || A.ui.mode !== "class" || document.querySelector("dialog[open]")) return;
     try {
       const r = await S.remoteGet(S.getSettings(), "data/" + term.file);
       if (dirty || saving || r.sha === sha) return;
@@ -337,10 +500,22 @@
   document.addEventListener("click", e => {
     if (e.target.closest("a[target=_blank]")) return;
     if (e.target.closest(".hero") && !e.target.closest(".tools")) { goHome(); return; }
+    const sd = e.target.closest("[data-side]");
+    if (sd) {
+      const [m, k] = sd.dataset.side.split(":");
+      A.ui.mode = m; LS.set("jd.mode", m);
+      if (m === "work") A.ui.work.tab = k; else if (m === "test") A.ui.test.tab = k; else if (m === "kin") A.ui.kin.tab = k; else A.ui.tab = k;
+      A.ui.open = null; render(); window.scrollTo(0, 0); return;
+    }
+    const kt = e.target.closest("[data-ktab]");
+    if (kt) { A.ui.mode = "kin"; LS.set("jd.mode", "kin"); A.ui.kin.tab = kt.dataset.ktab; A.ui.kin.ed = null; render(); window.scrollTo(0, 0); return; }
+    const tt = e.target.closest("[data-ttab]");
+    if (tt) { A.ui.test.tab = tt.dataset.ttab; A.ui.test.form = null; render(); window.scrollTo(0, 0); return; }
     const t = e.target.closest("[data-tab],[data-act]"); if (!t) return;
     if (t.dataset.tab) { A.ui.tab = t.dataset.tab; A.ui.open = null; render(); return; }
     const a = t.dataset.act, k = t.dataset.key, id = t.dataset.id;
     switch (a) {
+      case "mode": A.ui.mode = t.dataset.v; LS.set("jd.mode", A.ui.mode); render(); window.scrollTo(0, 0); break;
       case "open": A.ui.open = A.ui.open === k ? null : k; render(); break;
       case "cell": A.ui.cell = k; A.ui.addUnit = null; fillCell(); if (!$("celldlg").open) $("celldlg").showModal(); break;
       case "close-cell": $("celldlg").close(); break;
@@ -374,9 +549,10 @@
       case "gedit": A.ui.gridEdit = t.dataset.v === "e"; LS.set("jd.gridEdit", A.ui.gridEdit ? "1" : "0"); render(); break;
       case "gsub": A.ui.gridSubj = t.dataset.v; render(); break;
       case "gridtoday": { const g = document.querySelector(".gridwrap"); if (g) scrollGridToToday(g); break; }
+      case "qfree": A.ui.cellRefresh = true; { const cur = A.st.rec[k] || {}; setRec(k, cur.s === "free" && cur.t === t.dataset.v ? { s: "plan" } : { s: "free", t: t.dataset.v }); break; }
       case "st": A.ui.cellRefresh = true; { const cur = (A.st.rec[k] || {}).s || "plan", v = t.dataset.v; setRec(k, { s: cur === v && v !== "plan" ? "plan" : v }); break; }
-      case "offset": A.ui.cellRefresh = true; A.st.off[k] = A.st.events[k.split("|")[1]] || "授業なし"; delete A.st.rec[k]; A.ui.open = null; commit(); break;
-      case "offclear": A.ui.cellRefresh = true; delete A.st.off[k]; commit(); break;
+      case "offset": { A.ui.cellRefresh = true; const why = (A.evOf ? A.evOf(k.split("|")[1]) : A.st.events[k.split("|")[1]]) || "授業なし"; dayKeys(k).forEach(x => { A.st.off[x] = why; delete A.st.rec[x]; if (A.st.on) delete A.st.on[x]; }); A.ui.open = null; commit(); break; }
+      case "offclear": A.ui.cellRefresh = true; if (!A.st.on) A.st.on = {}; dayKeys(k).forEach(x => { delete A.st.off[x]; A.st.on[x] = 1; /* 特別日課で授業なしの日でも「授業を行う」にする */ }); commit(); break;
       case "bup": shiftBlock(id, -1); break;
       case "bdn": shiftBlock(id, 1); break;
       case "bdel": { const c = planOf(id); if (c) { A.st.plans[c] = A.st.plans[c].filter(b => b.id !== id); A.ui.cellRefresh = true; commit(); } break; }
@@ -401,19 +577,32 @@
       }
       case "tb-add": {
         const sel = $("tb_unit"); if (!sel || sel.value === "") { toast("教科書の単元を選んでください"); break; }
-        const tb = A.textbook, pi = Number(sel.value.split(":")[0]), ui = Number(sel.value.split(":")[1]), tu = tb && tb.parts[pi] && tb.parts[pi].units[ui];
+        const ix = sel.value.split(":").map(Number), bk = A.textbooks && A.textbooks[ix[0]], pt = bk && bk.parts[ix[1]], tu = pt && pt.units[ix[2]];
         if (!tu) break;
         const nm = tu.name;
         if (Object.keys(A.st.units).some(k => A.st.units[k].name === nm)) { toast("「" + nm + "」は、もう単元にあります"); break; }
         const id = newUnit(nm, $("tb_subj").value), un = A.st.units[id];
-        un.mats = tu.mats.map(x => ({ n: x.n })).concat(tu.manabi ? [{ n: "学びを広げる：" + tu.manabi.n }] : []);
-        un.tb = tb.book + " " + tb.parts[pi].part + " " + tu.no;
+        un.mats = tu.mats.slice(0, 4).map(x => ({ n: x.n })).concat(tu.manabi && tu.mats.length < 4 ? [{ n: "学びを広げる：" + tu.manabi.n }] : []);
+        un.tb = bk.book + " " + pt.part + (tu.no ? " " + tu.no : "");
         commit(); toast("「" + nm + "」を追加しました（教材名も入っています）"); break;
+      }
+      case "un-del": {
+        const un = A.st.units[id]; if (!un) break;
+        const used = []; A.st.classes.forEach(c => { const n = (A.st.plans[c.id] || []).filter(b => b.u === id).length; if (n) used.push(c.name + " " + n + "コマ"); });
+        const recN = Object.keys(A.st.rec).filter(k => A.st.rec[k] && A.st.rec[k].fu === id).length;
+        if (used.length || recN) { window.alert("「" + un.name + "」は、" + (used.length ? "計画（" + used.join("、") + "）" : "") + (used.length && recN ? "と" : "") + (recN ? "記録（" + recN + "件）" : "") + "で使われているので、削除できません。\n\n先に、計画表でこの単元のコマを外してから、もう一度お試しください。"); break; }
+        if (!window.confirm("単元「" + un.name + "」を削除します。（教材・授業内容の予定・振り返りメモも消えます）\nよろしいですか？")) break;
+        delete A.st.units[id]; delete A.st.unitNotes[id];
+        Object.keys(A.ui.lastUnit || {}).forEach(c => { if (A.ui.lastUnit[c] === id) delete A.ui.lastUnit[c]; });
+        commit(); toast("単元を削除しました"); break;
       }
       case "addunit": {
         const nm = $("newunit").value.trim(); if (!nm) { toast("単元名を入れてください"); break; }
         newUnit(nm, $("newunit_s").value); commit(); break;
       }
+      case "newterm-open": openNewTerm(); break;
+      case "newterm-cancel": $("ntdlg").close(); break;
+      case "newterm-ok": createTerm(); break;
       case "settings": openSettings(); break;
       case "close-dlg": $("dlg").close(); break;
       case "test": testConn(); break;
@@ -448,9 +637,17 @@
     if (a === "mat") {
       const u = A.st.units[t.dataset.u]; if (!u) return;
       const f = t.dataset.f, i = Number(t.dataset.i), val = v.trim();
+      if (f.indexOf("lb:") === 0) {
+        const k = f.slice(3), m0 = u.mats = u.mats || []; while (m0.length <= i) m0.push({});
+        const o = m0[i].lb = m0[i].lb || {}; if (val) o[k] = val; else delete o[k];
+        if (!Object.keys(o).length) delete m0[i].lb;
+        while (m0.length && !Object.keys(m0[m0.length - 1]).length) m0.pop();
+        if (!m0.length) delete u.mats;
+        quiet(); return;
+      }
       if (f !== "n" && val && !/^https?:\/\//i.test(val)) { toast("https:// から始まるアドレスを入れてください"); return; }
       const m = u.mats = u.mats || [];
-      while (m.length < 6) m.push({});
+      while (m.length <= i) m.push({});
       if (val) m[i][f] = val; else delete m[i][f];
       while (m.length && !Object.keys(m[m.length - 1]).length) m.pop();
       if (!m.length) delete u.mats;
@@ -519,14 +716,35 @@
     if (e.key === "Enter" && e.target.matches && e.target.matches('td[data-act="cell"]')) e.target.click();
     if ((e.key === "Enter" || e.key === " ") && e.target.matches && e.target.matches(".brand")) { e.preventDefault(); goHome(); }
   });
+  /* ポップアップの外（暗い所）を押したら閉じる。入力は押した時点で保存されるので消えません */
+  /* 「保存」を押して反映する形のポップアップは、何か入力したあとに外を押しても閉じません（入力が消えるのを防ぐため） */
+  const FORMS = ["wdlg", "dlg", "carrydlg", "flowdlg"], touched = new Set();
+  FORMS.forEach(id => {
+    const d = $(id);
+    ["input", "change"].forEach(ev => d.addEventListener(ev, () => touched.add(id)));
+    d.addEventListener("close", () => touched.delete(id));
+  });
+  let downOn = null;
+  document.addEventListener("pointerdown", e => { downOn = e.target; }, true);
+  document.addEventListener("click", e => {
+    const d = e.target;
+    if (!(d instanceof HTMLDialogElement) || !d.open || downOn !== d || touched.has(d.id)) return;
+    const r = d.getBoundingClientRect();
+    if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) return;
+    d.close();
+  });
   $("celldlg").addEventListener("close", () => { A.ui.cell = null; render(); });
+  /* 教材とリンクの開き・閉じは、自分で押したときだけ変わる */
+  document.addEventListener("toggle", e => { const d = e.target; if (d && d.dataset && d.dataset.mat !== undefined && d.classList.contains("matdet")) { A.ui.matOpen = A.ui.matOpen || {}; if (d.open) A.ui.matOpen[d.dataset.mat] = true; else delete A.ui.matOpen[d.dataset.mat]; } }, true);
   window.addEventListener("beforeunload", e => { if (dirty && mode === "github") { e.preventDefault(); e.returnValue = ""; } });
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden" && dirty) { clearTimeout(timer); flush(); }
     else if (document.visibilityState === "visible") refreshLatest();
   });
+  window.addEventListener("focus", refreshLatest);
+  setInterval(refreshLatest, 120000);
 
-  A.newUnit = newUnit; A.render = render; A.toast = toast; A.commit = commit;
+  A.remCheck = remCheck; A.renderStatus = renderStatus; A.newUnit = newUnit; A.render = render; A.toast = toast; A.commit = commit;
 
   /* ---------- 起動 ---------- */
   (async function boot() {
@@ -539,6 +757,7 @@
     $("term").innerHTML = terms.map(t => '<option value="' + J.esc(t.id) + '">' + J.esc(t.name) + "</option>").join("");
     $("termwrap").hidden = terms.length < 2;
     A.ui.gridEdit = LS.get("jd.gridEdit") !== "0";
+    { const m0 = LS.get("jd.mode"); A.ui.mode = m0 === "work" || m0 === "test" || m0 === "kin" ? m0 : "class"; }
     const saved = LS.get("jd.term");
     await loadTerm(terms.some(t => t.id === saved) ? saved : terms[terms.length - 1].id);
   })();

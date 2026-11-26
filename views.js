@@ -12,7 +12,17 @@
   const plain = s => String(s).replace(/\s*\/\s*/g, " / ");
   const clip = (s, n) => { s = plain(s); return s.length > n ? s.slice(0, n) + "…" : s; };
   const cur = () => A.st.classes.find(c => c.id === A.ui.cls) || A.st.classes[0];
-  const perTxt = r => (r.periods && r.periods.length ? r.periods.join("・") + "時間目" : "");
+  /* 授業時間表（50分授業・8分休み）。分は「0時からの分」 */
+  const BELL0 = { 1: [532, 582], 2: [590, 640], 3: [648, 698], 4: [706, 756], 5: [794, 844], 6: [852, 902], 7: [910, 960] };
+  const bellP = d => { const base = A.work && A.work.bell ? A.work.bell().p : BELL0; return d && A.st ? J.bellFor(A.st, d, base) : base; };
+  const hm = m => Math.floor(m / 60) + ":" + String(m % 60).padStart(2, "0");
+  function span(r) { const B = bellP(r.date), ps = (r.periods || []).filter(p => B[p]); if (!ps.length) return null; return [B[Math.min.apply(null, ps)][0], B[Math.max.apply(null, ps)][1]]; }
+  const nowMin = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60; };
+  /* 今日の授業で、終わったのにまだ記録がないコマ */
+  const needRec = r => r.date === J.ds(new Date()) && (r.kind === "plan" || r.kind === "empty") && span(r) && nowMin() >= span(r)[1];
+  const timeTxt = r => { const t = span(r); return t ? hm(t[0]) + "〜" + hm(t[1]) : ""; };
+  const durTxt = m => m >= 60 ? Math.floor(m / 60) + "時間" + (m % 60 ? m % 60 + "分" : "") : m + "分";
+  const perTxt = r => { const ps = (r.periods || []).filter(Boolean); return ps.length ? ps.join("・") + "時間目" : ""; };
   /* 「別の内容」のコマ：他の科目に入れ替えたとき（例：現代の国語の時間に言語文化をやった）の科目・単元・内容 */
   function freeInfo(r) {
     const cid = r.key.split("|")[0], c = A.st.classes.find(x => x.id === cid), own = c ? J.subjectOf(c) : "";
@@ -24,6 +34,13 @@
     return (f.swapped ? "【" + f.swapped + "】" : "") + (body || (f.swapped ? "" : "別の内容"));
   }
   /* 別の内容の入力欄（科目・単元・内容）。idp は入力欄のid用 */
+  /* 時間がつぶれたとき、理由を1タップで選ぶ。押すと「別の内容」になり、以降の計画が自動で後ろへずれる */
+  const QR = ["テスト", "返却", "行事", "集会", "その他"];
+  function quickRow(r, compact) {
+    const cur = r.rec && r.rec.s === "free" ? (r.rec.t || "") : null;
+    return '<div class="qrow' + (compact ? " qc" : "") + '"><span class="qlb">' + (compact ? "つぶれた→" : "この時間が使えなくなった（計画は次の時間へずれます）") + "</span>" +
+      QR.map(x => '<button class="mini qbtn' + (cur === x ? " on" : "") + '" data-act="qfree" data-key="' + esc(r.key) + '" data-v="' + x + '">' + x + "</button>").join("") + "</div>";
+  }
   function freeForm(r, idp, compact) {
     const cid = r.key.split("|")[0], c = A.st.classes.find(x => x.id === cid), own = J.subjectOf(c), sj = (r.rec && r.rec.sj) || own, key = esc(r.key);
     const subs = subjectList(), us = Object.keys(A.st.units).filter(u => !A.st.units[u].subj || A.st.units[u].subj === sj);
@@ -72,7 +89,7 @@
     if (r.kind === "cancel") return "休講";
     if (r.kind === "free") return freeTitle(r);
     if (r.kind === "empty") return "この日に入れる計画がありません";
-    return (r.cont ? "（続き）" : "") + (r.blocks.map(b => b.t).filter(Boolean).join("　／　") || "（内容未入力）");
+    return ((r.cont || r.b2) ? "（続き）" : "") + (r.blocks.map(b => b.t).filter(Boolean).join("　／　") || "（内容未入力）");
   }
   function pillFor(r) {
     const waiting = r.date < A.ui.asof && r.kind === "plan";
@@ -85,9 +102,9 @@
     if (r.kind === "off") {
       return '<div class="ed"><div class="note">理由：' + esc(r.off) + '</div><div class="btns"><button class="btn" data-act="offclear" data-key="' + esc(r.key) + '">この日は授業を行う</button></div></div>';
     }
-    let h = '<div class="ed"><div class="btns">' + B("done", "実施した") + B("part", "途中まで") + B("cancel", "休講にする") + B("free", "別の内容にする") +
-      '<button class="btn" data-act="offset" data-key="' + esc(r.key) + '">行事で授業なし</button>' + B("plan", "予定に戻す") + "</div>";
-    if (s === "free") h += freeForm(r, id + "e", false);
+    let h = '<div class="ed"><div class="btns">' + B("done", "実施した") + B("part", "途中まで") + B("cancel", "休講（以降ずれる）") + B("free", "別の内容にする") +
+      '<button class="btn" data-act="offset" data-key="' + esc(r.key) + '">行事で授業なし</button>' + B("plan", "予定に戻す") + "</div>" + quickRow(r, false);
+    if (s === "free") h += '<div class="note">このコマは別の内容になり、以降の計画が自動で後ろへずれました。</div>' + freeForm(r, id + "e", false);
     r.blocks.forEach((b, i) => {
       h += '<label class="small" for="bt_' + id + i + '">授業内容（' + esc(unitName(b.u)) + '）実際にやった内容に書き換えられます</label><textarea id="bt_' + id + i + '" data-act="bt" data-id="' + esc(b.id) + '">' + esc(b.t) + "</textarea>";
     });
@@ -114,33 +131,70 @@
     const ev = r.ev && r.kind !== "off" ? '<span class="ev">行事：' + esc(clip(r.ev, 60)) + "</span>" : "";
     const open = A.ui.open === r.key;
     const cn = withClass ? parts(cname(r.key.split("|")[0])) : null;
-    const head = '<div class="sd"><b>' + md(r.date) + "</b><span class=\"dow\">" + dw(r.date) + "</span>" + (perTxt(r) ? '<span class="per">' + perTxt(r) + "</span>" : "") + (cn ? '<small class="k-' + subj(cn[1]) + '">' + esc(cn[0]) + " " + esc(cn[1].replace("の国語", "")) + "</small>" : "") + "</div>" +
-      '<div class="st">' + chips + "<b>" + esc(rowTitle(r)) + "</b>" + meta + ev + '</div><div class="stt">' + pillFor(r) + (remTxt ? '<span class="rem">' + remTxt + "</span>" : "") + "</div>";
-    return '<div class="slot' + (k === "off" ? " off" : "") + (past ? " past" : "") + (today ? " today" : "") + (k === "cancel" ? " cancelled" : "") + '">' +
+    const head = '<div class="sd"><b>' + md(r.date) + "</b><span class=\"dow\">" + dw(r.date) + "</span>" + (perTxt(r) ? '<span class="per">' + perTxt(r) + "</span>" : "") + (timeTxt(r) ? '<span class="tm">' + timeTxt(r) + "</span>" : "") + (cn ? '<small class="k-' + subj(cn[1]) + '">' + esc(cn[0]) + " " + esc(cn[1].replace("の国語", "")) + "</small>" : "") + "</div>" +
+      '<div class="st">' + chips + "<b>" + esc(rowTitle(r)) + "</b>" + meta + ev + '</div><div class="stt">' + (needRec(r) ? '<span class="needrec">記録を付ける</span>' : "") + pillFor(r) + (remTxt ? '<span class="rem">' + remTxt + "</span>" : "") + "</div>";
+    return '<div class="slot' + (k === "off" ? " off" : "") + (past ? " past" : "") + (today ? " today" : "") + (k === "cancel" ? " cancelled" : "") + (needRec(r) ? " needrec-s" : "") + '">' +
       '<button class="srow" data-act="open" data-key="' + esc(r.key) + '" aria-expanded="' + open + '">' + head + "</button>" + (k === "off" ? "" : slotMats(r, units)) + (open ? editor(r) : "") + "</div>";
   }
 
 
   /* 単元の教材（最大6つ）と、教科書本文・指導書・プリント1・プリント2へのリンク */
-  const MATF = [["d", "Googleドライブ"], ["t", "教科書"], ["g", "指導書"], ["p1", "ワークシート1"], ["p2", "ワークシート2"], ["p3", "ワークシート3"]];
+  const MATF = [["d", "Googleドライブ"], ["t", "教科書"], ["g", "指導書"], ["p1", "ワークシート1"], ["p2", "ワークシート2"], ["p3", "ワークシート3"], ["p4", "ワークシート4"], ["p5", "ワークシート5"], ["p6", "ワークシート6"], ["p7", "ワークシート7"]];   /* リンクは全部で10個。名前は教材ごとに自分で付け直せる（x.lb） */
+  A.matSlots = MATF;
+  const lbl = (x, f) => ((x.lb && x.lb[f[0]]) || "").trim() || f[1];
   function matHtml(u) {
     const m = ((A.st.units[u] || {}).mats || []).filter(x => x && (x.n || (x.x && x.x.length) || MATF.some(f => x[f[0]])));
     if (!m.length) return "";
     return '<div class="gmat">' + m.map(x => '<div class="gm1">' + (x.n ? "<b>" + esc(x.n) + "</b>" : "") +
-      MATF.filter(f => x[f[0]]).map(f => ' <a class="ml" href="' + esc(x[f[0]]) + '" target="_blank" rel="noopener noreferrer">' + f[1] + "</a>").join("") +
+      MATF.filter(f => x[f[0]]).map(f => ' <a class="ml" href="' + esc(x[f[0]]) + '" target="_blank" rel="noopener noreferrer">' + esc(lbl(x, f)) + "</a>").join("") +
       (x.x || []).map(e => ' <a class="ml" href="' + esc(e.u) + '" target="_blank" rel="noopener noreferrer" title="' + esc(e.l) + '">' + esc(A.shortLabel ? A.shortLabel(e.l) : e.l) + "</a>").join("") + "</div>").join("") + "</div>";
   }
   function matForm(u) {
-    const un = A.st.units[u], m = un.mats || [];
-    let h = '<div class="csec" style="margin-top:14px">教材とリンク（教科書の教材を最大6つ。リンクは一覧からも開けます）</div>';
-    for (let i = 0; i < 6; i++) {
+    const un = A.st.units[u], m = un.mats || [], used = m.filter(x => x && Object.keys(x).length).length, nb = Math.max(4, m.length);
+    let h = '<details class="matdet" data-mat="' + u + '"' + (A.ui.matOpen && A.ui.matOpen[u] ? " open" : "") + '><summary>教材とリンク（最大4つ・リンクは1教材に10個まで）<span class="note">' + (used ? "　登録 " + used + "件" : "　未登録") + '</span></summary><p class="note" style="margin:6px 0 0">教科書の教材を、最大4つまで。リンクは一覧からも開けます。</p>';
+    for (let i = 0; i < nb; i++) {
       const x = m[i] || {};
       h += '<div class="matbox"><label class="small" for="mn_' + u + i + '">教材' + (i + 1) + "の名前</label>" +
         '<input type="text" id="mn_' + u + i + '" data-act="mat" data-u="' + u + '" data-i="' + i + '" data-f="n" value="' + esc(x.n || "") + '" placeholder="' + (i === 0 ? "例：羅生門" : "") + '">' +
-        '<div class="matlinks">' + MATF.map(f => '<div><label class="small" for="m_' + u + i + f[0] + '">' + f[1] + '</label><input type="url" id="m_' + u + i + f[0] + '" data-act="mat" data-u="' + u + '" data-i="' + i + '" data-f="' + f[0] + '" value="' + esc(x[f[0]] || "") + '" placeholder="https://…" autocomplete="off"></div>').join("") + "</div>" + (A.views.matPicker ? A.views.matPicker(u, i) : "") + (A.views.matExtra ? A.views.matExtra(u, i) : "") + "</div>";
+        '<div class="matlinks">' + (() => { const vis = MATF.filter((f, k) => k < 6 || x[f[0]] || (x.lb && x.lb[f[0]]) || (A.ui.matMore && A.ui.matMore[u + ":" + i])); return vis.map((f, vi) => '<div class="matlk"><input type="text" class="matlb" id="ml_' + u + i + f[0] + '" data-act="mat" data-u="' + u + '" data-i="' + i + '" data-f="lb:' + f[0] + '" value="' + esc((x.lb && x.lb[f[0]]) || "") + '" placeholder="' + esc(f[1]) + '" title="リンクの名前（空にすると「' + esc(f[1]) + '」に戻ります）" aria-label="リンクの名前"><input type="url" id="m_' + u + i + f[0] + '" data-act="mat" data-u="' + u + '" data-i="' + i + '" data-f="' + f[0] + '" value="' + esc(x[f[0]] || "") + '" placeholder="https://…" autocomplete="off" aria-label="' + esc(lbl(x, f)) + 'のアドレス"><span class="tmv"><button type="button" class="btn sm" data-act="mat-mv" data-u="' + u + '" data-i="' + i + '" data-f="' + f[0] + '" data-d="-1" aria-label="上へ"' + (vi === 0 ? " disabled" : "") + '>▲</button><button type="button" class="btn sm" data-act="mat-mv" data-u="' + u + '" data-i="' + i + '" data-f="' + f[0] + '" data-d="1" aria-label="下へ"' + (vi >= vis.length - 1 ? " disabled" : "") + '>▼</button></span></div>').join(""); })() + "</div>" + (A.ui.matMore && A.ui.matMore[u + ":" + i] ? "" : '<button type="button" class="btn sm" data-act="mat-more" data-u="' + u + '" data-i="' + i + '">＋ リンクを増やす（10個まで）</button>') + (A.views.matPicker ? A.views.matPicker(u, i) : "") + (A.views.matExtra ? A.views.matExtra(u, i) : "") + "</div>";
     }
-    return h;
+    return h + "</details>";
   }
+
+  /* ---------- いま授業中／次の授業 ---------- */
+  function liveOf(rows) {
+    const d = new Date(), now = d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60;
+    const ls = rows.filter(r => r.kind !== "off" && r.kind !== "cancel" && span(r)).sort((a, b) => span(a)[0] - span(b)[0]);
+    if (!ls.length) return null;
+    const cur = ls.find(r => now >= span(r)[0] && now < span(r)[1]);
+    if (cur) return { k: "now:" + cur.key, mode: "now", r: cur, left: Math.ceil(span(cur)[1] - now), end: span(cur)[1] };
+    const nx = ls.find(r => span(r)[0] > now);
+    if (nx) { const brk = ls.some(r => span(r)[1] <= now); return { k: "next:" + nx.key, mode: "next", brk, r: nx, left: Math.ceil(span(nx)[0] - now), start: span(nx)[0] }; }
+    return { k: "done", mode: "done" };
+  }
+  const liveRight = L => L.mode === "now" ? "あと" + durTxt(L.left) + "（〜" + hm(L.end) + "）" : L.mode === "next" ? "あと" + durTxt(L.left) + "（" + hm(L.start) + "〜）" : "";
+  function liveHtml(rows) {
+    const L = liveOf(rows); A.liveKey = (L ? L.k : "") + "|" + rows.filter(needRec).map(r => r.key).join(",");
+    if (!L) return "";
+    const pend = rows.filter(needRec).sort((a, b) => span(a)[0] - span(b)[0]);
+    const recH = pend.length ? '<div class="lv-rec"><span>記録がまだのコマ：</span>' + pend.map(r => '<button class="btn sm" data-act="open" data-key="' + esc(r.key) + '">' + esc(perTxt(r)) + "の記録を付ける</button>").join(" ") + "</div>" : "";
+    if (L.mode === "done") return '<div data-lv="done"><p class="note lv-done">今日の授業はおわりました。おつかれさまでした。</p>' + recH + "</div>";
+    const label = L.mode === "now" ? "いま授業中" : (L.brk ? "休み時間・次の授業" : "次の授業");
+    return '<section class="panel p-live ' + L.mode + '" data-lv="' + esc(L.k) + '"><header class="panel-h"><h2><i class="lv-dot"></i>' + label + '</h2><span class="panel-n lv-c">' + liveRight(L) + '</span></header><div class="panel-b"><div class="list">' + slotCard(L.r, true) + "</div>" + recH + "</div></section>";
+  }
+  function liveTick() {
+    const yo = document.querySelector(".lv-yo"); if (yo && A.work && A.work.bellText) yo.textContent = A.work.bellText();
+    if (A.ui.mode === "work" || A.ui.tab !== "today" || !A.liveRows || A.ui.asof !== J.ds(new Date())) return;
+    const L = liveOf(A.liveRows), k = (L ? L.k : "") + "|" + A.liveRows.filter(needRec).map(r => r.key).join(",");
+    if (k !== A.liveKey) {
+      const ae = document.activeElement;
+      if (document.querySelector("dialog[open]") || (ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName))) return;
+      A.render(); return;
+    }
+    const c = document.querySelector(".lv-c"); if (c && L) c.textContent = liveRight(L);
+  }
+  setInterval(liveTick, 20000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) liveTick(); });
 
   /* ---------- 今日 ---------- */
   function viewToday() {
@@ -154,20 +208,31 @@
       tiles += '<button class="tile k-' + subj(c.name) + '" data-act="goplan" data-id="' + c.id + '"><span class="tile-h"><b>' + esc(a) + "</b><span>" + esc(b) + '</span></span><span class="big num">' + s.remain + '<small>時間</small></span>' + meter(o, false) + "<span>" + gap + "</span></button>";
     });
     tiles += "</div>";
-    let h = panel("p-rem", "残りの授業時間", md(asof) + "から", tiles);
-
     const rows = [];
     all.forEach(({ s }) => s.pj.rows.forEach(r => rows.push(r)));
     rows.sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : ((a.periods || [0])[0] - (b.periods || [0])[0]) || (a.key < b.key ? -1 : 1));
-    const evT = st.events[asof];
+    const evT = A.evOf ? A.evOf(asof) : st.events[asof];
     const today = rows.filter(r => r.date === asof);
-    h += panel("p-now", md(asof) + "（" + dw(asof) + "）の授業", today.length ? today.length + "コマ" : "", (evT ? '<p class="note" style="margin:0 0 8px">行事：' + esc(evT) + "</p>" : "") +
+    const isToday = asof === J.ds(new Date());
+    const WD = ["日", "月", "火", "水", "木", "金", "土"], wdn = WD[new Date(asof + "T00:00:00").getDay()];
+    let h = (A.work ? A.work.morning() : "") +
+      '<div class="pghd"><div><h2 class="pgt">Today</h2><p class="pgs">授業の予定と校務を、ここから。</p></div><div class="pgd num">' + md(asof) + " <small>" + wdn + "曜日" + (isToday ? "" : "（基準日）") + "</small></div></div>";
+    const nowP = panel("p-now", isToday ? "今日の授業" : md(asof) + "（" + dw(asof) + "）の授業", today.length ? today.length + "コマ" : "", (evT ? '<p class="note" style="margin:0 0 8px">行事：' + esc(evT) + "</p>" : "") + (A.kintai && A.kintai.dayNote(asof) ? '<p class="note kdn">' + esc(A.kintai.dayNote(asof)) + "</p>" : "") +
       (today.length ? '<div class="list">' + today.map(r => slotCard(r, true)).join("") + "</div>" : '<p class="note" style="margin:0">この日に担当授業はありません。</p>'));
+    A.liveRows = today;
+    if (isToday) h += liveHtml(today);
+    const wkP = A.work ? A.work.todayPanel() : "";
+    h += A.tipsBand ? A.tipsBand("class") : "";
+    h += (A.ai && A.ai.band ? A.ai.band() : "");   /* AIアカウント（重要Tipsと今朝のまとめの間） */
+    h += (A.morning ? A.morning.band() : "");   /* 今朝のまとめ（重要Tipsと、今日の授業の間） */
+    h += '<div class="tworow' + (wkP ? (wkP.indexOf("p-slim") >= 0 ? " slim" : "") : " one") + '">' + nowP + wkP + "</div>";
+    h += A.seiseki ? A.seiseki.todayPanel() : "";
+    h += panel("p-rem", "担当クラスの授業進度", "残りの授業時間（" + md(asof) + "から）", tiles);
     const lim = addDays(asof, 7);
     const soon = rows.filter(r => r.date > asof && r.date <= lim && r.kind !== "off");
     h += panel("p-soon", "これから1週間", soon.length ? soon.length + "コマ" : "", soon.length ? '<div class="list">' + soon.map(r => slotCard(r, true)).join("") + "</div>" : '<p class="note" style="margin:0">授業の予定はありません。</p>');
-    const evs = Object.keys(st.events).filter(d => d > asof && d <= addDays(asof, 14)).sort();
-    if (evs.length) h += panel("p-ev", "これからの行事（2週間）", evs.length + "件", evs.map(d => '<div class="blk"><span><b class="num">' + md(d) + "（" + dw(d) + "）</b>　" + esc(clip(st.events[d], 80)) + "</span></div>").join(""));
+    const evs = A.evList ? A.evList(addDays(asof, 1), addDays(asof, 14)) : Object.keys(st.events).filter(d => d > asof && d <= addDays(asof, 14)).sort();
+    if (evs.length) h += panel("p-ev", "これからの行事（2週間）", evs.length + "件", evs.map(d => '<div class="blk"><span><b class="num">' + md(d) + "（" + dw(d) + "）</b>　" + esc(clip(A.evOf ? A.evOf(d) : st.events[d], 80)) + "</span></div>").join(""));
     const wait = rows.filter(r => r.date < asof && r.kind === "plan").length;
     if (wait) h += '<p class="note">記録がまだ入っていない過去のコマが ' + wait + " 件あります（計画表で「記録待ち」）。</p>";
     return h;
@@ -317,10 +382,11 @@
     return out;
   }
   function viewRem() {
-    const L = pendingList();
+    const L = pendingList(), wk = A.work ? A.work.remHtml() : "";
+    if (!L.length && wk) return wk + '<div class="dlg-btns" style="justify-content:space-between"><button class="btn" data-act="rem-today">今日はもう表示しない</button><button class="btn on" data-act="rem-close">閉じる</button></div>';
     if (!L.length) return '<h2>記録のもれはありません</h2><p class="note">過去の授業は、すべて記録（または休講・授業なしの設定）が入っています。</p><div class="dlg-btns"><button class="btn on" data-act="rem-close">閉じる</button></div>';
     const show = L.slice(0, 40);
-    let h = '<h2>記録がまだ入っていない授業があります</h2><p class="note" style="margin:0 0 8px">日付が過ぎたのに、「実施した」などの記録が入っていない授業が <b>' + L.length + "コマ</b>あります。押すと、一覧のそのコマへ移動します。</p><div class=\"remlist\">";
+    let h = wk + '<h2' + (wk ? ' style="margin-top:16px"' : "") + '>記録がまだ入っていない授業があります</h2><p class="note" style="margin:0 0 8px">日付が過ぎたのに、「実施した」などの記録が入っていない授業が <b>' + L.length + "コマ</b>あります。押すと、一覧のそのコマへ移動します。</p><div class=\"remlist\">";
     show.forEach(x => {
       h += '<button class="remitem k-' + subj(x.c.name) + '" data-act="rem-go" data-key="' + esc(x.r.key) + '"><b class="num">' + md(x.r.date) + "（" + dw(x.r.date) + "）</b> " + esc(x.c.short) + ' <span class="per">' + perTxt(x.r) + "</span>" +
         '<span class="remt">' + esc(x.r.kind === "empty" ? "（計画なし）" : clip(rowTitle(x.r), 36)) + "</span></button>";
@@ -358,7 +424,7 @@
         else if (al != null && al !== "") { const diff = x.slotsU - al; d = diff === 0 ? '<span class="pill p-ok">配当どおり</span>' : '<span class="pill p-warn">' + (diff > 0 ? "+" : "") + diff + "</span>"; }
         b += "<tr><td>" + esc(c.name) + '</td><td><input class="num-in" type="number" min="0" step="1" inputmode="numeric" aria-label="' + esc(c.name) + 'の配当" data-act="allot" data-u="' + u + '" data-c="' + c.id + '" value="' + (al == null ? "" : al) + '"></td><td>' + x.planned + "</td><td>" + x.actual + (x.swapped ? ' <span class="small muted">（別の内容で ' + x.swapped + '）</span>' : "") + "</td><td>" + (x.start ? md(x.start) + "〜" + md(x.end) : "−") + "</td><td>" + d + "</td></tr>";
       });
-      b += '</tbody></table></div>' + prevHtml(un) + (A.views.past ? A.views.past(u) : "") + '<div style="margin-top:12px"><button class="btn" data-act="flow-open" data-u="' + u + '">この単元の予定を各クラスの計画に入れる</button></div>' + matForm(u) + '<label class="small unitnote" for="ui_' + u + '">この単元の授業内容の予定（1行＝1コマ。一覧の画面で選んで使えます）</label><textarea id="ui_' + u + '" data-act="un-items" data-id="' + u + '" style="min-height:110px" placeholder="例：\n導入・語句の確認\n本文の読解①\n本文の読解②\nまとめ・小テスト">' + esc((un.items || []).join("\n")) + '</textarea><label class="small unitnote" for="un_' + u + '">学期末の振り返りメモ</label><textarea id="un_' + u + '" data-act="un" data-id="' + u + '" placeholder="うまくいった点、時間がかかった点、次回の工夫">' + esc(st.unitNotes[u] || "") + "</textarea>";
+      b += '</tbody></table></div>' + prevHtml(un) + (A.views.past ? A.views.past(u) : "") + '<div style="margin-top:12px"><button class="btn" data-act="flow-open" data-u="' + u + '">この単元の予定を各クラスの計画に入れる</button></div>' + matForm(u) + '<label class="small unitnote" for="ui_' + u + '">この単元の授業内容の予定（1行＝1コマ。一覧の画面で選んで使えます）</label><textarea id="ui_' + u + '" data-act="un-items" data-id="' + u + '" style="min-height:110px" placeholder="例：\n導入・語句の確認\n本文の読解①\n本文の読解②\nまとめ・小テスト">' + esc((un.items || []).join("\n")) + '</textarea><label class="small unitnote" for="un_' + u + '">学期末の振り返りメモ</label><textarea id="un_' + u + '" data-act="un" data-id="' + u + '" placeholder="うまくいった点、時間がかかった点、次回の工夫">' + esc(st.unitNotes[u] || "") + '</textarea><div style="margin-top:14px;text-align:right"><button class="btn sm danger" data-act="un-del" data-id="' + u + '">この単元を削除</button></div>';
       h += panel("p-soon", esc(un.name), un.subj || "共通", b);
     });
     return h + panel("p-ev", "単元を追加", "", '<div class="addrow" style="grid-template-columns:160px 1fr auto"><select id="newunit_s" aria-label="科目">' + ["", ...subjectList()].map(x => '<option value="' + esc(x) + '">' + esc(x || "共通") + "</option>").join("") + '</select><input type="text" id="newunit" aria-label="単元名" placeholder="単元名（例：羅生門）"><button class="btn on" data-act="addunit">追加</button></div>' + (A.views.tbPicker ? A.views.tbPicker() : ""));
@@ -417,9 +483,9 @@
       '<button class="mini more" data-act="cell" data-key="' + key + '" title="順番の入れ替え・削除など">詳細</button></div>';
     if (r.ev) h += '<div class="gev">行事：' + esc(clip(r.ev, 40)) + "</div>";
     h += '<div class="gst">' + St("done", "実施") + St("part", "途中") + St("cancel", "休講") + St("free", "別") + St("plan", "予定") +
-      '<button class="mini" data-act="offset" data-key="' + key + '" title="行事などで授業なし（休校）にする">なし</button></div>';
+      '<button class="mini" data-act="offset" data-key="' + key + '" title="行事などで授業なし（休校）にする">なし</button></div>' + quickRow(r, true);
     if (s === "cancel") h += '<div class="gnote">休講（以降の計画が後ろへずれます）</div>';
-    else if (s === "free") h += freeForm(r, "g" + sid(r.key), true);
+    else if (s === "free") h += '<div class="gnote">別の内容（以降の計画が後ろへずれます）</div>' + freeForm(r, "g" + sid(r.key), true);
     else if (r.blocks.length) {
       r.blocks.forEach(b => {
         h += '<div class="gblk' + (r.cont ? " cont" : "") + '"><select class="gsel" aria-label="単元" data-act="blk-u" data-id="' + esc(b.id) + '">' + unitOptions(b.u, true, c.id) + "</select>" +
@@ -451,7 +517,7 @@
     else if (k === "free") text = freeTitle(r);
     else if (k === "empty") text = "（計画なし）";
     else if (blank) text = "（内容を入力）";
-    else text = (r.cont ? "（続き）" : "") + r.blocks.map(b => b.t).filter(Boolean).join(" ／ ");
+    else text = ((r.cont || r.b2) ? "（続き）" : "") + r.blocks.map(b => b.t).filter(Boolean).join(" ／ ");
     if (k === "done") mark = '<span class="gk ok">実施</span>';
     else if (k === "part") mark = '<span class="gk mid">途中</span>';
     else if (waiting) mark = '<span class="gk wait">記録待ち</span>';
@@ -468,7 +534,7 @@
     if (A.ui.gridSubj !== "all") cls = cls.filter(c => subj(c.name) === A.ui.gridSubj);
     if (A.ui.gridOrder === "subject") cls = cls.map((c, i) => ({ c, i })).sort((a, b) => (subj(a.c.name) === subj(b.c.name) ? 0 : subj(a.c.name) === "gen" ? -1 : 1) || a.i - b.i).map(x => x.c);
     const stats = {}, rmap = {};
-    cls.forEach(c => { stats[c.id] = J.classStats(st, c, asof); rmap[c.id] = {}; stats[c.id].pj.rows.forEach(r => { rmap[c.id][r.date] = r; }); });
+    cls.forEach(c => { stats[c.id] = J.classStats(st, c, asof); rmap[c.id] = {}; stats[c.id].pj.rows.forEach(r => { (rmap[c.id][r.date] = rmap[c.id][r.date] || []).push(r); }); });
     const prefixes = [];
     st.classes.forEach(c => { const p = parts(c.name)[0]; if (prefixes.indexOf(p) < 0) prefixes.push(p); });
     const grp = c => prefixes.indexOf(parts(c.name)[0]) % 4 + 1;
@@ -476,25 +542,36 @@
     let h = '<div class="gridbar">' + seg("gord", A.ui.gridOrder, [["class", "クラス順"], ["subject", "科目ごと"]]) +
       seg("gsub", A.ui.gridSubj, [["all", "すべて"], ["gen", "現代の国語"], ["lang", "言語文化"]]) +
       seg("gedit", A.ui.gridEdit ? "e" : "v", [["e", "編集"], ["v", "見るだけ"]]) +
-      '<button class="btn" data-act="gridtoday">今日の位置へ</button><button class="btn" data-act="carry-open" title="前の学期の計画・単元・教材を、この学期に写します">前の学期から引き継ぐ</button><button class="btn" data-act="url-open" title="各クラスのGoogle Classroomのリンクを設定します">Classroomリンク</button><button class="btn" data-act="flow-open" title="単元別タブで作った予定を、各クラスの計画に順に入れます">単元の予定を計画に入れる</button><span class="glegend"><span><i class="lg-gen"></i>現代の国語</span><span><i class="lg-lang"></i>言語文化</span><span><i style="background:var(--today-soft);border-color:var(--today)"></i>今日</span></span><span class="note">' + (A.ui.gridEdit ? "コマの中で単元・内容・記録を直接直せます。「詳細」で順番の入れ替えなど。" : "コマをタップすると、記録・休講・内容の書き換えができます。") + '</span></div>';
+      '<button class="btn" data-act="gridtoday">今日の位置へ</button><button class="btn" data-act="days-open" title="短縮授業・模試・面談週間など、その日だけ時間割が変わる日を入れます">特別日課</button><button class="btn" data-act="newterm-open" title="学期（日付の範囲・クラス・時間割・行事）をアプリの中で作ります">＋ 新しい学期</button><button class="btn" data-act="carry-open" title="前の学期の計画・単元・教材を、この学期に写します">前の学期から引き継ぐ</button><button class="btn" data-act="url-open" title="各クラスのGoogle Classroomのリンクを設定します">Classroomリンク</button><button class="btn" data-act="flow-open" title="単元別タブで作った予定を、各クラスの計画に順に入れます">単元の予定を計画に入れる</button><span class="glegend"><span><i class="lg-gen"></i>現代の国語</span><span><i class="lg-lang"></i>言語文化</span><span><i style="background:var(--today-soft);border-color:var(--today)"></i>今日</span></span><span class="note">' + (A.ui.gridEdit ? "コマの中で単元・内容・記録を直接直せます。「詳細」で順番の入れ替えなど。" : "コマをタップすると、記録・休講・内容の書き換えができます。") + '</span></div>';
     h += '<div class="gridwrap" tabindex="-1"><table class="gridt' + (A.ui.gridEdit ? " edit" : "") + '" style="--n:' + cls.length + '"><colgroup><col class="col-d"><col class="col-e">' + cls.map(() => '<col class="col-c">').join("") + "</colgroup><thead><tr>" +
       '<th class="c-date" rowspan="2">日</th><th class="c-ev" rowspan="2">行事</th>' +
       cls.map(c => '<th class="gh1 hs-' + subj(c.name) + '">' + (c.url ? '<a class="gcl" href="' + esc(c.url) + '" target="_blank" rel="noopener noreferrer" title="Google Classroomを新しいタブで開く">' + esc(c.short) + ' <span aria-hidden="true">↗</span></a>' : '<button class="gcl none" data-act="url-open" title="Google Classroomのリンクを設定する">' + esc(c.short) + ' <span aria-hidden="true">＋</span></button>') + "<small>" + esc(c.tt.map(t => J.DOW[t[0]] + t[1]).join("・")) + "</small></th>").join("") + "</tr><tr>" +
       cls.map(c => '<th class="gh2 hs-' + subj(c.name) + '">残り <b class="num">' + stats[c.id].remain + "</b> 時間</th>").join("") + "</tr></thead><tbody>";
     const lastUnit = {};
     for (let d = st.term.start; d <= st.term.end; d = addDays(d, 1)) {
-      const w = J.pd(d).getDay(), ev = st.events[d] || "";
-      let active = 0, cells = "";
+      const w = J.pd(d).getDay(), ev = (A.evOf ? A.evOf(d) : st.events[d]) || "";
+      /* 2時間続きの授業は、1時限ごとに別の行にする（日付と行事は縦にまとめる） */
+      const nR = Math.max(1, ...cls.map(c => (rmap[c.id][d] || []).length));
+      let active = 0; const cellsBy = [];
+      for (let j = 0; j < nR; j++) cellsBy.push("");
       cls.forEach(c => {
-        const r = rmap[c.id][d];
-        if (!r) { cells += '<td class="gc"></td>'; return; }
-        let chip = "";
-        if (r.blocks.length) chip = r.blocks.map(b => unitName(b.u)).filter((x, i, arr) => arr.indexOf(x) === i).join("・");
-        if (r.kind !== "off") active++;
-        cells += gridCell(r, c, asof, chip);
+        const rs = rmap[c.id][d] || [];
+        if (!rs.length) { cellsBy[0] += '<td class="gc"' + (nR > 1 ? ' rowspan="' + nR + '"' : "") + "></td>"; return; }
+        rs.forEach((r, j) => {
+          let chip = "";
+          if (r.blocks.length) chip = r.blocks.map(b => unitName(b.u)).filter((x, i, arr) => arr.indexOf(x) === i).join("・");
+          if (r.kind !== "off") active++;
+          let td = gridCell(r, c, asof, chip);
+          if (rs.length === 1 && nR > 1) td = td.replace("<td ", '<td rowspan="' + nR + '" ');
+          cellsBy[j] += td;
+        });
       });
       const wk = w === 0 || w === 6;
-      h += '<tr class="' + (d === asof ? "gr-today " : "") + (w === 1 ? "mon " : "") + (!active ? (wk ? "wk" : "none") : "") + '"' + (d === asof ? ' id="gr-today"' : "") + '><td class="c-date"><b class="num">' + md(d) + '</b><span class="dow">' + dw(d) + '</span></td><td class="c-ev" title="' + esc(ev) + '">' + esc(clip(ev, 70)) + "</td>" + cells + "</tr>";
+      const cls0 = (d === asof ? "gr-today " : "") + (w === 1 ? "mon " : "") + (!active ? (wk ? "wk" : "none") : "");
+      for (let j = 0; j < nR; j++) {
+        h += '<tr class="' + cls0 + (j ? " gr-sub2" : "") + '"' + (d === asof && !j ? ' id="gr-today"' : "") + ">" +
+          (j ? "" : '<td class="c-date"' + (nR > 1 ? ' rowspan="' + nR + '"' : "") + '><b class="num">' + md(d) + '</b><span class="dow">' + dw(d) + '</span></td><td class="c-ev"' + (nR > 1 ? ' rowspan="' + nR + '"' : "") + ' title="' + esc(ev) + '">' + esc(clip(ev, 70)) + "</td>") + cellsBy[j] + "</tr>";
+      }
     }
     return h + "</tbody></table></div>";
   }
@@ -527,7 +604,7 @@
     const r = c && J.project(A.st, c).rows.find(x => x.key === key);
     if (!r) return null;
     const k = esc(r.key), s = (r.rec && r.rec.s) || "plan", id = sid(r.key);
-    let h = "<h2>" + esc(c.name) + "　" + md(r.date) + "（" + dw(r.date) + "）　" + perTxt(r) + "</h2>" +
+    let h = "<h2>" + esc(c.name) + "　" + md(r.date) + "（" + dw(r.date) + "）　" + perTxt(r) + (timeTxt(r) ? "（" + timeTxt(r) + "）" : "") + "</h2>" +
       (r.ev ? '<p class="note" style="margin:0 0 6px">行事：' + esc(r.ev) + "</p>" : "") +
       '<p class="cell-now">' + pillFor(r) + " <b>" + esc(rowTitle(r)) + "</b></p>";
     if (r.kind === "off") {
@@ -535,8 +612,8 @@
       return h + '<div class="dlg-btns"><button class="btn on" data-act="close-cell">閉じる</button></div>';
     }
     const B = (v, t) => '<button class="btn' + (s === v ? " on" : "") + '" data-act="st" data-key="' + k + '" data-v="' + v + '">' + t + "</button>";
-    h += '<div class="csec">このコマの状態</div><div class="btns">' + B("done", "実施した") + B("part", "途中まで") + B("cancel", "休講にする") + B("free", "別の内容にする") +
-      '<button class="btn" data-act="offset" data-key="' + k + '">行事で授業なし</button>' + B("plan", "予定に戻す") + "</div>";
+    h += '<div class="csec">このコマの状態</div><div class="btns">' + B("done", "実施した") + B("part", "途中まで") + B("cancel", "休講（以降ずれる）") + B("free", "別の内容にする") +
+      '<button class="btn" data-act="offset" data-key="' + k + '">行事で授業なし</button>' + B("plan", "予定に戻す") + "</div>" + quickRow(r, false);
     if (s === "free") h += '<p class="note" style="margin:8px 0 0">「別の内容」は、計画とは別のこと（学年集会・テスト返却など）をやった日用です。計画の授業内容として入れたいときは「予定に戻す」を押してください。</p>' +
       freeForm(r, id + "d", false);
     if (s === "cancel") h += '<p class="note" style="margin:8px 0 0">このコマは使わず、以降の計画が自動で後ろへずれました。</p>';
@@ -566,5 +643,6 @@
     return h + '<div class="dlg-btns"><button class="btn on" data-act="close-cell">閉じる</button></div>';
   }
 
+  A.timeSpan = span; A.hm = hm; A.rowTitle = rowTitle; A.liveTick = liveTick;
   A.views = { rem: viewRem, pendingList, carry: viewCarry, carryDefaults, urls: viewUrls, flow: viewFlow, flowItems, today: viewToday, plan: viewPlan, grid: viewGrid, unit: viewUnit, sum: viewSummary, cell: viewCell };
 })(window);
