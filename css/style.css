@@ -1319,3 +1319,8 @@ button.aip:hover{filter:brightness(.96);text-decoration:underline}
 .aimb.wait small{opacity:1}
 .aimi .aiwho.wait .aichip{background:#dfe2e7;border-color:#b3bac6;color:#2a3140}
 .aiwt{margin-left:6px;padding:1px 8px;border-radius:12px;background:#dfe2e7;border:1px solid #b3bac6;color:#2a3140;font-size:12px}
+/* 再開のお知らせ */
+.aire{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;background:#fff8dc;border:1px solid #f0d36b;border-radius:12px;padding:8px 12px;margin:0 0 10px;color:#6b4e00}
+.aire.inband{border-radius:0;border-width:1px 0;margin:0}
+.aire-i{display:inline-flex;gap:8px;align-items:center;background:#fff;border:1px solid #f0d36b;border-radius:14px;padding:2px 4px 2px 12px;font-size:13px;font-weight:700;color:#3a2f00}
+.aire-i small{font-weight:400;color:#6b4e00}

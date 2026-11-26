@@ -139,6 +139,13 @@
     const body = l.length ? l.map(j => { const a = acctOf(d, j.a); if (ui.ed === j.id && ui.edIn === "s" && !j.fl) return '<div class="aijob editing">' + jobForm(d, j, false) + "</div>"; return '<div class="aimi" data-in="s"><span class="aie">' + esc(j.e) + '</span><b class="aitt" data-ai="ed" data-id="' + j.id + '" role="button" tabindex="0" title="押すと編集できます">' + esc(j.t) + '</b> <span class="aiarw">→</span> ' + (a ? '<button class="aipm-b" data-ai="jump" data-id="' + a.id + '" title="このアカウントの場所へ">📝 ' + esc(SVN(a.s)[1]) + "・" + esc(a.n) + "</button>" : "") + ' <span class="note">' + pmDate(j.pm) + "</span></div>"; }).join("") : '<p class="note">まだありません。作業の行の「📝 最新にする」を押すと、ここに並びます。</p>';
     return fold("po:pm", "aipmb", false, "<b>📝 最新プロンプト一覧</b>" + '<span class="note">' + l.length + "件　作業ごとに、プロンプトが一番育っているアカウント</span>", body);
   }
+  /* 再開のお知らせ：止まっていた時刻を過ぎて、まだ「確認した」を押していないアカウント */
+  const resumed = a => !!(a.lim && a.lim <= now() && now() - a.lim < 3 * 864e5 && a.ack !== a.lim);
+  const hmT = t => { const x = new Date(t), z = n => String(n).padStart(2, "0"), y = new Date(); return (x.toDateString() === y.toDateString() ? "" : (x.getMonth() + 1) + "/" + x.getDate() + " ") + z(x.getHours()) + ":" + z(x.getMinutes()); };
+  function resumeBox(d, cls) {
+    const l = d.accts.filter(resumed); if (!l.length) return "";
+    return '<div class="aire ' + (cls || "") + '"><b>🔔 再開しました</b>' + l.map(a => '<span class="aire-i">' + esc(SVN(a.s)[1]) + "・" + esc(a.n) + "<small>" + hmT(a.lim) + 'に再開</small><button class="btn sm" data-ai="ack" data-id="' + a.id + '" title="気づいた・確認した">確認した</button></span>').join("") + (l.length > 1 ? '<button class="btn sm" data-ai="ack-all">すべて確認した</button>' : "") + "</div>";
+  }
   function mainStrip(d) {
     const l = flagged(d);
     return fold("p:main", "aimain", true, "<b>⚑ 作業中</b>" + '<span class="note">' + (l.length ? l.length + "件　" : "") + "作業の左の旗を押すと、ここに並びます</span>",
@@ -147,7 +154,7 @@
   function nowStrip(d) {
     return fold("p:now", "ainow", true, '<b>アカウントの状態</b><span class="note"><span class="aip ok">● 使える</span> <span class="aip ok use">● 使用中の作業あり</span> <span class="aip wait">◌ 待ち（再開時刻〜）</span>　名前を押すと、そのアカウントの場所に移ります</span>', SV.map(s => {
       const l = d.accts.filter(a => a.s === s[0]); if (!l.length) return "";
-      return '<div class="ainr"><b style="color:' + s[2] + '">' + s[1] + "</b>" + l.map(a => avail(a) ? '<button class="aip ok' + (useN(d, a) ? " use" : "") + '" data-ai="jump" data-id="' + a.id + '" title="このアカウントの場所へ">' + (flagA(d, a) ? "⚑ " : "● ") + esc(a.n) + "</button>" : '<button class="aip wait" data-ai="jump" data-id="' + a.id + '" title="このアカウントの場所へ">◌ ' + esc(a.n) + "（" + when(a.lim) + "〜）" + snH(a) + "</button>").join("") + "</div>";
+      return '<div class="ainr"><b style="color:' + s[2] + '">' + s[1] + "</b>" + l.map(a => avail(a) ? '<button class="aip ok' + (useN(d, a) ? " use" : "") + '" data-ai="jump" data-id="' + a.id + '" title="このアカウントの場所へ">' + (resumed(a) ? "🔔 " : flagA(d, a) ? "⚑ " : "● ") + esc(a.n) + "</button>" : '<button class="aip wait" data-ai="jump" data-id="' + a.id + '" title="このアカウントの場所へ">◌ ' + esc(a.n) + "（" + when(a.lim) + "〜）" + snH(a) + "</button>").join("") + "</div>";
     }).join(""));
   }
   function viewAcct(d) {
@@ -243,21 +250,21 @@
     const nWait = d.accts.filter(a => !avail(a)).length;
     return '<div class="aihead"><div class="seg"><button data-ai="v" data-v="acct" aria-pressed="' + (ui.v === "acct") + '">アカウントごと</button><button data-ai="v" data-v="job" aria-pressed="' + (ui.v === "job") + '">作業ごと</button><button data-ai="v" data-v="st" aria-pressed="' + (ui.v === "st") + '">状態ごと</button><button data-ai="v" data-v="pr" aria-pressed="' + (ui.v === "pr") + '">プロンプト集</button></div>' +
       '<input type="search" id="aiq" class="lq" placeholder="' + (ui.v === "pr" ? "さがす（題名・本文）" : "さがす（作業名・アカウント）") + '" value="' + esc(ui.q) + '" autocomplete="off">' + (ui.v === "job" || ui.v === "st" ? '<button class="btn' + (ui.gp ? " on" : "") + '" data-ai="gp" aria-pressed="' + !!ui.gp + '" title="同じ名前の作業を1つにまとめて見せます">同じ作業をまとめる</button>' : "") + '<button class="btn" data-ai="cm-tog" title="作業のマークと名前を決める">⚙ 作業の種類を設定</button>' + (ui.v === "pr" || ui.v === "st" ? "" : '<select id="aif" aria-label="状態で絞る"><option value="">状態：すべて</option>' + ST.slice(0, 4).map(s => '<option value="' + s[0] + '"' + (ui.f === s[0] ? " selected" : "") + ">" + s[1] + "</option>").join("") + "</select>") + '</div>' +
-      (ui.v === "pr" ? "" : mainStrip(d)) + (ui.v === "pr" || ui.v === "st" ? "" : nowStrip(d)) + (ui.v === "pr" ? "" : pmStrip(d)) + catMgr(d) + '<div id="aibody">' + bodyOf(d) + "</div>" +
+      (ui.v === "pr" ? "" : resumeBox(d) + mainStrip(d)) + (ui.v === "pr" || ui.v === "st" ? "" : nowStrip(d)) + (ui.v === "pr" ? "" : pmStrip(d)) + catMgr(d) + '<div id="aibody">' + bodyOf(d) + "</div>" +
       '<p class="note">メールアドレスは入れず、呼び名だけで管理します（このデータは公開のGitHubに入るため）。待ち時間はアカウントごとに「設定」で変えられます。' + (nWait ? "いま待ちのアカウント：" + nWait : "") + "</p>";
   };
   /* トップページの細い帯（重要Tipsと今朝のまとめの間）。押すとAIのページが開く */
   A.ai.band = function () {
     const d = D(); if (!d || !d.accts.length) return "";
     const mk = d.jobs.filter(j => j.st === "making").length;
-    const chips = l => l.map(a => avail(a) ? '<span class="aip ok' + (useN(d, a) ? " use" : "") + '">' + (flagA(d, a) ? "⚑ " : "● ") + esc(a.n) + "</span>" : '<span class="aip wait">◌ ' + esc(a.n) + "（" + when(a.lim) + "〜）" + snH(a) + "</span>").join("");
+    const chips = l => l.map(a => avail(a) ? '<span class="aip ok' + (useN(d, a) ? " use" : "") + '">' + (resumed(a) ? "🔔 " : flagA(d, a) ? "⚑ " : "● ") + esc(a.n) + "</span>" : '<span class="aip wait">◌ ' + esc(a.n) + "（" + when(a.lim) + "〜）" + snH(a) + "</span>").join("");
     const lab = k => '<b style="color:' + SVN(k)[2] + '">' + SVN(k)[1] + "</b>", by = k => d.accts.filter(a => a.s === k);
     const rows = [["claude"], ["gpt"], ["gem", "nb"]].map(g => {
       const parts = g.filter(k => by(k).length).map((k, i) => (i ? '<span class="ainb">' : "") + lab(k) + chips(by(k)) + (i ? "</span>" : "")); if (!parts.length) return "";
       return '<div class="ainr">' + parts.join("") + "</div>";
     }).join("");
     const fl = flagged(d).map(j => { const a = acctOf(d, j.a); const w = a && !avail(a); return '<span class="aimb' + (w ? " wait" : "") + '">⚑ ' + esc(j.e) + esc(j.t) + (a ? "<small>" + esc(a.n) + (w ? "（" + when(a.lim) + "〜）" : "") + "</small>" : "") + "</span>"; }).join("");
-    return '<section class="panel p-ai"><header class="panel-h"><h2>AI</h2><span class="panel-n">' + (mk ? "作成中 " + mk + "件" : "") + '</span></header><div class="panel-b aibandb" data-side="work:ai" title="AI使い分けを開く" role="link" tabindex="0">' + (fl ? '<div class="aimbr"><b>作業中</b>' + fl + "</div>" : "") + rows + "</div></section>";
+    return '<section class="panel p-ai"><header class="panel-h"><h2>AI</h2><span class="panel-n">' + (mk ? "作成中 " + mk + "件" : "") + '</span></header>' + resumeBox(d, "inband") + '<div class="panel-b aibandb" data-side="work:ai" title="AI使い分けを開く" role="link" tabindex="0">' + (fl ? '<div class="aimbr"><b>作業中</b>' + fl + "</div>" : "") + rows + "</div></section>";
   };
   A.ai.counts = () => { const d = D(); return d ? { making: d.jobs.filter(j => j.st === "making").length, ok: d.accts.filter(avail).length, all: d.accts.length } : null; };
 
@@ -279,6 +286,8 @@
       if (j.pm) delete j.pm; else { d.jobs.forEach(x => { if (pkey(x) === pkey(j)) delete x.pm; }); const t = new Date(); j.pm = t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0"); }
       return save();
     }
+    if (a === "ack") { const x = acctOf(d, id); if (x) x.ack = x.lim; return save(); }
+    if (a === "ack-all") { d.accts.forEach(x => { if (resumed(x)) x.ack = x.lim; }); return save(); }
     if (a === "v") { ui.v = b.dataset.v; ui.pe = null; return A.render(); }
     if (a === "ed") { ui.ed = id; ui.na = null; const w = e.target.closest("[data-in]"); ui.edIn = w ? w.dataset.in : ""; return A.render(); }
     if (a === "job-no") { ui.ed = null; ui.na = null; return A.render(); }
