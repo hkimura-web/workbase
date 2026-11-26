@@ -1353,3 +1353,5 @@ button.aip:hover{filter:brightness(.96);text-decoration:underline}
 .ainow{gap:6px}
 .ainow .aip,.ainow button.aip{padding:1px 10px;line-height:1.4}
 .ainow .ainr{padding:3px 0}
+#btn-ai svg.brain{fill:currentColor;stroke:none}#btn-ai svg.brain ellipse[stroke]{stroke:#fff}#btn-ai svg.brain g[fill=none]{stroke:#fff}
+#btn-ai svg.brain{display:none}
