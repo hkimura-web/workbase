@@ -1324,3 +1324,10 @@ button.aip:hover{filter:brightness(.96);text-decoration:underline}
 .aire.inband{border-radius:0;border-width:1px 0;margin:0}
 .aire-i{display:inline-flex;gap:8px;align-items:center;background:#fff;border:1px solid #f0d36b;border-radius:14px;padding:2px 4px 2px 12px;font-size:13px;font-weight:700;color:#3a2f00}
 .aire-i small{font-weight:400;color:#6b4e00}
+/* 印刷枚数の合計を大きく／GitHubボタン */
+.tsbig{font-size:26px;font-weight:800;color:var(--ts);line-height:1}
+.tsbig small{font-size:14px;margin-left:2px;font-weight:700}
+.tsdn{font-size:13px;color:var(--muted);margin-left:10px}
+.p-ts .panel-h:has(.tsbig){align-items:center}
+.ghtop{text-decoration:none;margin-left:6px}
+.ghtop svg{fill:currentColor;stroke:none}

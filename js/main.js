@@ -762,3 +762,12 @@
     await loadTerm(terms.some(t => t.id === saved) ? saved : terms[terms.length - 1].id);
   })();
 })();
+
+/* GitHubボタン：設定してあるリポジトリのページを開く */
+(function () {
+  document.addEventListener("click", e => {
+    const a = e.target.closest && e.target.closest("#btn-gh"); if (!a) return;
+    let s = {}; try { s = window.JDStore.getSettings() || {}; } catch (x) { s = {}; }
+    a.href = s.owner && s.repo ? "https://github.com/" + encodeURIComponent(s.owner) + "/" + encodeURIComponent(s.repo) : "https://github.com/";
+  }, true);
+})();
