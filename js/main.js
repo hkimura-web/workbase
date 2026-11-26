@@ -763,11 +763,11 @@
   })();
 })();
 
-/* GitHubボタン：設定してあるリポジトリのページを開く */
+/* GitHubボタン：設定してあるリポジトリのアップロードのページを開く */
 (function () {
   document.addEventListener("click", e => {
     const a = e.target.closest && e.target.closest("#btn-gh"); if (!a) return;
     let s = {}; try { s = window.JDStore.getSettings() || {}; } catch (x) { s = {}; }
-    a.href = s.owner && s.repo ? "https://github.com/" + encodeURIComponent(s.owner) + "/" + encodeURIComponent(s.repo) : "https://github.com/";
+    a.href = s.owner && s.repo ? "https://github.com/" + encodeURIComponent(s.owner) + "/" + encodeURIComponent(s.repo) + "/upload/" + encodeURIComponent(s.branch || "main") : "https://github.com/";
   }, true);
 })();
