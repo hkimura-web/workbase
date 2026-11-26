@@ -142,7 +142,7 @@
   function mainStrip(d) {
     const l = flagged(d);
     return fold("p:main", "aimain", true, "<b>⚑ 作業中</b>" + '<span class="note">' + (l.length ? l.length + "件　" : "") + "作業の左の旗を押すと、ここに並びます</span>",
-      (l.length ? l.map(j => { const a = acctOf(d, j.a); if (ui.ed === j.id && ui.edIn === "s") return '<div class="aijob editing">' + jobForm(d, j, false) + "</div>"; return '<div class="aimi" data-in="s"><button class="aifl on" data-ai="flag" data-id="' + j.id + '" title="旗をはずす" aria-label="旗をはずす">⚑</button><span class="aie">' + esc(j.e) + '</span><b class="aitt" data-ai="ed" data-id="' + j.id + '" role="button" tabindex="0" title="押すと編集できます">' + esc(j.t) + "</b> " + stChip(j.st) + (a ? ' <button class="aiwho' + (avail(a) ? "" : " wait") + '" data-ai="jump" data-id="' + a.id + '" title="このアカウントの場所へ">' + chipS(a) + "</button>" : "") + (j.n ? '<span class="ainote">' + esc(j.n) + "</span>" : "") + "</div>"; }).join("") : '<p class="note">旗を立てた作業はまだありません。</p>'));
+      (l.length ? l.map(j => { const a = acctOf(d, j.a); if (ui.ed === j.id && ui.edIn === "s") return '<div class="aijob editing">' + jobForm(d, j, false) + "</div>"; return '<div class="aimi" data-in="s"><button class="aifl on" data-ai="flag" data-id="' + j.id + '" title="旗をはずす" aria-label="旗をはずす">⚑</button><span class="aie">' + esc(j.e) + '</span><b class="aitt" data-ai="ed" data-id="' + j.id + '" role="button" tabindex="0" title="押すと編集できます">' + esc(j.t) + "</b> " + stChip(j.st) + (a ? ' <button class="aiwho' + (avail(a) ? "" : " wait") + '" data-ai="jump" data-id="' + a.id + '" title="このアカウントの場所へ">' + chipS(a) + (avail(a) ? "" : '<span class="aiwt">◌ 待ち（' + when(a.lim) + "〜）</span>") + "</button>" : "") + (j.n ? '<span class="ainote">' + esc(j.n) + "</span>" : "") + "</div>"; }).join("") : '<p class="note">旗を立てた作業はまだありません。</p>'));
   }
   function nowStrip(d) {
     return fold("p:now", "ainow", true, '<b>アカウントの状態</b><span class="note"><span class="aip ok">● 使える</span> <span class="aip ok use">● 使用中の作業あり</span> <span class="aip wait">◌ 待ち（再開時刻〜）</span>　名前を押すと、そのアカウントの場所に移ります</span>', SV.map(s => {
@@ -256,7 +256,7 @@
       const parts = g.filter(k => by(k).length).map((k, i) => (i ? '<span class="ainb">' : "") + lab(k) + chips(by(k)) + (i ? "</span>" : "")); if (!parts.length) return "";
       return '<div class="ainr">' + parts.join("") + "</div>";
     }).join("");
-    const fl = flagged(d).map(j => { const a = acctOf(d, j.a); return '<span class="aimb">⚑ ' + esc(j.e) + esc(j.t) + (a ? '<small>' + esc(a.n) + "</small>" : "") + "</span>"; }).join("");
+    const fl = flagged(d).map(j => { const a = acctOf(d, j.a); const w = a && !avail(a); return '<span class="aimb' + (w ? " wait" : "") + '">⚑ ' + esc(j.e) + esc(j.t) + (a ? "<small>" + esc(a.n) + (w ? "（" + when(a.lim) + "〜）" : "") + "</small>" : "") + "</span>"; }).join("");
     return '<section class="panel p-ai"><header class="panel-h"><h2>AI</h2><span class="panel-n">' + (mk ? "作成中 " + mk + "件" : "") + '</span></header><div class="panel-b aibandb" data-side="work:ai" title="AI使い分けを開く" role="link" tabindex="0">' + (fl ? '<div class="aimbr"><b>作業中</b>' + fl + "</div>" : "") + rows + "</div></section>";
   };
   A.ai.counts = () => { const d = D(); return d ? { making: d.jobs.filter(j => j.st === "making").length, ok: d.accts.filter(avail).length, all: d.accts.length } : null; };

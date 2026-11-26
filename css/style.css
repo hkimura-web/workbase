@@ -1313,3 +1313,9 @@ button.aip:hover{filter:brightness(.96);text-decoration:underline}
 .aifold .aifb{margin-top:6px}
 /* 作業名を押すと編集 */
 .aitt{cursor:pointer}.aitt:hover{text-decoration:underline;text-decoration-style:dotted}
+/* 待ち：灰色の地に黒っぽい字（今は使えない） */
+.aip.wait,.aibandb .aip.wait,.ainow .aip.wait{background:#dfe2e7;border-color:#b3bac6;color:#2a3140}
+.aimb.wait{background:#dfe2e7;border-color:#b3bac6;color:#2a3140}
+.aimb.wait small{opacity:1}
+.aimi .aiwho.wait .aichip{background:#dfe2e7;border-color:#b3bac6;color:#2a3140}
+.aiwt{margin-left:6px;padding:1px 8px;border-radius:12px;background:#dfe2e7;border:1px solid #b3bac6;color:#2a3140;font-size:12px}
