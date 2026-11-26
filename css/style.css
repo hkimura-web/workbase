@@ -1311,3 +1311,5 @@ button.aip:hover{filter:brightness(.96);text-decoration:underline}
 .aifold>.ainh.aitog{cursor:pointer;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .aifold.col>.ainh{margin-bottom:0}
 .aifold .aifb{margin-top:6px}
+/* 作業名を押すと編集 */
+.aitt{cursor:pointer}.aitt:hover{text-decoration:underline;text-decoration-style:dotted}

@@ -75,9 +75,9 @@
       (isNew ? "" : '<span class="aisp"></span><select id="ai_cp" aria-label="別のアカウントにも作る"><option value="">別のアカウントにも作る…</option>' + acctOpts(d, "").replace(/<option value="/, '<option value="') + '</select><button class="btn" data-ai="job-cp" data-id="' + j.id + '">コピーを作る</button><button class="btn danger" data-ai="job-del" data-id="' + j.id + '">削除</button>') + "</div></div>";
   }
   function jobRow(d, j, i, byAcct) {
-    if (ui.ed === j.id) return '<div class="aijob editing">' + jobForm(d, j, false) + "</div>";
+    if (ui.ed === j.id && ui.edIn !== "s") return '<div class="aijob editing">' + jobForm(d, j, false) + "</div>";
     const a = acctOf(d, j.a), dd = j.d ? j.d.split(":") : null;
-    return '<div class="aijob s-' + (j.st || "n") + (j.fl ? " fl" : "") + (j.pm ? " pm" : "") + '"><button class="aifl' + (j.fl ? " on" : "") + '" data-ai="flag" data-id="' + j.id + '" title="' + (j.fl ? "旗をはずす" : "いま一番これを使っている、の旗を立てる") + '" aria-label="メインの旗">⚑</button><span class="aie">' + esc(j.e) + '</span><div class="aijt"><b>' + esc(j.t) + "</b> " + stChip(j.st) + (j.n ? '<span class="ainote">' + esc(j.n) + "</span>" : "") +
+    return '<div class="aijob s-' + (j.st || "n") + (j.fl ? " fl" : "") + (j.pm ? " pm" : "") + '"><button class="aifl' + (j.fl ? " on" : "") + '" data-ai="flag" data-id="' + j.id + '" title="' + (j.fl ? "旗をはずす" : "いま一番これを使っている、の旗を立てる") + '" aria-label="メインの旗">⚑</button><span class="aie">' + esc(j.e) + '</span><div class="aijt"><b class="aitt" data-ai="ed" data-id="' + j.id + '" role="button" tabindex="0" title="押すと編集できます">' + esc(j.t) + "</b> " + stChip(j.st) + (j.n ? '<span class="ainote">' + esc(j.n) + "</span>" : "") +
       (j.pr && prOf(d, j.pr) ? ' <button class="btn sm" data-ai="pr-go" data-id="' + j.pr + '">📄 プロンプト</button><button class="btn sm" data-ai="pr-copy" data-id="' + j.pr + '">コピー</button>' : "") + (dd ? ' <button class="btn sm" data-ai="doc" data-s="' + esc(dd[0]) + '" data-id="' + esc(dd.slice(1).join(":")) + '">📄 プロンプト</button>' : "") +
       (byAcct ? "" : ' <span class="aiwho' + (a && !avail(a) ? " wait" : "") + '">' + (a ? chipS(a) : "") + "</span>") + ' <button class="aipmk' + (j.pm ? " on" : "") + '" data-ai="pm" data-id="' + j.id + '" title="' + (j.pm ? "最新プロンプトの印をはずす" : "この作業のプロンプトが一番育っているのはここ、の印をつける（同じ作業の他の印は外れます）") + '">' + (j.pm ? "📝 最新プロンプト " + pmDate(j.pm) : "📝 最新にする") + "</button></div>" +
       '<span class="aimv">' + (byAcct ? '<button class="btn sm" data-ai="up" data-id="' + j.id + '" aria-label="上へ">▲</button><button class="btn sm" data-ai="dn" data-id="' + j.id + '" aria-label="下へ">▼</button>' : "") + '<button class="btn sm" data-ai="ed" data-id="' + j.id + '" aria-label="編集">編集</button></span></div>';
@@ -136,13 +136,13 @@
   const pmDate = v => { const m = /^\d{4}-(\d\d)-(\d\d)$/.exec(v || ""); return m ? +m[1] + "/" + +m[2] : ""; };
   function pmStrip(d) {
     const l = d.jobs.filter(j => j.pm).sort((a, b) => (a.pm < b.pm ? 1 : a.pm > b.pm ? -1 : 0));
-    const body = l.length ? l.map(j => { const a = acctOf(d, j.a); return '<div class="aimi"><span class="aie">' + esc(j.e) + "</span><b>" + esc(j.t) + '</b> <span class="aiarw">→</span> ' + (a ? '<button class="aipm-b" data-ai="jump" data-id="' + a.id + '" title="このアカウントの場所へ">📝 ' + esc(SVN(a.s)[1]) + "・" + esc(a.n) + "</button>" : "") + ' <span class="note">' + pmDate(j.pm) + "</span></div>"; }).join("") : '<p class="note">まだありません。作業の行の「📝 最新にする」を押すと、ここに並びます。</p>';
+    const body = l.length ? l.map(j => { const a = acctOf(d, j.a); if (ui.ed === j.id && ui.edIn === "s" && !j.fl) return '<div class="aijob editing">' + jobForm(d, j, false) + "</div>"; return '<div class="aimi" data-in="s"><span class="aie">' + esc(j.e) + '</span><b class="aitt" data-ai="ed" data-id="' + j.id + '" role="button" tabindex="0" title="押すと編集できます">' + esc(j.t) + '</b> <span class="aiarw">→</span> ' + (a ? '<button class="aipm-b" data-ai="jump" data-id="' + a.id + '" title="このアカウントの場所へ">📝 ' + esc(SVN(a.s)[1]) + "・" + esc(a.n) + "</button>" : "") + ' <span class="note">' + pmDate(j.pm) + "</span></div>"; }).join("") : '<p class="note">まだありません。作業の行の「📝 最新にする」を押すと、ここに並びます。</p>';
     return fold("po:pm", "aipmb", false, "<b>📝 最新プロンプト一覧</b>" + '<span class="note">' + l.length + "件　作業ごとに、プロンプトが一番育っているアカウント</span>", body);
   }
   function mainStrip(d) {
     const l = flagged(d);
     return fold("p:main", "aimain", true, "<b>⚑ 作業中</b>" + '<span class="note">' + (l.length ? l.length + "件　" : "") + "作業の左の旗を押すと、ここに並びます</span>",
-      (l.length ? l.map(j => { const a = acctOf(d, j.a); return '<div class="aimi"><button class="aifl on" data-ai="flag" data-id="' + j.id + '" title="旗をはずす" aria-label="旗をはずす">⚑</button><span class="aie">' + esc(j.e) + "</span><b>" + esc(j.t) + "</b> " + stChip(j.st) + (a ? ' <button class="aiwho' + (avail(a) ? "" : " wait") + '" data-ai="jump" data-id="' + a.id + '" title="このアカウントの場所へ">' + chipS(a) + "</button>" : "") + (j.n ? '<span class="ainote">' + esc(j.n) + "</span>" : "") + "</div>"; }).join("") : '<p class="note">旗を立てた作業はまだありません。</p>'));
+      (l.length ? l.map(j => { const a = acctOf(d, j.a); if (ui.ed === j.id && ui.edIn === "s") return '<div class="aijob editing">' + jobForm(d, j, false) + "</div>"; return '<div class="aimi" data-in="s"><button class="aifl on" data-ai="flag" data-id="' + j.id + '" title="旗をはずす" aria-label="旗をはずす">⚑</button><span class="aie">' + esc(j.e) + '</span><b class="aitt" data-ai="ed" data-id="' + j.id + '" role="button" tabindex="0" title="押すと編集できます">' + esc(j.t) + "</b> " + stChip(j.st) + (a ? ' <button class="aiwho' + (avail(a) ? "" : " wait") + '" data-ai="jump" data-id="' + a.id + '" title="このアカウントの場所へ">' + chipS(a) + "</button>" : "") + (j.n ? '<span class="ainote">' + esc(j.n) + "</span>" : "") + "</div>"; }).join("") : '<p class="note">旗を立てた作業はまだありません。</p>'));
   }
   function nowStrip(d) {
     return fold("p:now", "ainow", true, '<b>アカウントの状態</b><span class="note"><span class="aip ok">● 使える</span> <span class="aip ok use">● 使用中の作業あり</span> <span class="aip wait">◌ 待ち（再開時刻〜）</span>　名前を押すと、そのアカウントの場所に移ります</span>', SV.map(s => {
@@ -280,7 +280,7 @@
       return save();
     }
     if (a === "v") { ui.v = b.dataset.v; ui.pe = null; return A.render(); }
-    if (a === "ed") { ui.ed = id; ui.na = null; return A.render(); }
+    if (a === "ed") { ui.ed = id; ui.na = null; const w = e.target.closest("[data-in]"); ui.edIn = w ? w.dataset.in : ""; return A.render(); }
     if (a === "job-no") { ui.ed = null; ui.na = null; return A.render(); }
     if (a === "job-new") { ui.na = id; ui.ed = null; return A.render(); }
     if (a === "job-ok") {
