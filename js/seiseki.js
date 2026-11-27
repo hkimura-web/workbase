@@ -36,17 +36,24 @@
   const okd = s => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s);
 
   /* ---------- データ ---------- */
+  /* ひな形：はじめは TP。直したり足したり消したりすると S.tpl に保存され、次の学期・来年度の作業が、その形で出る */
+  const tpl = () => (Q.S && Array.isArray(Q.S.tpl) ? Q.S.tpl : TP.map((x, i) => ({ k: "d" + i, p: x[0], t: x[1], a: x[2], o: x[3], ps: x[4] })));
+  const tplOwn = () => { if (!Array.isArray(Q.S.tpl)) Q.S.tpl = tpl().map(e => Object.assign({}, e)); return Q.S.tpl; };
+  const tk0 = id => Q.S.tasks.find(x => x.id === id);
+  const dd = (a, b) => Math.round((J.pd(a) - J.pd(b)) / 864e5);
+  const tplFind = tk => tpl().find(e => e.k && e.k === tk.k) || tpl().find(e => e.p === tk.ph && e.t === tk.title);
   function gen(t, subs) {
     const A0 = { E: t.E, G: t.G, M: t.M }, out = [];
-    TP.forEach(([p, title, a, o, ps]) => {
-      (ps && subs.length ? subs : [""]).forEach(sub => out.push({ id: "t" + (uid++), term: t.id, ph: p, title, sub, due: J.addDays(A0[a], o), done: false, url: "" }));
+    tpl().forEach(e => {
+      (e.ps && subs.length ? subs : [""]).forEach(sub => out.push({ id: "t" + (uid++), term: t.id, ph: e.p, title: e.t, sub, due: J.addDays(A0[e.a] || t.E, e.o), done: false, url: "", k: e.k }));
     });
     return out;
   }
   function mig(s) {
     s = s && typeof s === "object" ? s : {};
     s.v = 1; s.terms = (Array.isArray(s.terms) ? s.terms : []).filter(t => t && t.id && okd(t.E) && okd(t.G) && okd(t.M)).map(t => Object.assign({}, t, { name: String(t.name || "無題"), subs: Array.isArray(t.subs) ? t.subs.map(String) : [] }));
-    s.tasks = (Array.isArray(s.tasks) ? s.tasks : []).filter(t => t && t.id && okd(t.due)).map(t => ({ id: String(t.id), term: t.term, ph: Math.max(0, Math.min(3, +t.ph || 0)), title: String(t.title || ""), sub: String(t.sub || ""), due: t.due, done: !!t.done, url: String(t.url || "") }));
+    s.tasks = (Array.isArray(s.tasks) ? s.tasks : []).filter(t => t && t.id && okd(t.due)).map(t => ({ id: String(t.id), term: t.term, ph: Math.max(0, Math.min(3, +t.ph || 0)), title: String(t.title || ""), sub: String(t.sub || ""), due: t.due, done: !!t.done, url: String(t.url || ""), k: t.k ? String(t.k) : "" }));
+    if (Array.isArray(s.tpl)) s.tpl = s.tpl.filter(e => e && e.k && e.t).map(e => ({ k: String(e.k), p: Math.max(0, Math.min(3, +e.p || 0)), t: String(e.t), a: "EGM".indexOf(e.a) >= 0 ? e.a : "E", o: Math.round(+e.o) || 0, ps: e.ps ? 1 : 0 })); else delete s.tpl;
     s.pr = s.pr && typeof s.pr === "object" ? s.pr : {};
     if (!s.terms.some(t => t.id === s.cur)) s.cur = s.terms.length ? s.terms[s.terms.length - 1].id : null;
     if (!Array.isArray(s.links)) s.links = JSON.parse(JSON.stringify(SD.LK));
@@ -196,10 +203,15 @@
     const all = mine();
     h += '<p class="note" style="margin-top:0">期限の変更や、資料のURLの登録ができます。URLを入れると、ホームの作業から「資料を開く」で飛べます。</p>';
     h += PH.map((n, i) => '<details class="wdet" data-ph="' + i + '"' + ((ui.det[i] !== undefined ? ui.det[i] : i === 0) ? " open" : "") + "><summary><b>" + n + '</b> <span class="note">' + all.filter(t => t.ph === i && t.done).length + "/" + all.filter(t => t.ph === i).length + '</span></summary><div class="tsl">' + all.filter(t => t.ph === i).sort(byDue).map(t =>
-      '<div class="tser"><input type="checkbox" aria-label="完了" data-schg="tg" data-id="' + t.id + '"' + (t.done ? " checked" : "") + '><span class="tstt' + (t.done ? " dn" : "") + '">' + esc(t.title) + (t.sub ? ' <span class="wc">' + esc(t.sub) + "</span>" : "") + '</span><input type="date" value="' + t.due + '" data-schg="due" data-id="' + t.id + '"><input type="text" placeholder="資料・シートのURL" value="' + esc(t.url) + '" data-schg="url" data-id="' + t.id + '"><button class="btn sm danger" data-sact="task-del" data-id="' + t.id + '" aria-label="この作業を消す">✕</button></div>').join("") + "</div></details>").join("");
-    h += '<details class="wdet" data-ph="add"' + (ui.det.add ? " open" : "") + '><summary><b>＋ 作業を1件足す</b></summary><div class="tsadd"><label>作業名</label><input type="text" id="ta_n"><div class="tsg2"><div><label>期限</label><input type="date" id="ta_d" value="' + today() + '"></div><div><label>工程</label><select id="ta_p">' + PH.map((n, i) => '<option value="' + i + '">' + n + "</option>").join("") + '</select></div></div><button class="btn on" data-sact="task-add">足す</button></div></details>';
+      ui.te === t.id ? teForm(t) : '<div class="tser"><input type="checkbox" aria-label="完了" data-schg="tg" data-id="' + t.id + '"' + (t.done ? " checked" : "") + '><span class="tstt' + (t.done ? " dn" : "") + '">' + esc(t.title) + (t.sub ? ' <span class="wc">' + esc(t.sub) + "</span>" : "") + '</span><input type="date" value="' + t.due + '" data-schg="due" data-id="' + t.id + '"><input type="text" placeholder="資料・シートのURL" value="' + esc(t.url) + '" data-schg="url" data-id="' + t.id + '"><button class="btn sm" data-sact="task-edit" data-id="' + t.id + '" aria-label="名前と期限を直す">✎ 直す</button><button class="btn sm danger" data-sact="task-del" data-id="' + t.id + '" aria-label="この作業を消す">✕</button></div>').join("") + "</div></details>").join("");
+    h += '<details class="wdet" data-ph="add"' + (ui.det.add ? " open" : "") + '><summary><b>＋ 作業を1件足す</b></summary><div class="tsadd"><label>作業名</label><input type="text" id="ta_n"><div class="tsg2"><div><label>期限</label><input type="date" id="ta_d" value="' + today() + '"></div><div><label>工程</label><select id="ta_p">' + PH.map((n, i) => '<option value="' + i + '">' + n + "</option>").join("") + '</select></div></div><label class="tsck" style="margin:6px 0"><input type="checkbox" id="ta_i" checked> 次の学期・来年度にも引き継ぐ（ひな形に加える）</label><button class="btn on" data-sact="task-add">足す</button></div></details>';
+    const own = Array.isArray(Q.S.tpl);
+    h += '<details class="wdet" data-ph="tpl"' + (ui.det.tpl ? " open" : "") + '><summary><b>ひな形（次の学期・来年度に出る作業）</b> <span class="note">' + tpl().length + "件" + (own ? "・直してあります" : "・はじめの状態") + '</span></summary><div class="tsadd"><p class="note" style="margin:0 0 6px">「直す」「足す」「消す」で「引き継ぐ」を選ぶと、ここが書き換わります。期限は「試験日（または成績の日）の何日前・何日後」で持つので、来年の試験日に合わせて、自動でずれます。</p>' +
+      PH.map((n, i) => '<div class="tspt"><b>' + n + "</b>" + tpl().filter(e => e.p === i).map(e => '<div class="note">' + esc(e.t) + "　" + ({ E: "試験日", G: "成績の日", M: "成績会議" }[e.a]) + (e.o === 0 ? "当日" : (e.o < 0 ? Math.abs(e.o) + "日前" : e.o + "日後")) + (e.ps ? "　（教科ごと）" : "") + "</div>").join("") + "</div>").join("") +
+      (own ? '<button class="btn sm danger" data-sact="tpl-reset">ひな形をはじめの状態に戻す</button>' : "") + "</div></details>";
     return h;
   }
+  const teForm = t => '<div class="tser tse"><div class="tsg2"><div><label>作業名</label><input type="text" id="te_t" value="' + esc(t.title) + '"></div><div><label>期限</label><input type="date" id="te_d" value="' + t.due + '"></div></div><label class="tsck"><input type="checkbox" id="te_i" checked> 次の学期・来年度にも引き継ぐ（期限は「試験日の何日前」で覚えます）</label><div><button class="btn on" data-sact="task-edit-ok" data-id="' + t.id + '">保存</button> <button class="btn" data-sact="task-edit-cancel">やめる</button></div></div>';
   const prd = () => {
     const id = Q.S.cur; if (!Q.S.pr[id]) {
       let src = null; for (const t of Q.S.terms.slice().reverse()) if (t.id !== id && Q.S.pr[t.id]) { src = Q.S.pr[t.id]; break; }
@@ -425,16 +437,37 @@
           const T = cur(); Object.assign(T, { name: n, E, G, M }); const fr = gen(T, T.subs);
           const RN = { "試験範囲を確定・配付": "試験範囲を確定・配付（2週間前までに）", "問題作成": "問題作成を完成（目標：2週間前）" };   /* 前の名前の作業は、新しい名前に直す */
           S0.tasks.filter(x => x.term === T.id).forEach(x => { if (RN[x.title]) x.title = RN[x.title]; });
-          S0.tasks.filter(x => x.term === T.id && !x.done).forEach(x => { const f = fr.find(y => y.ph === x.ph && y.title === x.title && y.sub === x.sub); if (f) x.due = f.due; });
-          fr.filter(y => !S0.tasks.some(x => x.term === T.id && x.ph === y.ph && x.title === y.title && x.sub === y.sub)).forEach(y => { if (y.title.indexOf("問題作成を始める") === 0) { y.done = diff(y.due) < 0; S0.tasks.push(y); } });   /* 新しく増えた「始める」だけ足す（過ぎた日のものは、済みにする） */
+          S0.tasks.filter(x => x.term === T.id && !x.done).forEach(x => { const f = fr.find(y => (x.k ? y.k === x.k : y.ph === x.ph && y.title === x.title) && y.sub === x.sub); if (f) x.due = f.due; });
+          fr.filter(y => !S0.tasks.some(x => x.term === T.id && x.sub === y.sub && ((x.k && x.k === y.k) || (x.ph === y.ph && x.title === y.title)))).forEach(y => { if (y.title.indexOf("問題作成を始める") === 0) { y.done = diff(y.due) < 0; S0.tasks.push(y); } });   /* 新しく増えた「始める」だけ足す（過ぎた日のものは、済みにする） */
         } else {
           const subs = V("sf_s").split(/[、,，]/).map(s => s.trim()).filter(Boolean), T = { id: "T" + (uid++), name: n, E, G, M, subs };
           S0.terms.push(T); S0.cur = T.id; S0.tasks = S0.tasks.concat(gen(T, subs));
         }
         ui.form = null; save(); A.render(); return;
       }
-      case "task-add": { const n = V("ta_n").trim(); if (!n || !V("ta_d")) return; S0.tasks.push({ id: "t" + (uid++), term: S0.cur, ph: +V("ta_p"), title: n, sub: "", due: V("ta_d"), done: false, url: "" }); save(); A.render(); return; }
-      case "task-del": if (root.confirm("この作業を消しますか？")) { S0.tasks = S0.tasks.filter(x => x.id !== id); save(); A.render(); } return;
+      case "task-add": {
+        const n = V("ta_n").trim(); if (!n || !V("ta_d")) return;
+        const nt = { id: "t" + (uid++), term: S0.cur, ph: +V("ta_p"), title: n, sub: "", due: V("ta_d"), done: false, url: "", k: "" };
+        if ($("ta_i") && $("ta_i").checked && cur()) { const a = nt.ph >= 2 ? "G" : "E", e = { k: "u" + (uid++), p: nt.ph, t: n, a, o: dd(nt.due, cur()[a]), ps: 0 }; tplOwn().push(e); nt.k = e.k; }
+        S0.tasks.push(nt); save(); A.render(); return;
+      }
+      case "task-edit": ui.te = id; ui.det[(tk0(id) || {}).ph] = true; A.render(); return;
+      case "task-edit-cancel": ui.te = null; A.render(); return;
+      case "task-edit-ok": {
+        const x = tk0(id), T = cur(), n = V("te_t").trim(), d = V("te_d"); if (!x || !T || !n || !d) return;
+        const e0 = tplFind(x);   /* 名前を直す前に、元のひな形を探す */
+        x.title = n; x.due = d;
+        if ($("te_i") && $("te_i").checked) { let e = e0 && tplOwn().find(y => y.k === e0.k); if (!e) { const a = x.ph >= 2 ? "G" : "E"; e = { k: "u" + (uid++), p: x.ph, t: n, a, o: 0, ps: x.sub ? 1 : 0 }; tplOwn().push(e); } e.t = n; e.o = dd(d, T[e.a]); x.k = e.k; }
+        ui.te = null; save(); A.render(); return;
+      }
+      case "task-del": {
+        const x = tk0(id); if (!x || !root.confirm("この作業を消しますか？")) return;
+        const e = tplFind(x);
+        S0.tasks = S0.tasks.filter(y => y.id !== id);
+        if (e && root.confirm("次の学期・来年度からも、この作業を出さないようにしますか？\n　OK ＝ ひな形からも消す\n　キャンセル ＝ 今回だけ消す")) { Q.S.tpl = tplOwn().filter(y => y.k !== e.k); }
+        save(); A.render(); return;
+      }
+      case "tpl-reset": if (root.confirm("ひな形を、はじめの状態に戻します。これまでの学期の作業は、そのままです。よろしいですか？")) { delete Q.S.tpl; save(); A.render(); } return;
       case "pr-add": prd().cl.push({ id: "c" + (uid++), n: "新クラス", en: 0, ry: 0, sp: 3 }); save(); A.render(); return;
       case "pr-del": if (root.confirm("このクラスを消しますか？")) { prd().cl.splice(+t.dataset.i, 1); save(); A.render(); } return;
       case "import": {

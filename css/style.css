@@ -1355,3 +1355,6 @@ button.aip:hover{filter:brightness(.96);text-decoration:underline}
 .ainow .ainr{padding:3px 0}
 #btn-ai svg.brain{fill:currentColor;stroke:none}#btn-ai svg.brain ellipse[stroke]{stroke:#fff}#btn-ai svg.brain g[fill=none]{stroke:#fff}
 #btn-ai svg.brain{display:none}
+/* テスト成績：作業の直し方・ひな形 */
+.tse{display:block;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:4px 0}
+.tspt{margin:6px 0}.tspt .note{padding-left:10px}
