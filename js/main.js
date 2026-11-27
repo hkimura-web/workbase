@@ -210,7 +210,8 @@
   function renderSide() {
     const md0 = A.ui.mode, cur = md0 === "work" ? A.ui.work.tab : md0 === "test" ? A.ui.test.tab : md0 === "kin" ? A.ui.kin.tab : A.ui.tab;
     const svg = k => '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">' + IC[k] + "</svg>";
-    let h = '<button class="si ai' + (md0 === "work" && cur === "ai" ? " on" : "") + '" data-side="work:ai"' + (md0 === "work" && cur === "ai" ? ' aria-current="page"' : "") + ">" + svg("ai") + "<span>AI</span></button>";
+    let h = '<button class="si ai' + (md0 === "work" && cur === "ai" ? " on" : "") + '" data-side="work:ai"' + (md0 === "work" && cur === "ai" ? ' aria-current="page"' : "") + ">" + svg("ai") + "<span>AI</span></button>" +
+      '<button class="si all" data-side="work:docs" data-all="1" title="授業・校務・テスト成績の手順・メモを、まとめて探します">' + svg("docs") + "<span>手順・メモ（すべて）</span></button>";
     SIDE.forEach(([gn, m, items]) => {
       h += '<div class="sg">' + gn + "</div>";
       items.forEach(([k, n]) => {
@@ -504,6 +505,7 @@
     if (sd) {
       const [m, k] = sd.dataset.side.split(":");
       A.ui.mode = m; LS.set("jd.mode", m);
+      if (sd.dataset.all && A.ui.mm) { A.ui.mm.cat.work = "all"; A.ui.mm.g = ""; A.ui.mm.q = ""; }   /* 「手順・メモ（すべて）」：全部の分類を、まとめて見る */
       if (m === "work") A.ui.work.tab = k; else if (m === "test") A.ui.test.tab = k; else if (m === "kin") A.ui.kin.tab = k; else A.ui.tab = k;
       A.ui.open = null; render(); window.scrollTo(0, 0); return;
     }
