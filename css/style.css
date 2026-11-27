@@ -1358,3 +1358,16 @@ button.aip:hover{filter:brightness(.96);text-decoration:underline}
 /* テスト成績：作業の直し方・ひな形 */
 .tse{display:block;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:4px 0}
 .tspt{margin:6px 0}.tspt .note{padding-left:10px}
+/* 作業一覧：1行表示 */
+.tser{grid-template-columns:22px minmax(0,1fr) 128px minmax(80px,24%) auto auto;gap:6px;padding:3px 0}
+.tser .tstt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.tser input[type=date],.tser input[type=text]{padding:2px 6px;font-size:12.5px;border-radius:6px;height:26px}
+.tser .btn.sm{padding:1px 8px;font-size:12px;white-space:nowrap}
+.tser.tse{display:block}
+@media (max-width:640px){.tser{grid-template-columns:22px minmax(0,1fr) auto auto}.tser input[type=date]{grid-column:auto}.tser input[type=text]{display:none}}
+/* ホーム：作業名を押すと、その場で直せる */
+.tsedt{cursor:pointer}.tsedt:hover{text-decoration:underline;text-decoration-style:dotted}
+.p-ts .wit.tse{display:block}
+@media (max-width:640px){.tser .btn.sm{grid-row:auto;grid-column:auto}}
+.tsadd .tsck,.tse .tsck{display:flex;gap:8px;align-items:center;justify-content:flex-start;width:auto;text-align:left}
+.tsadd .tsck input,.tse .tsck input{width:auto;margin:0}

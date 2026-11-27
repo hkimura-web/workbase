@@ -156,7 +156,8 @@
   }
   const tag = t => { const [l, c] = dueLbl(t); return '<span class="' + c + '">' + l + "</span>"; };
   function row(t) {
-    return '<div class="wit' + (t.done ? " dn" : "") + '"><input type="checkbox" aria-label="完了" data-schg="tg" data-id="' + t.id + '"' + (t.done ? " checked" : "") + '><div class="wbody" style="cursor:default"><b>' + esc(t.title) + "</b>" + (t.sub ? ' <span class="wc">' + esc(t.sub) + "</span>" : "") + " " + tag(t) + (t.url ? ' <a class="ml" href="' + esc(t.url) + '" target="_blank" rel="noopener noreferrer">資料を開く ↗</a>' : "") + "</div></div>";
+    if (ui.te === t.id) return teForm(t);
+    return '<div class="wit' + (t.done ? " dn" : "") + '"><input type="checkbox" aria-label="完了" data-schg="tg" data-id="' + t.id + '"' + (t.done ? " checked" : "") + '><div class="wbody" style="cursor:default"><b class="tsedt" data-sact="task-edit" data-id="' + t.id + '" role="button" tabindex="0" title="押すと、名前や期限をその場で直せます">' + esc(t.title) + "</b>" + (t.sub ? ' <span class="wc">' + esc(t.sub) + "</span>" : "") + " " + tag(t) + (t.url ? ' <a class="ml" href="' + esc(t.url) + '" target="_blank" rel="noopener noreferrer">資料を開く ↗</a>' : "") + "</div></div>";
   }
   const panel = (cls, title, count, body) => '<section class="panel ' + cls + '"><header class="panel-h"><h2>' + title + "</h2>" + (count ? '<span class="panel-n">' + count + "</span>" : "") + '</header><div class="panel-b">' + body + "</div></section>";
   const empty = m => '<p class="note" style="margin:0">' + m + "</p>";
