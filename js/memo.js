@@ -28,7 +28,9 @@
     class: { jugyo: ["授業", 1], kyozai: ["教材・プリント", 2], jimu: ["事務・提出", 3] },
     test: { jyunbi: ["試験準備", 1], seiseki: ["成績処理", 0], hokoku: ["報告・会議", 2], ryu: ["留学・欠席", 3] }
   };
-  const ui = { cat: { class: "class", work: "work", test: "test" }, g: "", q: "", open: {}, edit: null, mgr: false };
+  const ui = { cat: { class: "class", work: "work", test: "test" }, g: "", q: "", open: {}, edit: null, mgr: false, sort: "g" };
+  try { if (localStorage.getItem("jd.mmsort") === "t") ui.sort = "t"; } catch (e) { /* 覚えられなくても動く */ }
+  const FYM = [4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3];   /* 年度の順（4月はじまり） */
   A.ui.mm = ui; A.memo = {};
   const nf = x => String(x || "").normalize("NFKC").toLowerCase();
   const clone = x => JSON.parse(JSON.stringify(x));
@@ -191,6 +193,7 @@
       const sel = (f, cur, opts) => '<select data-mc="' + f + '" data-k="' + esc(k) + '" style="width:auto">' + opts.map(o => '<option value="' + esc(o[0]) + '"' + (cur === o[0] ? " selected" : "") + ">" + esc(o[1]) + "</option>").join("") + "</select>";
       b = '<div class="wcard" style="border:0;padding:4px 0 8px"><label>見出し</label><input type="text" value="' + esc(d.t) + '" data-mf="t" data-k="' + esc(k) + '">' +
         '<div class="mm-pick"><label class="tsimp">分類： ' + sel("cat", it.c, catsNow().map(x => [x.id, x.n])) + '</label><label class="tsimp">ジャンル： ' + sel("tag", d.tag || "", [["", "なし"]].concat(tagsNow().map(x => [x.id, x.n]))) + "</label></div>" +
+        '<label class="tsimp">時期（年間の流れの中で、いつ使うか）： ' + sel("mo", d.mo || "", [["", "決めない（校務の作業に結びついていれば、その月）"], ["r", "毎月"]].concat(FYM.map(m => [String(m), m + "月"]))) + ' <input type="number" min="1" max="31" data-mc="md" data-k="' + esc(k) + '" value="' + esc(d.md || "") + '" placeholder="日" style="width:4.5em"> 日ごろ</label>' +
         '<label class="tsimp"><input type="checkbox" data-mc="tip" data-k="' + esc(k) + '"' + (d.tip ? " checked" : "") + "> 重要（ホームの重要Tipsに出す）</label>" +
         '<label class="tsimp">重要Tipsのボタンを押したら： ' + sel("go", d.go || "", [["", "自動（説明が空なら資料をすぐ開く／説明があれば説明を出す）"], ["link", "いつも資料をすぐ開く"], ["detail", "いつも説明を出す"]]) + "</label>" +
         (it.c === "class" ? '<label>今日の授業で目立たせる言葉（空でもOK。例：古文，漢文。授業の単元名やクラス名に含まれると、授業の「今日」でこのTipsが目立ちます）</label><input type="text" value="' + esc(d.kw || "") + '" data-mf="kw" data-k="' + esc(k) + '" placeholder="例：古文，言語文化">' : "") +
@@ -201,10 +204,34 @@
     }
     return '<details class="wdet wdoc mo-card" style="border-left-color:' + ccol(it.c) + '" data-mk="' + esc(k) + '" data-id="' + esc(d.id) + '" data-ph="d' + esc(d.id) + '"' + (ui.open[k] || ed ? " open" : "") + ">" + sum + b + "</details>";
   }
+  /* メモの「時期」：自分で決めた月日があればそれ。なければ、このメモを手順に使っている校務の作業の月日 */
+  function whenOf(it) {
+    const d = it.d;
+    if (d.mo) return [{ m: d.mo === "r" ? "r" : +d.mo, dd: +d.md || 0, from: "" }];
+    const S = it.sk === "work" ? st("work") : null, out = [];
+    if (S) S.tasks.filter(t => t.p === d.id).forEach(t => out.push({ m: t.rep ? "r" : t.m, dd: t.rep ? 0 : (+t.dd || 0), from: t.t }));
+    return out;
+  }
+  const fyPos = m => (m === "r" ? 12 : FYM.indexOf(m));
+  const mdTxt = w => (w.m === "r" ? "毎月" : w.m + "月" + (w.dd ? w.dd + "日" : ""));
+  function timeH(items) {
+    const bk = {}, none = [];
+    items.forEach(it => {
+      const ws = whenOf(it).filter(w => fyPos(w.m) >= 0).sort((a, b) => fyPos(a.m) - fyPos(b.m) || (a.dd || 99) - (b.dd || 99));
+      if (!ws.length) { none.push(it); return; }
+      const w = ws[0], key = w.m === "r" ? "r" : String(w.m);
+      (bk[key] = bk[key] || []).push({ it, w, ws });
+    });
+    const cap = (w, ws) => '<div class="mmwhen"><b>' + mdTxt(w) + "</b>" + (w.from ? "　" + esc(w.from) + "の作業" : "") + (ws.length > 1 ? '<span class="note">　ほか：' + ws.slice(1).map(mdTxt).filter((x, i, a) => a.indexOf(x) === i).join("・") + "</span>" : "") + "</div>";
+    const sect = (name, l) => l.length ? '<div class="tgh"><span class="tgchip tgx tg-n">' + name + '</span><span class="tgn">' + l.length + "件</span></div>" + l.map(x => cap(x.w, x.ws) + card(x.it)).join("") : "";
+    return FYM.concat(["r"]).map(m => sect(m === "r" ? "毎月" : m + "月", (bk[m === "r" ? "r" : String(m)] || []).sort((a, b) => (a.w.dd || 99) - (b.w.dd || 99) || (a.it.d.t < b.it.d.t ? -1 : 1)))).join("") +
+      (none.length ? '<div class="tgh"><span class="tgchip tgx tg-n">時期なし</span><span class="tgn">' + none.length + '件</span><span class="note">　メモを編集して「時期」を入れると、ここから動きます</span></div>' + none.map(card).join("") : "");
+  }
   function listH(scope) {
     const tags = tagsNow(), known = {}; tags.forEach(t => { known[t.id] = 1; });
     const items = all().filter(it => match(it, scope));
     if (!items.length) return '<p class="note" style="margin:0">該当するメモがありません。</p>';
+    if (ui.sort === "t") return timeH(items);
     const rank = it => (it.c === scope ? 0 : 1);   /* 同じジャンルの中では、いま開いているモードのメモを先に */
     const sect = (t, l) => l.length ? '<div class="tgh">' + chip(t) + '<span class="tgn">' + l.length + "件</span></div>" + l.sort((a, b) => rank(a) - rank(b)).map(card).join("") : "";
     return sect(null, items.filter(x => !known[x.d.tag])) + tags.map(t => sect(t, items.filter(x => x.d.tag === t.id))).join("");   /* ジャンルなしは一番上 */
@@ -241,6 +268,7 @@
     h += '<div class="tsseg mmseg"><button class="btn' + (ui.g ? "" : " on") + '" data-ma="gen" data-v="">ジャンル：すべて</button>' +
       (() => { const kn = {}; tagsNow().forEach(t => { kn[t.id] = 1; }); const n = inCat.filter(it => !kn[it.d.tag]).length; return n || ui.g === "_" ? '<button class="btn' + (ui.g === "_" ? " on" : "") + '" data-ma="gen" data-v="_">ジャンルなし ' + n + "</button>" : ""; })() +
       tagsNow().filter(t => used[t.id] || ui.g === t.id).map(t => '<button class="btn' + (ui.g === t.id ? " on" : "") + '" data-ma="gen" data-v="' + esc(t.id) + '">' + esc(t.n) + " " + (used[t.id] || 0) + "</button>").join("") + "</div>";
+    h += '<div class="tsseg mmseg"><span class="note" style="align-self:center">並べ方：</span><button class="btn' + (ui.sort === "g" ? " on" : "") + '" data-ma="sort" data-v="g">ジャンル順</button><button class="btn' + (ui.sort === "t" ? " on" : "") + '" data-ma="sort" data-v="t" title="4月から3月まで、年間の流れの順に並べます">時期順（4月から）</button></div>';
     h += '<div id="mm_l" data-s="' + scope + '">' + listH(scope) + "</div>" + mgrH();
     return h;
   };
@@ -262,6 +290,7 @@
     switch (a) {
       case "cat": ui.cat[s] = t.dataset.v; ui.g = ""; A.render(); return;
       case "gen": ui.g = t.dataset.v; A.render(); return;
+      case "sort": ui.sort = t.dataset.v === "t" ? "t" : "g"; try { localStorage.setItem("jd.mmsort", ui.sort); } catch (x) { /* 覚えられなくても動く */ } A.render(); return;
       case "add": {
         const cf = ui.cat[s], c0 = cf === "all" ? s : cf, c = catsNow().some(x => x.id === c0) ? c0 : catsNow()[0].id, dst = st(c); if (!dst) return;
         const d = { id: "d" + (uid++), t: "新しいメモ", b: "", u: "", ut: "", ls: [], tip: false, kw: "", img: [], tag: ui.g === "_" ? "" : ui.g || "", go: "" };
@@ -296,8 +325,8 @@
     if (f) {
       const it = find(t.dataset.k); if (!it) return;
       if (f === "cat") { move(it, t.value); A.render(); return; }
-      if (f === "tag") it.d.tag = t.value; else if (f === "go") it.d.go = t.value; else if (f === "tip") it.d.tip = t.checked;
-      touch(it.c); if (f !== "go") A.render(); return;
+      if (f === "mo") { if (t.value) it.d.mo = t.value; else delete it.d.mo; } else if (f === "md") { const v = Math.max(0, Math.min(31, parseInt(t.value, 10) || 0)); if (v) it.d.md = v; else delete it.d.md; } else if (f === "tag") it.d.tag = t.value; else if (f === "go") it.d.go = t.value; else if (f === "tip") it.d.tip = t.checked;
+      touch(it.c); if (f !== "go" && f !== "md") A.render(); return;
     }
     if ((g === "c" || g === "ch") && t.value !== "x") { const l = clone(tagsNow()), x = l[+t.dataset.i]; if (x) { x.c = g === "ch" ? A.rt.nc(t.value) : +t.value || 0; setTags(l); ui.mgr = true; A.render(); } }
     if ((g === "cc" || g === "cch") && t.value !== "x") { const l = clone(catsNow()), x = l[+t.dataset.i]; if (x) { x.c = g === "cch" ? A.rt.nc(t.value) : +t.value || 0; setCats(l); ui.mgr = true; A.render(); } }

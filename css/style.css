@@ -1371,3 +1371,6 @@ button.aip:hover{filter:brightness(.96);text-decoration:underline}
 @media (max-width:640px){.tser .btn.sm{grid-row:auto;grid-column:auto}}
 .tsadd .tsck,.tse .tsck{display:flex;gap:8px;align-items:center;justify-content:flex-start;width:auto;text-align:left}
 .tsadd .tsck input,.tse .tsck input{width:auto;margin:0}
+/* 手順・メモ：時期順 */
+.mmwhen{margin:6px 0 2px 4px;font-size:12.5px;color:#4a5670}
+.mmwhen b{display:inline-block;min-width:4.5em;color:#1b6b64}
