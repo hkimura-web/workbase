@@ -21,7 +21,7 @@
   const FORMK = [["fee", "参加費の書式（現金払い清算書）"], ["esc", "引率費の書式（出張費精算・出金伝票）"], ["prog", "プログラム代の書式"], ["park", "駐車場代の書式（自家用車届）"]];
   const SL = ["未", "済", "不要"], SC = ["s0", "s1", "s2"];
   const Q = { S: null, sha: null, dirty: false, saving: false, timer: null, token: false, conflict: false, ask: false, needCreate: false, draftP: null, canSave: true, st: "読み込み中…", ready: false };
-  const ui = { tab: "home", Y: fy(now()), ed: null, open: {}, jed: false, msg: "" };
+  const ui = { tab: "home", Y: fy(now()), ed: null, open: {}, jed: false, msg: "", man: LS.get("jd.rkman") || "sei" };
   A.rikujo = {}; A.ui.rik = ui;
 
   /* ---------- データ ---------- */
@@ -129,7 +129,7 @@
   }
 
   /* ---------- 表示 ---------- */
-  const hdr = t => '<div class="pghd"><div><h2 class="pgt">TRACK</h2><p class="pgs">' + t + "</p></div></div>";
+  const hdr = t => '<div class="pghd"><div><h2 class="pgt">TRACK &amp; FIELD</h2><p class="pgs">' + t + "</p></div></div>";
   const panel = (h, b, cls) => '<section class="panel p-rik' + (cls ? " " + cls : "") + '"><header class="panel-h"><h2>' + h + '</h2></header><div class="panel-b">' + b + "</div></section>";
   const yearSel = () => '<select data-rchg="y" style="width:auto;margin:0 0 12px">' + years().map(y => "<option" + (y === ui.Y ? " selected" : "") + ">" + y + "</option>").join("") + "</select> 年度";
   function askH() {
@@ -203,6 +203,15 @@
     h += '<details class="rkman"' + (ui.jed ? " open" : "") + '><summary>手順メモ（登録費の請求・中体連への会員一覧の提出）</summary><textarea data-rchg="jnote" rows="9">' + esc(Q.S.jnote) + "</textarea></details>";
     return h + panel("リンク", linkChips() || '<p class="note" style="margin:0">「設定」でリンクを入れられます。</p>');
   }
+  function viewMan() {
+    const M = root.RIKU_MAN; if (!M) return askH() + hdr("登録方法") + '<p class="note">登録方法のデータが読み込めませんでした。</p>';
+    const cur = M.sec.find(x => x[0] === ui.man) || M.sec[0];
+    let h = askH() + hdr("JAAF登録の方法") + '<div class="seg rkseg">' + M.sec.map(x => '<button data-ract="man" data-v="' + x[0] + '" aria-pressed="' + (x[0] === cur[0]) + '">' + x[1] + "</button>").join("") + "</div>";
+    h += '<p class="note rkmi">' + esc(M.intro).replace(/\n/g, "<br>") + "</p>";
+    h += cur[2].map(st => '<section class="rkst">' + (st.n ? '<div class="rkstn">' + st.n + "</div>" : "") + '<div class="rksb">' + (st.h ? "<h3>" + esc(st.h) + "</h3>" : "") + (st.t ? '<p class="rkstt">' + esc(st.t) + "</p>" : "") +
+      (st.i.length ? '<div class="rkimgs">' + st.i.map(im => '<figure><a href="' + esc(im.s) + '" target="_blank" rel="noopener"><img src="' + esc(im.s) + '" loading="lazy" alt="' + esc(im.c || st.h || "手順の画像") + '"></a>' + (im.c ? "<figcaption>" + esc(im.c) + "</figcaption>" : "") + "</figure>").join("") + "</div>" : "") + "</div></section>").join("");
+    return h;
+  }
   function viewSet() {
     let h = askH() + hdr("設定");
     h += panel("共通のリンク", '<p class="note" style="margin:0 0 6px">1行に1つ。「名前 URL」の形で書きます。ホームとJAAF登録に出ます。</p><textarea data-rchg="links" rows="8" style="width:100%">' + esc(Q.S.links.map(l => l[0] + " " + l[1]).join("\n")) + "</textarea>");
@@ -214,7 +223,7 @@
   }
   A.rikujo.view = function () {
     if (!Q.ready) return '<p class="note">読み込んでいます…</p>';
-    return { home: viewHome, meets: viewMeets, jaaf: viewJaaf, set: viewSet }[ui.tab]();
+    return { home: viewHome, meets: viewMeets, jaaf: viewJaaf, man: viewMan, set: viewSet }[ui.tab]();
   };
   A.rikujo.sub = () => "陸上部" + (Q.ready ? " ・ " + ui.Y + "年度" : "");
   A.rikujo.statusText = () => Q.st;
@@ -252,6 +261,7 @@
       case "draft-drop": LS.del("jd.draft.rikujo"); Q.ask = false; Q.draftP = null; Q.dirty = false; Q.st = "GitHubと同期中"; A.render(); return;
       case "draft-use": Q.S = mig(Q.draftP); Q.draftP = null; Q.ask = false; Q.needCreate = false; Q.dirty = true; save(); A.render(); return;
       case "st": { const o = t.dataset.j ? jr : m, k = t.dataset.k; if (!o) return; o.st[k] = ((o.st[k] || 0) + 1) % 3; save(); A.render(); return; }
+      case "man": ui.man = t.dataset.v; LS.set("jd.rkman", ui.man); A.render(); root.scrollTo(0, 0); return;
       case "tg": ui.open[id] = !ui.open[id]; A.render(); return;
       case "open": {
         A.ui.mode = "rik"; LS.set("jd.mode", "rik");
