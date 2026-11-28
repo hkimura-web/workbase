@@ -2337,7 +2337,7 @@
    "ls": [],
    "t": "勤怠管理",
    "tag": "komu",
-   "tip": true,
+   "tip": false,
    "u": "https://hkimura-web.github.io/kintai/",
    "ut": ""
   }
