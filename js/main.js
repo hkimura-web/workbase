@@ -45,6 +45,10 @@
       else { dot = "ok"; txt = "GitHubに保存済み"; }
     } else if (dirty) { dot = "warn"; txt = "この端末に下書き保存中（GitHubには保存されていません）"; }
     else { dot = ""; txt = "閲覧モード：右上の「設定」でGitHubを接続すると、記録を保存できます"; }
+    if (A.ui.mode === "rik") {
+      $("status").innerHTML = '<span><span class="dot ' + (/⚠/.test(A.rikujo.statusText()) ? "warn" : /保存済み|同期/.test(A.rikujo.statusText()) ? "ok" : "") + '"></span>' + J.esc(A.rikujo.statusText()) + "</span>";
+      return;
+    }
     if (A.ui.mode === "kin") {
       $("status").innerHTML = '<span><span class="dot ' + (/⚠/.test(A.kintai.statusText()) ? "warn" : /保存済み|同期/.test(A.kintai.statusText()) ? "ok" : "") + '"></span>' + J.esc(A.kintai.statusText()) + "</span>";
       return;
@@ -195,6 +199,10 @@
     k_ot: '<path d="M4 18V6M4 18h16"/><path d="M8 14l3-4 3 3 5-6"/>',
     k_fh: '<path d="M5 8h12l-3-3M19 16H7l3 3"/>',
     k_ev: '<path d="M5 20V4M5 5h11l-2 3.5L16 12H5"/>',
+    r_home: '<path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-6h6v6"/>',
+    r_meets: '<path d="M5 20V4M5 5h11l-2 3.5L16 12H5"/>',
+    r_jaaf: '<rect x="4.5" y="3.5" width="15" height="17" rx="2"/><path d="M8 9l1.5 1.5L12 8M8 15l1.5 1.5L12 14M14 9.5h3M14 15.5h3"/>',
+    r_set: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
     k_set: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
     t_set: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
     set: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
@@ -205,10 +213,11 @@
     ["授業", "class", [["grid", "一覧"], ["plan", "計画表"], ["unit", "単元別"], ["sum", "サマリー"], ["lib", "資料"], ["memo", "手順・メモ"]]],
     ["校務", "work", [["home", "ホーム"], ["year", "年間"], ["links", "リンク集"], ["shiryo", "学校資料"], ["docs", "手順・メモ"], ["repeat", "くり返し"], ["cal", "カレンダー"], ["set", "校務の設定"]]],
     ["テスト成績", "test", [["home", "ホーム"], ["tasks", "作業一覧"], ["print", "印刷枚数"], ["links", "リンク集"], ["man", "手順・メモ"], ["set", "学期の設定"]]],
+    ["陸上部", "rik", [["home", "ホーム"], ["meets", "大会"], ["jaaf", "JAAF登録"], ["set", "陸上部の設定"]]],
     ["勤怠", "kin", [["home", "ダッシュボード"], ["cal", "カレンダー"], ["yk", "有給"], ["ot", "超過勤務"], ["fh", "振替休日"], ["ev", "行事予定"], ["set", "勤怠の設定"]]]
   ];
   function renderSide() {
-    const md0 = A.ui.mode, cur = md0 === "work" ? A.ui.work.tab : md0 === "test" ? A.ui.test.tab : md0 === "kin" ? A.ui.kin.tab : A.ui.tab;
+    const md0 = A.ui.mode, cur = md0 === "work" ? A.ui.work.tab : md0 === "test" ? A.ui.test.tab : md0 === "kin" ? A.ui.kin.tab : md0 === "rik" ? A.ui.rik.tab : A.ui.tab;
     const svg = k => '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">' + IC[k] + "</svg>";
     let h = '<button class="si ai' + (md0 === "work" && cur === "ai" ? " on" : "") + '" data-side="work:ai"' + (md0 === "work" && cur === "ai" ? ' aria-current="page"' : "") + ">" + svg("ai") + "<span>AI</span></button>" +
       '<button class="si all" data-side="work:docs" data-all="1" title="授業・校務・テスト成績の手順・メモを、まとめて探します">' + svg("docs") + "<span>手順・メモ（すべて）</span></button>";
@@ -218,8 +227,9 @@
         const on = m === md0 && cur === k;
         const bd = m === "work" && k === "home" && A.work && A.work.dueCount() ? '<span class="sbd">' + A.work.dueCount() + "</span>" :
           m === "test" && k === "home" && A.seiseki && A.seiseki.dueCount() ? '<span class="sbd">' + A.seiseki.dueCount() + "</span>" :
+          m === "rik" && k === "home" && A.rikujo && A.rikujo.dueCount() ? '<span class="sbd">' + A.rikujo.dueCount() + "</span>" :
           m === "kin" && k === "home" && A.kintai && A.kintai.dueCount() ? '<span class="sbd">' + A.kintai.dueCount() + "</span>" : "";
-        h += '<button class="si ' + m + (on ? " on" : "") + '" data-side="' + m + ":" + k + '"' + (on ? ' aria-current="page"' : "") + ">" + svg(m === "test" ? "t_" + k : m === "kin" ? "k_" + k : k) + "<span>" + n + "</span>" + bd + "</button>";
+        h += '<button class="si ' + m + (on ? " on" : "") + '" data-side="' + m + ":" + k + '"' + (on ? ' aria-current="page"' : "") + ">" + svg(m === "test" ? "t_" + k : m === "kin" ? "k_" + k : m === "rik" ? "r_" + k : k) + "<span>" + n + "</span>" + bd + "</button>";
       });
     });
     h += '<div class="sgap"></div><button class="si" data-act="settings">' + svg("gear") + "<span>設定・保存</span></button>";
@@ -227,10 +237,19 @@
   }
   function render() {
     if (!A.st) return;
-    const wm = A.ui.mode === "work", tm = A.ui.mode === "test", km = A.ui.mode === "kin";
+    const wm = A.ui.mode === "work", tm = A.ui.mode === "test", km = A.ui.mode === "kin", rm = A.ui.mode === "rik";
+    document.body.classList.toggle("rikmode", rm);
     document.body.classList.toggle("workmode", wm); document.body.classList.toggle("testmode", tm); document.body.classList.toggle("kinmode", km);
-    $("classtabs").hidden = wm || tm || km; $("worktabs").hidden = !wm; $("testtabs").hidden = !tm; $("kintabs").hidden = !km;
-    $("mode-class").setAttribute("aria-pressed", !wm && !tm && !km); $("mode-work").setAttribute("aria-pressed", wm); $("mode-test").setAttribute("aria-pressed", tm); $("mode-kin").setAttribute("aria-pressed", km);
+    $("classtabs").hidden = wm || tm || km || rm; $("worktabs").hidden = !wm; $("testtabs").hidden = !tm; $("kintabs").hidden = !km; $("rikutabs").hidden = !rm;
+    $("mode-rik").setAttribute("aria-pressed", rm); $("mode-class").setAttribute("aria-pressed", !wm && !tm && !km && !rm); $("mode-work").setAttribute("aria-pressed", wm); $("mode-test").setAttribute("aria-pressed", tm); $("mode-kin").setAttribute("aria-pressed", km);
+    if (rm) {
+      $("sub").textContent = A.rikujo.sub();
+      document.querySelectorAll("[data-rtab]").forEach(b => { if (b.classList.contains("tab")) b.setAttribute("aria-selected", b.dataset.rtab === A.ui.rik.tab); });
+      document.querySelector(".wrap").classList.remove("wide");
+      $("app").innerHTML = A.rikujo.view();
+      renderStatus(); renderBanner(); renderSide();
+      return;
+    }
     if (km) {
       $("sub").textContent = A.kintai.sub();
       document.querySelectorAll("[data-ktab]").forEach(b => { if (b.classList.contains("tab")) b.setAttribute("aria-selected", b.dataset.ktab === A.ui.kin.tab); });
@@ -506,7 +525,7 @@
       const [m, k] = sd.dataset.side.split(":");
       A.ui.mode = m; LS.set("jd.mode", m);
       if (sd.dataset.all && A.ui.mm) { A.ui.mm.cat.work = "all"; A.ui.mm.g = ""; A.ui.mm.q = ""; }   /* 「手順・メモ（すべて）」：全部の分類を、まとめて見る */
-      if (m === "work") A.ui.work.tab = k; else if (m === "test") A.ui.test.tab = k; else if (m === "kin") A.ui.kin.tab = k; else A.ui.tab = k;
+      if (m === "work") A.ui.work.tab = k; else if (m === "test") A.ui.test.tab = k; else if (m === "kin") A.ui.kin.tab = k; else if (m === "rik") A.ui.rik.tab = k; else A.ui.tab = k;
       A.ui.open = null; render(); window.scrollTo(0, 0); return;
     }
     const kt = e.target.closest("[data-ktab]");
@@ -759,7 +778,7 @@
     $("term").innerHTML = terms.map(t => '<option value="' + J.esc(t.id) + '">' + J.esc(t.name) + "</option>").join("");
     $("termwrap").hidden = terms.length < 2;
     A.ui.gridEdit = LS.get("jd.gridEdit") !== "0";
-    { const m0 = LS.get("jd.mode"); A.ui.mode = m0 === "work" || m0 === "test" || m0 === "kin" ? m0 : "class"; }
+    { const m0 = LS.get("jd.mode"); A.ui.mode = m0 === "work" || m0 === "test" || m0 === "kin" || m0 === "rik" ? m0 : "class"; }
     const saved = LS.get("jd.term");
     await loadTerm(terms.some(t => t.id === saved) ? saved : terms[terms.length - 1].id);
   })();

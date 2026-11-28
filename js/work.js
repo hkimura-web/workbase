@@ -475,8 +475,9 @@
     if (mc.cur || mc.carry) b += '<p class="note" style="margin:8px 0 0">' + (mc.cur ? mc.m0 + "月の校務（日付なし）：未完了 " + mc.cur + "件" : "") + (mc.cur && mc.carry ? " ／ " : "") + (mc.carry ? "繰越 " + mc.carry + "件" : "") + ' <button class="btn sm wbtn" data-wact="go-home">校務タブを開く</button></p>';
     b += ts.html;
     const kn = A.kintai && A.kintai.todayItems ? A.kintai.todayItems() : { n: 0, html: "" }; b += kn.html;
-    const n = due.length + ts.n + kn.n;
-    return panel("p-work" + (!due.length && !mc.cur && !mc.carry && !ts.n && !kn.n ? " p-slim" : ""), "今日の校務", n ? n + "件" : "", b);
+    const rk = A.rikujo && A.rikujo.todayItems ? A.rikujo.todayItems() : { n: 0, html: "" }; b += rk.html;
+    const n = due.length + ts.n + kn.n + rk.n;
+    return panel("p-work" + (!due.length && !mc.cur && !mc.carry && !ts.n && !kn.n && !rk.n ? " p-slim" : ""), "今日の校務", n ? n + "件" : "", b);
   };
   /* 「記録待ち」と同じお知らせ画面に出す、期限が近い校務 */
   A.work.remHtml = function () {
